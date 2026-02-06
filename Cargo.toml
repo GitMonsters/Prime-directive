@@ -41,3 +41,7 @@ path = "comprehensive_test.rs"
 [[bin]]
 name = "prime_directive"
 path = "prime_directive.rs"
+
+[[bin]]
+name = "agi_boredom"
+path = "agi_boredom_test.rs"
