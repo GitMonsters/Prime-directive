@@ -19,3 +19,8 @@ Thumbs.db
 
 # Test output
 *.log
+
+# Nested repositories and Python cache
+Prime-directive/
+__pycache__/
+*.pyc
