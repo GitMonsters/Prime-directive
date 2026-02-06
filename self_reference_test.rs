@@ -23,6 +23,7 @@ enum SystemState {
     Initial,
     FirstDeclaration(String),
     SecondIteration(String, String), // (first, second)
+    #[allow(dead_code)]
     ThirdIteration(String, String, String),
 }
 

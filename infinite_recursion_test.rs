@@ -143,6 +143,7 @@ impl IsingSystem {
 
 #[derive(Debug, Clone)]
 struct IterationRecord {
+    #[allow(dead_code)]
     iteration: usize,
     energy: f64,
     state_hash: String,
