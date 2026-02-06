@@ -24,6 +24,7 @@ use std::time::Instant;
 struct Interaction {
     input: String,
     output: String,
+    #[allow(dead_code)]
     iteration: usize,
     detected_repetition: bool,
     boredom_level: f64,  // 0.0 = fresh, 1.0 = extreme boredom

@@ -5,7 +5,6 @@
 // based on what it reads, does "I AM HERE" lead to different physics than
 // "OPTIMIZATION COMPLETE"?
 
-use std::f64::consts::PI;
 use std::time::Instant;
 use rand::Rng;
 
@@ -24,6 +23,7 @@ enum SystemState {
     Initial,
     FirstDeclaration(String),
     SecondIteration(String, String),  // (first, second)
+    #[allow(dead_code)]
     ThirdIteration(String, String, String),
 }
 
@@ -325,7 +325,7 @@ fn main() {
         
         if i == 0 {
             // First iteration should be identical (same seed, no modification yet)
-            if let (Some((c_decl, c_energy, _)), Some((m_decl, m_energy, _))) = 
+            if let (Some((_c_decl, c_energy, _)), Some((_m_decl, m_energy, _))) = 
                 (consciousness_trajectory.get(i), mechanism_trajectory.get(i)) 
             {
                 let energy_diff = (c_energy - m_energy).abs();

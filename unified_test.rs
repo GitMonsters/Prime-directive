@@ -123,6 +123,7 @@ struct IsingSystem {
     spins: Vec<i8>,
     coupling: Vec<Vec<f64>>,
     field: Vec<f64>,
+    #[allow(dead_code)]
     rng_seed: u64,  // Track RNG seed for reproducibility
 }
 
