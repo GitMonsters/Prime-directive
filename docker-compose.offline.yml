@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  empathy-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: empathy-module:offline
+    container_name: empathy-offline-demo
+
+    # GPU access
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HIP_VISIBLE_DEVICES=0
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+
+    # Networking: DISABLED (air-gapped)
+    networks:
+      - none
+
+    # Volume mounts (isolated)
+    volumes:
+      - ./:/workspace:ro
+      - /tmp/empathy-output:/output:rw
+
+    # Security & Isolation
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+    # Resource limits
+    mem_limit: 4g
+    cpus: '4'
+
+    # Run demo
+    command: python demo_empathy.py
+
+  empathy-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: empathy-module:offline
+    container_name: empathy-offline-tests
+
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HIP_VISIBLE_DEVICES=0
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+
+    # Networking: DISABLED
+    networks:
+      - none
+
+    volumes:
+      - ./:/workspace:ro
+      - /tmp/empathy-test-output:/output:rw
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+    mem_limit: 8g
+    cpus: '8'
+
+    # Run comprehensive tests
+    command: sh -c "echo '=== GPU AGI 100 Signifiers ===' && python gpu_agi_100_signifiers_test.py && echo -e '\n\n=== All Tests ===' && python gpu_all_tests.py && echo -e '\n\n=== Comprehensive ===' && python gpu_comprehensive_test.py"
+
+networks:
+  none:
+    driver: none
