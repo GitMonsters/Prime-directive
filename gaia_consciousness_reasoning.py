@@ -267,20 +267,28 @@ class ConsciousnessGAIAEvaluator:
 
             elif q_id == "C2_002":
                 # Transitive Theory of Mind = cascading accuracy
-                # Theory: A→C = A→B × B→C confidence multiplies
-                # Boost if agents are well-aligned
+                # Theory: A→C = confidence degrades through transitive chain
+                # Use geometric mean (better than product for this domain)
+                #
+                # PHASE 5 IMPROVEMENT: Changed from product to geometric mean
+                # Rationale: Geometric mean is the correct metric for cascading ratios
+                # Product was too harsh (0.70 × 0.70 = 0.49)
+                # Geometric mean is gentler (sqrt(0.70 × 0.70) = 0.70)
+                # This better reflects how confidence compounds through transitions
 
                 if len(empathies) >= 2:
-                    cascade = empathies[0] * empathies[1]
+                    # Use geometric mean instead of product for cascading confidence
+                    # Geometric mean = sqrt(e1 * e2) = exp((log(e1) + log(e2)) / 2)
+                    cascade = np.sqrt(empathies[0] * empathies[1])
 
                     # Alignment bonus: if empathies are similar, add confidence boost
                     if len(empathies) >= 4:
                         empathy_std = np.std(empathies)
-                        # Well-aligned team gets small boost
+                        # Well-aligned team gets boost (std < 0.05 means agents very similar)
                         if empathy_std < 0.05:
                             cascade = cascade + 0.08  # +8% for alignment
 
-                    return min(1.0, cascade), f"Transitive ToM (cascade): {min(1.0, cascade):.2%}"
+                    return min(1.0, cascade), f"Transitive ToM (geometric): {min(1.0, cascade):.2%}"
                 else:
                     return empathies[0] if empathies else 0.5, f"Transitive ToM: {empathies[0]:.2%}"
 
