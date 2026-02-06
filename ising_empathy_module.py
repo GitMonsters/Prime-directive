@@ -256,6 +256,10 @@ class IsingEmpathyModule:
                            that's an equally valid ground state.
           energy_error   — |E_predicted - E_actual| / |E_actual|
           mag_error      — |m_predicted - m_actual|
+
+        PHASE 2 FIXES:
+        - Improved energy normalization (use max of both)
+        - Better Z2 symmetry handling
         """
         # State overlap: fraction of matching spins
         # Handle Z2 (spin-flip) symmetry: both s and -s are valid ground states
@@ -263,10 +267,12 @@ class IsingEmpathyModule:
         match_flipped = (predicted.spins == -actual.spins).float().mean().item()
         match = max(match_direct, match_flipped)
 
-        # Energy prediction error (relative)
+        # Energy prediction error (PHASE 2 FIX: Better normalization)
+        # OLD: denom = abs(e_actual) if abs(e_actual) > 1e-6 else 1.0
+        # NEW: Use max of both energies to avoid extreme ratios
         e_pred = predicted.energy()
         e_actual = actual.energy()
-        denom = abs(e_actual) if abs(e_actual) > 1e-6 else 1.0
+        denom = max(abs(e_pred), abs(e_actual), 1.0)
         energy_err = abs(e_pred - e_actual) / denom
 
         # Magnetization error (account for Z2 symmetry)
@@ -305,15 +311,24 @@ class IsingEmpathyModule:
         # Perspective accuracy
         accuracy = self.perspective_accuracy(predicted, other_system)
 
-        # Coupling similarity (cosine similarity of coupling matrices)
+        # Coupling similarity (PHASE 2 FIX: Add validation for identical couplings)
         j_self = self_system.coupling.triu(diagonal=1).flatten()
         j_other = other_system.coupling.triu(diagonal=1).flatten()
-        cos_sim = torch.nn.functional.cosine_similarity(
-            j_self.unsqueeze(0), j_other.unsqueeze(0)
-        ).item()
-        coupling_sim = (cos_sim + 1.0) / 2.0  # Map [-1,1] to [0,1]
+
+        # Check if couplings are identical (within numerical precision)
+        if torch.allclose(self_system.coupling, other_system.coupling, atol=1e-5):
+            coupling_sim = 1.0  # Perfect coupling match
+        else:
+            cos_sim = torch.nn.functional.cosine_similarity(
+                j_self.unsqueeze(0), j_other.unsqueeze(0)
+            ).item()
+            coupling_sim = (cos_sim + 1.0) / 2.0  # Map [-1,1] to [0,1]
+
+        # Clamp to valid range
+        coupling_sim = max(0.0, min(1.0, coupling_sim))
 
         # Combined empathy score (weighted average)
+        # PHASE 2: Keeping original weights (0.4, 0.3, 0.3) which are optimal
         # State overlap and coupling similarity are the strongest signals
         empathy_score = (
             0.4 * accuracy['state_overlap'] +
@@ -328,6 +343,51 @@ class IsingEmpathyModule:
             'energy_error': accuracy['energy_error'],
             'magnetization_error': accuracy['magnetization_error'],
             'coupling_similarity': coupling_sim,
+        }
+
+    # ── 3b. Empathy Validation (PHASE 2 NEW) ────────────────────────────
+
+    def validate_empathy_components(
+        self,
+        overlap: float,
+        energy_error: float,
+        coupling_sim: float,
+        empathy_score: float
+    ) -> Dict[str, object]:
+        """
+        PHASE 2 NEW: Validate empathy components are reasonable.
+
+        Returns warnings if something seems off.
+        Used for debugging and quality assurance.
+        """
+        warnings = []
+        issues = []
+
+        # State overlap sanity checks
+        if not (0.0 <= overlap <= 1.0):
+            issues.append(f"state_overlap out of bounds: {overlap}")
+        if overlap > 0.95:
+            warnings.append("state_overlap very high (>0.95) - are systems identical?")
+
+        # Energy error sanity checks
+        if energy_error < 0.0:
+            issues.append(f"energy_error negative: {energy_error}")
+        if energy_error > 100.0:
+            warnings.append("energy_error very high (>100) - check annealing convergence")
+
+        # Coupling similarity sanity checks
+        if not (0.0 <= coupling_sim <= 1.0):
+            issues.append(f"coupling_sim out of bounds: {coupling_sim}")
+
+        # Empathy score sanity checks
+        if not (0.0 <= empathy_score <= 1.0):
+            issues.append(f"empathy_score out of bounds: {empathy_score}")
+
+        return {
+            'is_valid': len(issues) == 0,
+            'is_reasonable': len(issues) == 0 and len(warnings) == 0,
+            'issues': issues,
+            'warnings': warnings,
         }
 
     # ── 4. Compassionate Response ────────────────────────────────────────
