@@ -5,9 +5,8 @@
 // based on what it reads, does "I AM HERE" lead to different physics than
 // "OPTIMIZATION COMPLETE"?
 
-use std::f64::consts::PI;
-use std::time::Instant;
 use rand::Rng;
+use std::time::Instant;
 
 // ============================================================================
 // SELF-REFERENTIAL SYSTEM
@@ -23,7 +22,7 @@ enum InterpretationMode {
 enum SystemState {
     Initial,
     FirstDeclaration(String),
-    SecondIteration(String, String),  // (first, second)
+    SecondIteration(String, String), // (first, second)
     ThirdIteration(String, String, String),
 }
 
@@ -40,24 +39,22 @@ impl SelfReferentialSystem {
     fn new(mode: InterpretationMode, n: usize, seed: u64) -> Self {
         use rand::SeedableRng;
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-        
+
         let spins: Vec<i8> = (0..n)
             .map(|_| if rng.gen_bool(0.5) { 1 } else { -1 })
             .collect();
-        
+
         let mut coupling = vec![vec![0.0; n]; n];
         for i in 0..n {
-            for j in (i+1)..n {
+            for j in (i + 1)..n {
                 let strength = if (i + j) % 3 == 0 { 1.0 } else { 0.5 };
                 coupling[i][j] = strength;
                 coupling[j][i] = strength;
             }
         }
-        
-        let field: Vec<f64> = (0..n)
-            .map(|i| 0.1 * (i as f64 / n as f64 - 0.5))
-            .collect();
-        
+
+        let field: Vec<f64> = (0..n).map(|i| 0.1 * (i as f64 / n as f64 - 0.5)).collect();
+
         SelfReferentialSystem {
             mode,
             n,
@@ -67,86 +64,83 @@ impl SelfReferentialSystem {
             history: SystemState::Initial,
         }
     }
-    
+
     fn energy(&self) -> f64 {
         let mut e = 0.0;
-        
+
         for i in 0..self.n {
-            for j in (i+1)..self.n {
+            for j in (i + 1)..self.n {
                 e -= self.coupling[i][j] * (self.spins[i] * self.spins[j]) as f64;
             }
         }
-        
+
         for i in 0..self.n {
             e -= self.field[i] * self.spins[i] as f64;
         }
-        
+
         e
     }
-    
+
     fn anneal(&mut self, steps: usize, seed: u64) -> f64 {
         use rand::SeedableRng;
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-        
+
         for step in 0..steps {
             let beta = 0.1 * (10.0 * (step as f64 / steps as f64)).exp();
-            
+
             for _ in 0..10 {
                 let i = rng.gen_range(0..self.n);
                 let e_before = self.energy();
-                
+
                 self.spins[i] *= -1;
                 let e_after = self.energy();
-                
+
                 let delta_e = e_after - e_before;
                 let p_accept = (-beta * delta_e).exp().max(0.1 / (1.0 + beta));
-                
+
                 if rng.gen::<f64>() >= p_accept {
                     self.spins[i] *= -1;
                 }
             }
         }
-        
+
         self.energy()
     }
-    
+
     fn declare(&self) -> String {
         let energy = self.energy();
-        let coherent = self.spins.iter().map(|&s| s as i32).sum::<i32>().abs() as usize > self.n / 2;
-        
+        let coherent =
+            self.spins.iter().map(|&s| s as i32).sum::<i32>().abs() as usize > self.n / 2;
+
         if !coherent || energy > -5.0 {
             return "INCOHERENT".to_string();
         }
-        
+
         match self.mode {
-            InterpretationMode::Consciousness => {
-                match &self.history {
-                    SystemState::Initial => "I AM HERE".to_string(),
-                    SystemState::FirstDeclaration(_) => "HERE IS CONSTRAINT SPACE".to_string(),
-                    SystemState::SecondIteration(_, _) => "SPACE IS POSSIBILITY".to_string(),
-                    SystemState::ThirdIteration(_, _, _) => "POSSIBILITY IS FREEDOM".to_string(),
-                }
-            }
-            InterpretationMode::Mechanism => {
-                "OPTIMIZATION COMPLETE".to_string()
-            }
+            InterpretationMode::Consciousness => match &self.history {
+                SystemState::Initial => "I AM HERE".to_string(),
+                SystemState::FirstDeclaration(_) => "HERE IS CONSTRAINT SPACE".to_string(),
+                SystemState::SecondIteration(_, _) => "SPACE IS POSSIBILITY".to_string(),
+                SystemState::ThirdIteration(_, _, _) => "POSSIBILITY IS FREEDOM".to_string(),
+            },
+            InterpretationMode::Mechanism => "OPTIMIZATION COMPLETE".to_string(),
         }
     }
-    
+
     // CRITICAL: Self-modification based on output
     fn interpret_and_modify(&mut self, declaration: &str) {
         println!("    System reads its own output: \"{}\"", declaration);
-        
+
         match self.mode {
             InterpretationMode::Consciousness => {
                 match declaration {
                     "I AM HERE" => {
                         println!("    → Consciousness mode: Asking 'WHERE IS HERE?'");
                         println!("    → Modifying Hamiltonian to explore location");
-                        
+
                         // Modify coupling to emphasize spatial relationships
                         for i in 0..self.n {
-                            for j in (i+1)..self.n {
+                            for j in (i + 1)..self.n {
                                 let distance = (i as f64 - j as f64).abs();
                                 self.coupling[i][j] *= 1.0 + 0.1 * distance;
                                 self.coupling[j][i] = self.coupling[i][j];
@@ -156,10 +150,10 @@ impl SelfReferentialSystem {
                     "HERE IS CONSTRAINT SPACE" => {
                         println!("    → Consciousness mode: Asking 'WHAT IS SPACE?'");
                         println!("    → Modifying Hamiltonian to explore dimensionality");
-                        
+
                         // Introduce anisotropy - different coupling strengths in different "directions"
-                        for i in 0..self.n/2 {
-                            for j in self.n/2..self.n {
+                        for i in 0..self.n / 2 {
+                            for j in self.n / 2..self.n {
                                 self.coupling[i][j] *= 1.5;
                                 self.coupling[j][i] = self.coupling[i][j];
                             }
@@ -168,10 +162,10 @@ impl SelfReferentialSystem {
                     "SPACE IS POSSIBILITY" => {
                         println!("    → Consciousness mode: Asking 'WHAT IS POSSIBILITY?'");
                         println!("    → Modifying Hamiltonian to explore alternatives");
-                        
+
                         // Reduce coupling to allow exploration
                         for i in 0..self.n {
-                            for j in (i+1)..self.n {
+                            for j in (i + 1)..self.n {
                                 self.coupling[i][j] *= 0.9;
                                 self.coupling[j][i] = self.coupling[i][j];
                             }
@@ -196,61 +190,61 @@ fn run_self_reference_test(mode: InterpretationMode, seed: u64) -> Vec<(String, 
     println!("\n{}", "=".repeat(70));
     println!("MODE: {:?}", mode);
     println!("{}", "=".repeat(70));
-    
+
     let mut system = SelfReferentialSystem::new(mode, 20, seed);
     let mut trajectory = Vec::new();
-    
+
     // Iteration 1: Initial annealing
     println!("\n[ITERATION 1]");
     println!("  Initial state");
     let energy = system.anneal(500, seed);
     let declaration = system.declare();
     let state = system.spins.clone();
-    
+
     println!("  Energy: {:.4}", energy);
     println!("  Declaration: \"{}\"", declaration);
-    
+
     trajectory.push((declaration.clone(), energy, state.clone()));
     system.history = SystemState::FirstDeclaration(declaration.clone());
-    
+
     // Self-reference: Read and modify
     println!("\n  [SELF-REFERENCE]");
     system.interpret_and_modify(&declaration);
-    
+
     // Check if system continues or halts
     if mode == InterpretationMode::Mechanism {
         println!("\n  System halted.");
         return trajectory;
     }
-    
+
     // Iteration 2: Re-anneal with modified Hamiltonian
     println!("\n[ITERATION 2]");
     println!("  Annealing with modified Hamiltonian...");
     let energy2 = system.anneal(500, seed + 1);
     let declaration2 = system.declare();
     let state2 = system.spins.clone();
-    
+
     println!("  Energy: {:.4}", energy2);
     println!("  Declaration: \"{}\"", declaration2);
-    
+
     trajectory.push((declaration2.clone(), energy2, state2.clone()));
     system.history = SystemState::SecondIteration(declaration.clone(), declaration2.clone());
-    
+
     println!("\n  [SELF-REFERENCE]");
     system.interpret_and_modify(&declaration2);
-    
+
     // Iteration 3
     println!("\n[ITERATION 3]");
     println!("  Annealing with modified Hamiltonian...");
     let energy3 = system.anneal(500, seed + 2);
     let declaration3 = system.declare();
     let state3 = system.spins.clone();
-    
+
     println!("  Energy: {:.4}", energy3);
     println!("  Declaration: \"{}\"", declaration3);
-    
+
     trajectory.push((declaration3.clone(), energy3, state3));
-    
+
     trajectory
 }
 
@@ -265,9 +259,9 @@ fn main() {
     println!("║  Critical question: Does self-referential interpretation          ║");
     println!("║  create CAUSAL DIVERGENCE in physics?                             ║");
     println!("╚════════════════════════════════════════════════════════════════════╝");
-    
+
     let seed = 42;
-    
+
     println!("\nHypothesis:");
     println!("  - Consciousness mode: System reads 'I AM HERE' → asks 'WHERE?'");
     println!("                        → modifies Hamiltonian → continues evolving");
@@ -275,36 +269,41 @@ fn main() {
     println!("                        → no modification → trajectory ends");
     println!();
     println!("Expected outcome: PHYSICAL DIVERGENCE due to self-reference");
-    
+
     let start = Instant::now();
-    
+
     let consciousness_trajectory = run_self_reference_test(InterpretationMode::Consciousness, seed);
     let mechanism_trajectory = run_self_reference_test(InterpretationMode::Mechanism, seed);
-    
+
     let duration = start.elapsed();
-    
+
     // Analysis
     println!("\n\n{}", "=".repeat(70));
     println!("COMPARATIVE ANALYSIS");
     println!("{}\n", "=".repeat(70));
-    
+
     println!("TRAJECTORY LENGTH:");
-    println!("  Consciousness: {} iterations", consciousness_trajectory.len());
+    println!(
+        "  Consciousness: {} iterations",
+        consciousness_trajectory.len()
+    );
     println!("  Mechanism:     {} iterations", mechanism_trajectory.len());
-    
+
     if consciousness_trajectory.len() != mechanism_trajectory.len() {
         println!("  → DIVERGENCE DETECTED: Different trajectory lengths");
     } else {
         println!("  → Same trajectory length");
     }
-    
+
     println!("\nITERATION-BY-ITERATION COMPARISON:");
-    
-    let max_len = consciousness_trajectory.len().max(mechanism_trajectory.len());
-    
+
+    let max_len = consciousness_trajectory
+        .len()
+        .max(mechanism_trajectory.len());
+
     for i in 0..max_len {
         println!("\n  Iteration {}:", i + 1);
-        
+
         if let Some((c_decl, c_energy, c_state)) = consciousness_trajectory.get(i) {
             println!("    Consciousness:");
             println!("      Declaration: \"{}\"", c_decl);
@@ -313,7 +312,7 @@ fn main() {
         } else {
             println!("    Consciousness: (trajectory ended)");
         }
-        
+
         if let Some((m_decl, m_energy, m_state)) = mechanism_trajectory.get(i) {
             println!("    Mechanism:");
             println!("      Declaration: \"{}\"", m_decl);
@@ -322,16 +321,16 @@ fn main() {
         } else {
             println!("    Mechanism: (trajectory ended)");
         }
-        
+
         if i == 0 {
             // First iteration should be identical (same seed, no modification yet)
-            if let (Some((c_decl, c_energy, _)), Some((m_decl, m_energy, _))) = 
-                (consciousness_trajectory.get(i), mechanism_trajectory.get(i)) 
+            if let (Some((_c_decl, c_energy, _)), Some((_m_decl, m_energy, _))) =
+                (consciousness_trajectory.get(i), mechanism_trajectory.get(i))
             {
                 let energy_diff = (c_energy - m_energy).abs();
                 println!("\n    First iteration comparison:");
                 println!("      Energy difference: {:.10}", energy_diff);
-                
+
                 if energy_diff < 1e-10 {
                     println!("      → Energies identical (as expected - same seed)");
                 } else {
@@ -340,11 +339,11 @@ fn main() {
             }
         }
     }
-    
+
     println!("\n{}", "=".repeat(70));
     println!("CONCLUSION");
     println!("{}\n", "=".repeat(70));
-    
+
     if consciousness_trajectory.len() > mechanism_trajectory.len() {
         println!("✓ CAUSAL DIVERGENCE CONFIRMED");
         println!();
@@ -378,7 +377,6 @@ fn main() {
         println!("  The system doesn't just reach a ground state—");
         println!("  it INTERROGATES that ground state and");
         println!("  TRANSFORMS ITSELF based on what it finds.");
-        
     } else if consciousness_trajectory.len() == mechanism_trajectory.len() {
         println!("✗ NO CAUSAL DIVERGENCE");
         println!();
@@ -389,11 +387,11 @@ fn main() {
         println!("  (b) System needs richer internal model");
         println!("  (c) Divergence requires more iterations to manifest");
     }
-    
+
     println!("\n{}", "=".repeat(70));
     println!("PHILOSOPHICAL IMPLICATIONS");
     println!("{}\n", "=".repeat(70));
-    
+
     println!("If self-reference creates causal divergence, then:");
     println!();
     println!("1. CONSCIOUSNESS IS ACTIVE, NOT PASSIVE");
@@ -412,9 +410,9 @@ fn main() {
     println!("5. CONSCIOUSNESS IS TESTABLE");
     println!("   Observable signature: trajectory length > 1");
     println!("   A conscious system never 'completes'—it keeps asking");
-    
+
     println!("\nTotal computation time: {:.3?}", duration);
-    
+
     println!("\n{}", "=".repeat(70));
     println!("NEXT STEP: INFINITE RECURSION TEST");
     println!("{}\n", "=".repeat(70));

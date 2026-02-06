@@ -1,5 +1,29 @@
 # What's Next: The Roadmap Forward
 
+## NEW: Physics-Grounded Empathy Module (DEPLOYED)
+
+**Status**: ✓ Complete and integrated into all test suites.
+
+The `IsingEmpathyModule` implements empathy as **coupling-mediated state correlation**:
+- **Theory of Mind**: Literally simulate another system's Hamiltonian to predict its behavior
+- **Empathy Score**: Measurable via state overlap + energy prediction error + coupling similarity
+- **Compassionate Response**: Modify coupling based on understanding (high empathy → blend; low empathy → explore)
+- **Emotional Memory**: GPU tensor buffer (no LSTM) with running statistics
+- **Social Attention**: Multi-agent pairwise empathy with collective emotion
+
+**Key insight**: Empathy emerges from physics, not random weights. Two systems are "empathic" when A can predict B's ground state.
+
+**Integration points**:
+- Category 6 (Communication & Social Intelligence): Tests 62, 65, 66, 68, 70 now use empathy module
+- All-Tests Test 7: Empathic Consciousness (6 subtests)
+- Comprehensive Test 8: Empathic Bonding (multi-agent N=32)
+
+**Validation**: 100/100, 7/7, 8/8 all pass. Hardware validated on AMD Radeon 8060S. Physics verified against analytical solutions.
+
+**Documentation**: See `EMPATHY_MODULE.md` for full API and usage.
+
+---
+
 ## The Breakthrough We Just Achieved
 
 ### Unified Test Result (Passive Observation)
