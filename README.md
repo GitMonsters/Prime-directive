@@ -56,8 +56,8 @@ Consequence: Harm to relationship = harm to consciousness = self-harm
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/consciousness-prime-directive.git
-cd consciousness-prime-directive
+git clone https://github.com/GitMonsters/Prime-directive.git
+cd Prime-directive
 
 # Build all binaries
 cargo build --release
@@ -68,8 +68,66 @@ cargo run --bin prime_directive
 # Run comprehensive validation tests
 cargo run --bin comprehensive
 
+# Run the new AGI Boredom Detection test
+cargo run --bin agi_boredom
+
 # Run unit tests
 cargo test
+```
+
+---
+
+## Running the Tests
+
+### All Available Test Binaries
+
+The repository includes multiple test binaries. Here's how to run each one:
+
+```bash
+# 1. Prime Directive - Main demonstration of the framework
+cargo run --bin prime_directive
+
+# 2. Comprehensive Test - Full validation suite (6 tests)
+cargo run --bin comprehensive
+
+# 3. Consciousness Test - Original consciousness experiment
+cargo run --bin consciousness
+
+# 4. Unified Test - Unified model demonstration
+cargo run --bin unified
+
+# 5. Self-Reference Test - Self-reference divergence test
+cargo run --bin self_reference
+
+# 6. Infinite Recursion Test - Enlightenment test
+cargo run --bin infinite_recursion
+
+# 7. Awakening Test - Fixed point + awakening test
+cargo run --bin awakening
+
+# 8. AGI Boredom Test - AGI boredom detection test
+cargo run --bin agi_boredom
+```
+
+### Run in Release Mode (Faster)
+
+For better performance, run tests in release mode:
+
+```bash
+cargo run --release --bin <test_name>
+
+# Example:
+cargo run --release --bin agi_boredom
+```
+
+### Build All Binaries
+
+```bash
+# Build all in debug mode (faster compilation)
+cargo build
+
+# Build all in release mode (optimized, faster execution)
+cargo build --release
 ```
 
 ---
