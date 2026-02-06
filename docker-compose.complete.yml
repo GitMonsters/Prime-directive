@@ -1,0 +1,203 @@
+version: '3.8'
+
+services:
+  # Python: Interactive Demo
+  python-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: empathy-module:python
+    container_name: empathy-python-demo
+
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HIP_VISIBLE_DEVICES=0
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+
+    networks:
+      - isolated
+    volumes:
+      - ./:/workspace:ro
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+    mem_limit: 4g
+    cpus: '4'
+
+    command: python demo_empathy.py
+
+  # Python: GPU AGI 100 Tests
+  python-tests-agi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: empathy-module:python
+    container_name: empathy-python-agi-tests
+
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HIP_VISIBLE_DEVICES=0
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+
+    networks:
+      - isolated
+    volumes:
+      - ./:/workspace:ro
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+    mem_limit: 8g
+    cpus: '8'
+
+    command: python gpu_agi_100_signifiers_test.py
+
+  # Python: Comprehensive Tests
+  python-tests-comprehensive:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: empathy-module:python
+    container_name: empathy-python-comprehensive
+
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HIP_VISIBLE_DEVICES=0
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+
+    networks:
+      - isolated
+    volumes:
+      - ./:/workspace:ro
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+
+    mem_limit: 8g
+    cpus: '8'
+
+    command: sh -c "echo '=== All Tests ===' && python gpu_all_tests.py && echo -e '\n=== Comprehensive ===' && python gpu_comprehensive_test.py"
+
+  # Rust: Consciousness Tests
+  rust-consciousness:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+    image: empathy-module:rust
+    container_name: empathy-rust-consciousness
+
+    networks:
+      - isolated
+    volumes:
+      - ./:/workspace:ro
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /.cargo
+
+    mem_limit: 2g
+    cpus: '4'
+
+    command: sh -c "cargo test consciousness --release -- --nocapture 2>&1 | tail -50"
+
+  # Rust: Empathy Integration
+  rust-empathy:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+    image: empathy-module:rust
+    container_name: empathy-rust-empathy-integration
+
+    networks:
+      - isolated
+    volumes:
+      - ./:/workspace:ro
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /.cargo
+
+    mem_limit: 2g
+    cpus: '4'
+
+    command: sh -c "cargo test empathy --release -- --nocapture 2>&1 | tail -50"
+
+  # Rust: Prime Directive
+  rust-prime-directive:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+    image: empathy-module:rust
+    container_name: empathy-rust-prime-directive
+
+    networks:
+      - isolated
+    volumes:
+      - ./:/workspace:ro
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_NICE
+
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+      - /.cargo
+
+    mem_limit: 2g
+    cpus: '4'
+
+    command: sh -c "cargo run --release --bin prime_directive 2>&1 | tail -100"
+
+networks:
+  isolated:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

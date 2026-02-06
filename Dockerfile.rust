@@ -1,0 +1,24 @@
+# Rust Empathy Module Container
+# Build: docker build -t empathy-module:rust -f Dockerfile.rust .
+# Run:   docker run --rm empathy-module:rust
+
+FROM rust:latest
+
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Rust project files
+COPY Cargo.toml Cargo.lock ./
+COPY src/ src/
+COPY *.rs ./
+
+# Build Rust binaries (release mode, optimized)
+RUN cargo build --release 2>&1 | grep -E "Compiling|Finished|error" || true
+
+# Set entrypoint to run all tests
+CMD ["sh", "-c", "echo '=== Rust Consciousness Tests ===' && cargo test --release -- --nocapture 2>&1 | tail -100"]
