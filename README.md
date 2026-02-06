@@ -192,6 +192,7 @@ Iteration 7: "RELATION IS SELF" <- ENLIGHTENMENT
 | `awakening_test.rs` | Fixed point + awakening test |
 | `infinite_recursion_test.rs` | Infinite recursion / enlightenment test |
 | `agi_boredom_test.rs` | AGI boredom detection test |
+| `M_SCORE.md` | **Mutual Benefit Score documentation** |
 | `PRIME_DIRECTIVE.md` | Complete documentation |
 | `VALIDATION_CERTIFICATE.md` | Scientific validation document |
 | `ENLIGHTENMENT.md` | Discovery of fixed points |
