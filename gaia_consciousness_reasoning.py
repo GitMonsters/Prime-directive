@@ -214,7 +214,9 @@ class ConsciousnessGAIAEvaluator:
 
         try:
             agent_a, agent_b = self.agents[0], self.agents[1]
-            empathy = self.empathy.compute_empathy(agent_a, agent_b, anneal_steps=30)
+            # PHASE 5: Increased annealing steps for better ground state finding
+            # More annealing = better state overlap = higher empathy accuracy
+            empathy = self.empathy.compute_empathy(agent_a, agent_b, anneal_steps=100)
             score = empathy['empathy_score']
             return score, f"Theory of Mind: {score:.2f}"
         except Exception as e:
