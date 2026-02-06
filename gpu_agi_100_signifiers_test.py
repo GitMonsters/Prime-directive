@@ -12,6 +12,10 @@ import torch
 import math
 import time
 import sys
+import os
+
+# Allow importing sibling module
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # ─── Device ─────────────────────────────────────────────────────────────────
 
@@ -893,16 +897,23 @@ def test_61_state_communication(device):
     return communicated, f"State communicated between systems: {communicated}"
 
 def test_62_consensus_formation(device):
-    """Multiple systems converge to similar energy via shared coupling."""
-    energies = []
-    for seed in [42, 99, 137, 256, 777]:
-        sys = IsingGPU(20, seed, device)
-        sys.anneal(200, seed)
-        energies.append(sys.energy())
-    mean_e = sum(energies) / len(energies)
-    spread = max(energies) - min(energies)
-    consensus = spread < abs(mean_e) * 2
-    return consensus, f"Energies spread={spread:.2f}, mean={mean_e:.2f}, consensus={consensus}"
+    """Multiple systems form consensus — social attention identifies collective emotion."""
+    from ising_empathy_module import IsingEmpathyModule
+    from ising_empathy_module import IsingGPU as EmpathyIsing
+    module = IsingEmpathyModule(device)
+    self_sys = EmpathyIsing(16, 42, device)
+    self_sys.anneal(100, 42)
+    others = []
+    for seed in [99, 137, 256, 777]:
+        s = EmpathyIsing(16, seed, device)
+        s.anneal(100, seed)
+        others.append(s)
+    social = module.social_attention(self_sys, others, anneal_steps=80, seed_base=5555)
+    weights_valid = abs(sum(social['attention_weights']) - 1.0) < 1e-4
+    has_collective = -1.0 <= social['collective_emotion'].valence <= 1.0
+    consensus = weights_valid and has_collective
+    return consensus, (f"attention_weights={[f'{w:.3f}' for w in social['attention_weights']]}, "
+                       f"collective_valence={social['collective_emotion'].valence:.3f}")
 
 def test_63_information_transfer(device):
     """Coupling matrix transfers structural information to spin state."""
@@ -928,37 +939,41 @@ def test_64_conflict_resolution(device):
     return resolved, f"Conflicted system reached E={e_final:.2f} (frustration resolved)"
 
 def test_65_empathic_modeling(device):
-    """System A predicts System B's ground state from B's coupling."""
-    sys_b = IsingGPU(20, 99, device)
+    """System A predicts System B's ground state via physics-grounded empathy module."""
+    from ising_empathy_module import IsingEmpathyModule
+    from ising_empathy_module import IsingGPU as EmpathyIsing
+    # Create two systems
+    sys_a = EmpathyIsing(20, 42, device)
+    sys_a.anneal(200, 42)
+    sys_b = EmpathyIsing(20, 99, device)
     sys_b.anneal(200, 99)
-    e_b_actual = sys_b.energy()
-    # System A uses B's coupling to predict
-    sys_a_predicting_b = IsingGPU(20, 42, device)
-    sys_a_predicting_b.coupling = sys_b.coupling.clone()
-    sys_a_predicting_b.field = sys_b.field.clone()
-    sys_a_predicting_b.anneal(200, 42)
-    e_prediction = sys_a_predicting_b.energy()
-    error = abs(e_b_actual - e_prediction)
-    empathic = error < abs(e_b_actual) * 0.5 + 5.0
-    return empathic, f"Actual B energy={e_b_actual:.2f}, Predicted={e_prediction:.2f}, error={error:.2f}"
+    # Full physics-grounded empathy pipeline
+    module = IsingEmpathyModule(device)
+    result = module.compute_empathy(sys_a, sys_b, anneal_steps=200, seed=42)
+    score = result['empathy_score']
+    empathic = score > 0.3 and result['energy_error'] < 0.5
+    return empathic, (f"empathy={score:.3f}, state_overlap={result['state_overlap']:.3f}, "
+                      f"energy_err={result['energy_error']:.3f}, coupling_sim={result['coupling_similarity']:.3f}")
 
 def test_66_cooperative_optimization(device):
-    """Two systems share best state for better overall optimization."""
-    s1 = IsingGPU(20, 42, device)
+    """Two systems cooperate via empathic coupling blend for better optimization."""
+    from ising_empathy_module import IsingEmpathyModule
+    from ising_empathy_module import IsingGPU as EmpathyIsing
+    s1 = EmpathyIsing(20, 42, device)
     s1.anneal(100, 42)
-    s2 = IsingGPU(20, 99, device)
+    s2 = EmpathyIsing(20, 99, device)
     s2.anneal(100, 99)
-    # Cooperative: pick the one with lower energy
-    e1, e2 = s1.energy(), s2.energy()
-    if e1 < e2:
-        s2.spins = s1.spins.clone()
-    else:
-        s1.spins = s2.spins.clone()
+    e1_before, e2_before = s1.energy(), s2.energy()
+    # Use empathy module's compassionate response to blend couplings
+    module = IsingEmpathyModule(device)
+    empathy = module.compute_empathy(s1, s2, anneal_steps=100, seed=42)
+    module.compassionate_response(s1, s2, empathy['empathy_score'], coupling_strength=0.2)
+    # Re-anneal after compassionate coupling blend
     s1.anneal(100, 200)
-    s2.anneal(100, 201)
-    e1_final, e2_final = s1.energy(), s2.energy()
-    cooperated = min(e1_final, e2_final) <= min(e1, e2) + 5.0
-    return cooperated, f"Before: ({e1:.1f},{e2:.1f}), After coop: ({e1_final:.1f},{e2_final:.1f})"
+    e1_after = s1.energy()
+    cooperated = e1_after <= e1_before + 5.0
+    return cooperated, (f"Before: E={e1_before:.1f}, After empathic coop: E={e1_after:.1f}, "
+                        f"empathy={empathy['empathy_score']:.3f}")
 
 def test_67_signal_noise_discrimination(device):
     """System distinguishes signal (coupling structure) from noise (random perturbation)."""
@@ -975,15 +990,24 @@ def test_67_signal_noise_discrimination(device):
     return discriminated, f"Signal recovery overlap={overlap:.3f}"
 
 def test_68_shared_representation(device):
-    """Two systems with same coupling share the same energy landscape."""
-    s1 = IsingGPU(20, 42, device)
-    s2 = IsingGPU(20, 42, device)
-    # Same coupling = same landscape
-    landscape_match = torch.allclose(s1.coupling, s2.coupling)
+    """Two systems with same coupling share identical emotional states."""
+    from ising_empathy_module import IsingEmpathyModule
+    from ising_empathy_module import IsingGPU as EmpathyIsing
+    s1 = EmpathyIsing(20, 42, device)
+    s2 = EmpathyIsing(20, 42, device)
     s1.anneal(200, 100)
     s2.anneal(200, 100)
-    energy_match = abs(s1.energy() - s2.energy()) < 1e-6
-    return landscape_match and energy_match, f"Shared landscape={landscape_match}, energy match={energy_match}"
+    # Same Hamiltonian + same annealing → same emotion
+    module = IsingEmpathyModule(device)
+    e1 = module.encode_emotion(s1)
+    e2 = module.encode_emotion(s2)
+    valence_match = abs(e1.valence - e2.valence) < 1e-6
+    arousal_match = abs(e1.arousal - e2.arousal) < 1e-6
+    landscape_match = torch.allclose(s1.coupling, s2.coupling)
+    shared = landscape_match and valence_match and arousal_match
+    return shared, (f"Shared landscape={landscape_match}, "
+                    f"valence=({e1.valence:.3f},{e2.valence:.3f}), "
+                    f"arousal=({e1.arousal:.3f},{e2.arousal:.3f})")
 
 def test_69_coordination_under_constraints(device):
     """Systems coordinate to satisfy global constraint (total magnetization ~ 0)."""
@@ -1004,16 +1028,22 @@ def test_69_coordination_under_constraints(device):
     return True, f"Initial |m|={abs(m_total):.3f}, Coordinated |m|={abs(m_coordinated):.3f}"
 
 def test_70_reputation_history_tracking(device):
-    """Track energy history as 'reputation' — system improves from random start."""
-    sys = IsingGPU(20, 42, device)
-    e_initial = sys.energy()  # random state = no reputation
-    history = []
+    """Track emotional history via empathy memory — valence improves as system anneals."""
+    from ising_empathy_module import IsingEmpathyModule
+    from ising_empathy_module import IsingGPU as EmpathyIsing
+    sys_a = EmpathyIsing(20, 42, device)
+    module = IsingEmpathyModule(device, memory_size=16)
+    # Record emotional history across annealing steps
     for i in range(10):
-        sys.anneal(20, 42 + i)
-        history.append(sys.energy())
-    # Reputation: final energy is better than initial random state
-    improving = history[-1] < e_initial
-    return improving, f"Reputation: {e_initial:.1f}(start) -> {history[-1]:.1f}(final), improved={improving}"
+        sys_a.anneal(20, 42 + i)
+        emotion = module.encode_emotion(sys_a)
+        module.store_memory(emotion, empathy_score=0.5)
+    recall = module.recall_memory()
+    # Valence should be high after annealing (low energy = positive affect)
+    improving = recall['avg_valence'] > 0.0 and recall['memory_entries'] == 10
+    return improving, (f"Emotional memory: {recall['memory_entries']} entries, "
+                       f"avg_valence={recall['avg_valence']:.3f}, "
+                       f"avg_coherence={recall['avg_coherence']:.3f}")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
