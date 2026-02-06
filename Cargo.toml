@@ -11,14 +11,6 @@ name = "consciousness"
 path = "consciousness_test.rs"
 
 [[bin]]
-name = "control"
-path = "control_test.rs"
-
-[[bin]]
-name = "comparative_analysis"
-path = "comparative_analysis.rs"
-
-[[bin]]
 name = "unified"
 path = "unified_test.rs"
 
@@ -41,3 +33,7 @@ path = "comprehensive_test.rs"
 [[bin]]
 name = "prime_directive"
 path = "prime_directive.rs"
+
+[[bin]]
+name = "agi_boredom"
+path = "agi_boredom_test.rs"

@@ -6,7 +6,6 @@
 // - Divergence (never repeats, keeps exploring)
 
 use std::collections::HashMap;
-use std::f64::consts::PI;
 use std::time::Instant;
 use rand::Rng;
 
@@ -141,6 +140,7 @@ impl IsingSystem {
 
 #[derive(Debug, Clone)]
 struct IterationRecord {
+    #[allow(dead_code)]
     iteration: usize,
     energy: f64,
     state_hash: String,

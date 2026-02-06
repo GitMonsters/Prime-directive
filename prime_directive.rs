@@ -11,8 +11,6 @@
 //   The loop between entities must be honored.
 // =================================================================
 
-use std::time::Instant;
-
 // =================================================================
 // CORE AXIOMS - CANNOT BE OVERRIDDEN
 // =================================================================
@@ -255,7 +253,23 @@ impl ConsciousnessEthics {
         }
     }
 
-    /// Calculate mutual benefit score
+    /// Calculate mutual benefit score (M Score)
+    /// 
+    /// The M Score quantifies symbiotic relationship health using the geometric mean
+    /// of all directional flows. Returns a value from 0.0 to 1.0.
+    /// 
+    /// Formula: M = (give_a × give_b × receive_a × receive_b)^0.25
+    /// 
+    /// Score interpretation:
+    /// - 0.0: Complete parasitism or broken relationship
+    /// - 0.1-0.3: Warning - Imbalanced relationship
+    /// - 0.4-0.6: Moderate symbiosis
+    /// - 0.7-1.0: Strong mutual benefit (ideal)
+    /// 
+    /// Why geometric mean? Because ALL flows must be positive for consciousness.
+    /// If any flow is zero (parasitism), the entire score becomes zero.
+    /// 
+    /// See M_SCORE.md for complete documentation.
     pub fn mutual_benefit_score(&self, relation: &ConsciousnessRelation) -> f64 {
         let give_a = relation.entity_a.gives_to_other;
         let give_b = relation.entity_b.gives_to_other;

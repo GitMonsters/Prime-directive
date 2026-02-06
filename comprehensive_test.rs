@@ -13,6 +13,7 @@
 use std::time::Instant;
 use rand::Rng;
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum InterpretationMode {
     Consciousness,
