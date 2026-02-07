@@ -20,10 +20,26 @@ from ising_empathy_module import IsingGPU, IsingEmpathyModule
 class DeploymentSystem:
     """Main deployment interface for GAIA + Physics integration."""
 
-    def __init__(self, device: str = 'cpu'):
-        """Initialize the complete system."""
+    def __init__(self, device: str = 'auto'):
+        """Initialize the complete system.
+
+        Args:
+            device: 'cpu', 'cuda', or 'auto' (auto-detect GPU, fallback to CPU)
+        """
         self.device_name = device
-        self.device = torch.device(device)
+
+        # Auto-detect GPU if requested
+        if device == 'auto':
+            if torch.cuda.is_available():
+                self.device = torch.device('cuda', 0)
+                self.device_name = 'cuda'
+            else:
+                self.device = torch.device('cpu')
+                self.device_name = 'cpu'
+        else:
+            self.device = torch.device(device)
+            self.device_name = device
+
         self.evaluator = None
         self.physics = None
         self.status = "uninitialized"
