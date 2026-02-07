@@ -1,6 +1,6 @@
 # Build artifacts
 /target/
-Cargo.lock
+# Cargo.lock - committed for reproducible builds (binary project)
 
 # IDE
 .idea/
