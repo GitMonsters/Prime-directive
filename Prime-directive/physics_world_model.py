@@ -478,38 +478,147 @@ class PhysicsExplainer:
     def explain_phenomenon(self, phenomenon: str, domain: PhysicsDomain) -> str:
         """Provide intuitive explanation of a physics phenomenon."""
         explanations = {
-            (PhysicsDomain.CLASSICAL_MECHANICS, 'inertia'):
-                "Objects resist changes in motion. A ball rolling on ice keeps rolling "
-                "because nothing is pushing against it to slow it down.",
-
+            # CLASSICAL MECHANICS
             (PhysicsDomain.CLASSICAL_MECHANICS, 'gravity'):
-                "All objects with mass attract each other. Earth pulls you down with "
-                "gravity, and you pull Earth up—but Earth is so massive you don't notice.",
+                """Gravity is one of the fundamental forces that shapes our universe. All objects with mass
+attract each other, though the effect is usually only noticeable with very massive objects like planets and stars.
 
+Here's how it works: Earth pulls you downward with a force proportional to your mass and Earth's mass, following
+Newton's law of universal gravitation (F = G·m₁·m₂/r²). What's fascinating is that you also pull Earth upward with
+equal force—but since Earth is about 10²⁴ times more massive than you, you don't notice Earth accelerating toward you.
+
+Gravity isn't just a downward force—it keeps the Moon orbiting Earth, keeps planets orbiting the Sun, and keeps
+galaxies held together. Einstein later showed us that gravity isn't actually a force pulling objects, but rather
+a curvature of spacetime caused by mass and energy. Massive objects bend spacetime around them, and other objects
+follow the curved geometry, which we perceive as gravitational attraction.""",
+
+            (PhysicsDomain.CLASSICAL_MECHANICS, 'inertia'):
+                """Inertia is the resistance of an object to changes in its motion. This is formalized in Newton's
+First Law: an object in motion stays in motion, and an object at rest stays at rest, unless acted upon by a force.
+
+Why does this happen? At the fundamental level, inertia is related to mass. Objects with more mass have greater inertia
+and resist acceleration more strongly. This is why a feather blows away easily in the wind, but a bowling ball doesn't.
+
+Practical examples: When you're in a car and it suddenly brakes, your body wants to continue moving forward (inertia)
+until friction or the seatbelt provides a force to stop you. A ball rolling on frictionless ice keeps rolling indefinitely
+because there's no force to slow it down. This principle is why astronauts in space move at constant velocity—without
+friction or other forces, nothing changes their motion.""",
+
+            (PhysicsDomain.CLASSICAL_MECHANICS, 'momentum'):
+                """Momentum is the quantity of motion an object possesses, calculated as mass times velocity (p = mv).
+It's conserved in isolated systems, meaning the total momentum before a collision equals the total momentum after.
+
+This conservation law explains why crashing cars stick together and move more slowly than either car was moving alone,
+and why catching a fast baseball requires your hand to move backward slightly to gradually reduce the ball's momentum.
+
+Momentum is particularly important in collision analysis, rocket propulsion (Newton's third law: expelled momentum pushes
+the rocket forward), and understanding why heavy slow objects can have the same momentum as light fast objects.""",
+
+            # THERMODYNAMICS
             (PhysicsDomain.THERMODYNAMICS, 'entropy'):
-                "Systems naturally tend toward disorder. A broken egg can't reassemble itself "
-                "because there are far more ways to be broken than intact.",
+                """Entropy measures disorder or randomness in a system, and it always increases in isolated systems
+(the Second Law of Thermodynamics). This is why your room gets messier over time without active organization, and
+why you can't "unbreak" a dropped egg.
 
+The fundamental insight: there are vastly more disordered states than ordered states. Imagine a deck of cards: there's
+exactly one perfectly ordered arrangement, but billions upon billions of shuffled arrangements. Random processes naturally
+tend toward more common (disordered) states.
+
+This principle applies everywhere: heat flows from hot to cold (not the reverse), stars burn out, and the universe tends
+toward maximum disorder. However, local regions can decrease entropy by using energy—your body maintains low entropy through
+constant metabolic activity, powered by the sun's energy. The total entropy of the universe still increases.""",
+
+            (PhysicsDomain.THERMODYNAMICS, 'temperature'):
+                """Temperature is the average kinetic energy of particles in a substance. At absolute zero (-273.15°C),
+particles have minimal motion; as temperature increases, particles vibrate and move faster.
+
+Temperature differs fundamentally from heat. Temperature is a property of an object; heat is energy transfer between
+objects at different temperatures. A cup of hot water has high temperature, but a swimming pool at warm temperature contains
+far more thermal energy because it has so much more mass.
+
+The three temperature scales (Celsius, Fahrenheit, Kelvin) measure the same physical phenomenon differently. Scientists
+use Kelvin because it's an absolute scale starting at true zero—making ratios physically meaningful (200K is twice as hot as 100K).""",
+
+            # ELECTROMAGNETISM
             (PhysicsDomain.ELECTROMAGNETISM, 'magnetism'):
-                "Moving charges create magnetic fields. Electrons spinning and orbiting create "
-                "magnetism in materials. This is why magnets align with Earth's magnetic field.",
+                """Magnetism arises from moving electric charges. Electrons spinning in atoms create tiny magnetic moments;
+when these align in the same direction, they produce observable magnetism.
 
+Every magnet is fundamentally composed of aligned electrons. Permanent magnets have electron spins aligned in the same
+direction, while non-magnetic materials have randomly oriented spins that cancel out. This is why magnets can be demagnetized
+by heating (which randomizes electron motion) or by striking them (which physically disrupts alignment).
+
+Earth itself is a giant magnet due to molten iron in the core carrying electrical currents. This magnetic field protects us
+from solar radiation and guides migrating birds. Interestingly, Earth's magnetic poles flip periodically (thousands of times
+in geological history), leaving magnetic records in rocks.""",
+
+            (PhysicsDomain.ELECTROMAGNETISM, 'light'):
+                """Light is an electromagnetic wave—synchronized oscillations of electric and magnetic fields propagating through
+space at a constant speed (approximately 300,000 km/s in vacuum).
+
+The frequency of these oscillations determines what we perceive: low frequencies are radio waves, infrared, then visible light
+(which our eyes can detect), then ultraviolet, X-rays, and gamma rays. All are the same phenomenon—electromagnetic radiation—
+just oscillating at different rates.
+
+Light behaves both as a wave (explaining interference and diffraction) and as a particle (photon) depending on how you observe it.
+The energy of a photon depends on its frequency: E = hf, where h is Planck's constant. This is why ultraviolet light can damage
+DNA (high frequency, high energy) while radio waves pass through you harmlessly (low frequency, low energy).""",
+
+            # QUANTUM MECHANICS
             (PhysicsDomain.QUANTUM_MECHANICS, 'superposition'):
-                "At quantum scales, particles exist in multiple states simultaneously until measured. "
-                "A quantum coin is both heads and tails until you look at it.",
+                """At quantum scales, particles don't have definite properties until measured. Instead, they exist in a superposition
+of multiple states simultaneously. This isn't because we lack information—experiments prove the particle literally doesn't have a
+definite state until observation.
 
-            (PhysicsDomain.SACRED_GEOMETRY, 'golden_ratio'):
-                "The golden ratio appears throughout nature: in flower petals, spiral galaxies, "
-                "and human proportions. It represents optimal balance and efficiency.",
+The famous thought experiment: Schrödinger's cat describes a cat that is both alive and dead simultaneously (if quantum rules applied
+to macroscopic objects). This seems absurd because we never observe such superpositions at human scales, but it's the standard behavior
+at atomic scales.
 
-            (PhysicsDomain.SACRED_GEOMETRY, 'resonance'):
-                "Systems vibrate most easily at their natural frequencies. Push a swing at the "
-                "right moment, and it builds momentum. Push at the wrong time, and it fights back.",
+When you measure a quantum particle, the superposition "collapses" to a single definite state. Remarkably, the act of measurement
+itself changes the system. This is foundational to quantum mechanics and leads to phenomena like quantum entanglement and explains
+why the electron can orbit at multiple distances simultaneously until you measure its position.""",
+
+            (PhysicsDomain.QUANTUM_MECHANICS, 'uncertainty'):
+                """Heisenberg's Uncertainty Principle states you cannot simultaneously know both the exact position and exact momentum
+of a particle. The more precisely you measure one, the less precisely you can know the other.
+
+This isn't a limitation of measurement technology—it's fundamental to reality. Attempting to measure position requires high-energy
+photons that disturb the particle's momentum. Attempting to measure momentum requires long wavelengths that blur position.
+
+Mathematically: Δx · Δp ≥ ℏ/2 (where ℏ is Planck's constant). This principle explains why electrons can't collapse into the nucleus
+(which would violate the principle), why atoms are so large, and why quantum tunneling is possible (particles can exist in regions
+classically forbidden).""",
+
+            (PhysicsDomain.QUANTUM_MECHANICS, 'entanglement'):
+                """Quantum entanglement creates correlations between particles that are impossible in classical physics. When two particles
+are entangled, measuring one instantly affects the other, regardless of distance.
+
+This doesn't violate relativity because you can't use entanglement to transmit information faster than light—the correlation only becomes
+apparent when comparing measurements. Yet Einstein called this "spooky action at a distance" because it seemed to violate locality (the idea
+that distant objects can't instantly affect each other).
+
+Experiments have confirmed that entanglement is real and not due to hidden variables. It's the foundation of quantum computing (qubits in superposition)
+and quantum cryptography (unhackable encryption). Entanglement shows that the quantum world is fundamentally interconnected in ways our intuition
+from macroscopic experience can't comprehend.""",
         }
 
         key = (domain, phenomenon.lower())
-        return explanations.get(key, f"The phenomenon of {phenomenon} in {domain.value} is a "
-                               "deep and complex subject in physics.")
+
+        # Try exact match first
+        if key in explanations:
+            return explanations[key]
+
+        # Try keyword extraction if exact match fails
+        keywords = ['gravity', 'inertia', 'momentum', 'entropy', 'temperature', 'magnetism', 'light', 'superposition', 'uncertainty', 'entanglement']
+        phenomenon_lower = phenomenon.lower()
+        for keyword in keywords:
+            if keyword in phenomenon_lower:
+                key = (domain, keyword)
+                if key in explanations:
+                    return explanations[key]
+
+        # Fallback
+        return f"The phenomenon of {phenomenon} in {domain.value} is a deep and complex subject in physics. It involves the interplay of fundamental forces and principles that govern reality."
 
     def explain_law(self, law_name: str) -> str:
         """Provide intuitive explanation of a physics law."""
@@ -568,15 +677,18 @@ class GAIAPhysicsInterface:
 
         reasoning_steps.extend([f"- {law.name}" for law in applicable_laws[:3]])
 
-        # Generate answer
-        answer_text = f"This question involves {query.domain.value} physics. "
-        answer_text += f"Key principles: {', '.join(p.value for p in principles_used[:2])}"
-
-        # Generate explanation
+        # Generate detailed explanation first
         explanation = self.explainer.explain_phenomenon(
             query.question.lower(),
             query.domain
         )
+
+        # Generate comprehensive answer combining summary and detailed explanation
+        answer_text = f"This question involves {query.domain.value} physics. "
+        answer_text += f"Key principles: {', '.join(p.value for p in principles_used[:2])}\n\n"
+
+        # Add the detailed explanation as part of the answer
+        answer_text += explanation
 
         # Confidence based on clarity of applicable principles
         confidence = min(0.95, 0.5 + 0.45 * (len(principles_used) / 9))
