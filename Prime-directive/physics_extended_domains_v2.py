@@ -255,7 +255,7 @@ class BiophysicsDomain:
         }
 
     @staticmethod
-    def get_principles() -> List[ExtendedPhysicsPrinciple]:
+    def get_principles() -> List[ExtendedPhysicalPrinciple]:
         return [
             ExtendedPhysicalPrinciple(
                 name="Protein Structure Levels",

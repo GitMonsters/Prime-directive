@@ -361,7 +361,7 @@ class MLDomainDetector:
         return {
             'is_ambiguous': len(alternatives) > 0,
             'primary_domain': primary[0],
-            'alternative_domains': [d for d, _ in alternatives],
+            'alternative_domains': alternatives,
             'ambiguity_score': float(ambiguity_score)
         }
 

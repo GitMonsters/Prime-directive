@@ -404,9 +404,16 @@ class PhysicsVisualizer:
     def _fig_to_array(self, fig) -> np.ndarray:
         """Convert matplotlib figure to numpy array."""
         fig.canvas.draw()
-        image_data = fig.canvas.tostring_rgb()
-        width, height = fig.canvas.get_width_height()
-        image_array = np.frombuffer(image_data, dtype=np.uint8).reshape(height, width, 3)
+        try:
+            # Try modern approach (matplotlib 3.7+)
+            image_array = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+            width, height = fig.canvas.get_width_height()
+            image_array = image_array.reshape(height, width, 4)[:,:,:3]  # Remove alpha
+        except AttributeError:
+            # Fallback for older matplotlib
+            image_data = fig.canvas.tostring_rgb()
+            width, height = fig.canvas.get_width_height()
+            image_array = np.frombuffer(image_data, dtype=np.uint8).reshape(height, width, 3)
         plt.close(fig)
         return image_array
 
