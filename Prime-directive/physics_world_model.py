@@ -600,6 +600,139 @@ that distant objects can't instantly affect each other).
 Experiments have confirmed that entanglement is real and not due to hidden variables. It's the foundation of quantum computing (qubits in superposition)
 and quantum cryptography (unhackable encryption). Entanglement shows that the quantum world is fundamentally interconnected in ways our intuition
 from macroscopic experience can't comprehend.""",
+
+            # ADDITIONAL CLASSICAL MECHANICS PHENOMENA
+            (PhysicsDomain.CLASSICAL_MECHANICS, 'friction'):
+                """Friction is the force opposing motion between two surfaces in contact. It's caused by microscopic imperfections and interactions
+between surface atoms. Without friction, you couldn't walk (your foot would slip), cars couldn't brake, and everything would slide indefinitely.
+
+There are three types of friction: static (prevents initial motion), kinetic (opposes moving objects), and rolling (much lower than sliding friction).
+Engineers exploit friction in brakes, tires, and clutches, while also minimize it in machinery using lubricants and ball bearings.
+
+Real-world impact: Friction causes 15-20% of fuel consumption in cars. High-speed trains use magnetic levitation to eliminate friction entirely.
+Friction also generates heat—it's why meteor entries create fireballs and why rubbing wood creates fire.""",
+
+            (PhysicsDomain.CLASSICAL_MECHANICS, 'circular motion'):
+                """Objects moving in circles experience centripetal acceleration—a constant force toward the center keeps them curved. This isn't
+just theoretical; it's the reason planets orbit stars, why roller coasters need reinforced tracks, and why a bucket of water doesn't spill when
+swung overhead.
+
+The faster you go around a curve, the greater the centripetal force required. This is why highways have banked turns (tilted inward) to provide
+gravity assistance, and why satellites must maintain specific orbital speeds. Too slow and they fall; too fast and they escape into space.
+
+Real-world applications: GPS satellites orbit at 3.87 km/s. The International Space Station orbits Earth every 90 minutes at 7.66 km/s. Formula 1
+cars experience up to 5G of centripetal acceleration in tight turns, pushing drivers to their physical limits.""",
+
+            (PhysicsDomain.CLASSICAL_MECHANICS, 'projectile motion'):
+                """When you throw an object, it follows a parabolic path—combining horizontal motion (which continues unchanged) with vertical motion
+(accelerated by gravity). This principle applies to everything from baseballs to artillery to rockets.
+
+The trajectory depends on launch angle, initial speed, and gravity. A 45-degree angle maximizes horizontal distance. This is why archers and
+basketball players instinctively aim at optimal angles—the physics is built into human muscle memory through practice.
+
+Real-world uses: Architects use projectile motion to design water fountains with specific splash patterns. Sports engineers analyze trajectories
+to improve club designs in golf. Military ballistics rely entirely on these equations. Even plants use projectile motion—some seed pods launch
+seeds at precise angles to maximize dispersal distance.""",
+
+            # ADDITIONAL THERMODYNAMICS PHENOMENA
+            (PhysicsDomain.THERMODYNAMICS, 'heat transfer'):
+                """Heat moves through three mechanisms: conduction (direct contact), convection (fluid movement), and radiation (electromagnetic waves).
+Understanding heat transfer is essential for designing everything from homes to computers to industrial furnaces.
+
+Conduction is how a metal rod heats up when one end touches fire. Convection is how a hot-air balloon rises or how radiators heat rooms. Radiation
+is how the sun warms Earth despite the vacuum of space. Most systems use combinations: a house loses heat through conduction (walls), convection
+(air circulation), and radiation (infrared escape).
+
+Real-world impact: Insulation works by minimizing heat transfer—preventing conduction through materials with low thermal conductivity (like fiberglass)
+and convection by trapping air. Thermal imaging cameras detect infrared radiation to find heat leaks in buildings. Computer chips generate 100+ watts
+of heat that must be conducted away or they'll fail.""",
+
+            (PhysicsDomain.THERMODYNAMICS, 'phase transitions'):
+                """Matter exists in distinct states—solid, liquid, gas, and plasma—and transitions between them require specific energy amounts (called
+latent heat). Water freezes at 0°C and boils at 100°C at sea level, but these temperatures change with pressure.
+
+Phase transitions are everywhere: ice melts when you add heat, water evaporates to cool (through sweating), and clouds form when water vapor cools.
+Pressure cookers work by increasing pressure, which raises the boiling point, allowing hotter water and faster cooking. Understanding phase transitions
+is crucial for refrigeration, weather prediction, and materials science.
+
+Real-world applications: Industrial refrigeration removes heat through liquid-gas phase transitions. Thermal energy storage systems use phase-change
+materials (like paraffin wax) that absorb massive amounts of heat while melting, then release it when solidifying. Dry ice (solid CO₂) sublimates
+directly to gas, creating the dramatic fog effect in concerts and medical cryotherapy.""",
+
+            # ADDITIONAL ELECTROMAGNETISM PHENOMENA
+            (PhysicsDomain.ELECTROMAGNETISM, 'electric current'):
+                """Electric current is the flow of electrons through a conductor. It powers every device we use—from lightbulbs to computers to
+electric vehicles. The amount of current depends on voltage (electrical pressure) and resistance (opposition to flow).
+
+Ohm's Law (V = IR) explains why a lightbulb draws more current at 110V than at 12V, and why thicker wires are used for high-current applications.
+Superconductors (at extremely cold temperatures) have zero resistance, allowing indefinite current flow—a holy grail of physics that could revolutionize
+power transmission.
+
+Real-world impact: The global power grid transmits billions of watts using high voltages (reducing resistive losses). Your phone charger uses 5V at
+2 amps (10 watts). Electric vehicles draw 100-200 amps when charging. Lightning is a catastrophic 30,000-amp discharge that can melt copper and cause
+explosions.""",
+
+            (PhysicsDomain.ELECTROMAGNETISM, 'circuits'):
+                """Circuits are paths for electric current, consisting of a power source, conductors, and devices that use the electricity. Series
+circuits have components in a line; parallel circuits have multiple paths. Understanding circuits is fundamental to all electronics.
+
+In series, current flows through all components sequentially—if one breaks, all stop. Christmas lights used to work this way, which is why one broken
+bulb darkened the whole strand. In parallel, each component has its own path—this is why your home outlets work independently; if one appliance stops,
+others continue.
+
+Real-world examples: Your house uses parallel circuits—different rooms and appliances draw power independently. Solar panels are connected in series
+to increase voltage, then the output is converted. The human heart uses electrical signals following cardiac circuits; understanding these is crucial
+for treating arrhythmias and designing pacemakers.""",
+
+            # ADDITIONAL QUANTUM MECHANICS
+            (PhysicsDomain.QUANTUM_MECHANICS, 'atomic structure'):
+                """Atoms consist of a nucleus (protons and neutrons) surrounded by electrons in probability clouds (orbitals). The number of protons
+defines the element; the number of electrons determines chemical properties. Electrons don't orbit like planets—they exist in quantized energy levels,
+and transitions between levels absorb or emit light at specific frequencies.
+
+This explains why elements have characteristic colors: sodium glows yellow, neon glows red, and copper compounds are blue. Lasers work by pumping
+electrons to high energy levels, then stimulating them to cascade down, emitting coherent light. Chemistry itself is quantum mechanics—the chemical
+bonds that hold molecules together are quantum phenomena.
+
+Real-world applications: Atomic clocks measure frequency of electron transitions with incredible precision—the cesium-133 transition defines the second
+itself. X-ray tubes use electron transitions to generate radiation for medical imaging. Semiconductors use quantum band structures to control electron flow,
+enabling all modern electronics. Fireworks achieve their colors by exciting metal atoms to different quantum states.""",
+
+            (PhysicsDomain.QUANTUM_MECHANICS, 'tunneling'):
+                """Quantum tunneling allows particles to pass through energy barriers they classically couldn't overcome. According to classical physics,
+an electron in an atom should fall into the nucleus, yet atoms are stable—quantum tunneling prevents this catastrophe.
+
+At the quantum scale, particles have a wave-like character with a non-zero probability of appearing on the other side of a barrier without ever being
+above the barrier. This becomes less probable with thicker barriers but never zero. This is why nuclear decay occurs—alpha particles tunnel through the
+nuclear potential barrier.
+
+Real-world impact: Tunnel diodes exploit tunneling for ultra-fast switching. Scanning tunneling microscopes use tunneling to image individual atoms—
+moving a needle close to a surface and measuring tunneling current reveals atomic topography. DNA mutations sometimes result from tunneling of protons,
+changing genetic code. Fusion reactors depend on tunneling to bring nuclei close enough to fuse at practical temperatures.""",
+
+            # SACRED GEOMETRY / PATTERNS
+            (PhysicsDomain.SACRED_GEOMETRY, 'golden ratio'):
+                """The golden ratio (φ ≈ 1.618) appears throughout nature and art. Shells spiral in golden ratios, flower petals often number fibonacci
+sequences (1, 1, 2, 3, 5, 8, 13...), and human face proportions approximate the golden ratio. This mathematical constant represents optimal
+balance and efficiency.
+
+Ancient architects recognized this ratio in perfect proportions. The Parthenon, Egyptian pyramids, and Renaissance art deliberately incorporated golden
+ratios. Modern designers use it intuitively—the aspect ratio of an iPhone (9:16) approximates the golden rectangle.
+
+Real-world mathematics: The golden ratio emerges from the fibonacci sequence naturally—each number equals the sum of the previous two. This creates
+a spiral that efficiently packs items: sunflower seeds spiral in golden angles (137.5°) to maximize seed packing. Stock prices, molecular structures,
+and even galaxy spiral arms follow golden ratio patterns. It's not magic—it's optimization that evolution and physics naturally discover.""",
+
+            (PhysicsDomain.SACRED_GEOMETRY, 'fractals'):
+                """Fractals are self-similar patterns that repeat at different scales. A coastline looks the same whether viewed from a plane or
+under a microscope. Fractals appear in nature: trees branch fractally, blood vessels branch fractally, and clouds have fractal structure.
+
+The Mandelbrot set is a famous mathematical fractal—zooming infinitely reveals ever-finer patterns. Fractals have non-integer dimensions between 1D
+(line) and 2D (plane)—a coastline might have dimension 1.3, meaning it's jaggier than a line but less plane-filling than a full 2D shape.
+
+Real-world applications: Fractal antennas are more efficient than conventional designs because their jagged structure resonates at multiple frequencies.
+Medical imaging uses fractals—tumors have fractal characteristics different from healthy tissue, aiding detection. Atmospheric modeling uses fractals
+to simulate cloud formation. Computer graphics render realistic terrain using fractals—games wouldn't look natural without this mathematics.""",
         }
 
         key = (domain, phenomenon.lower())
@@ -609,7 +742,18 @@ from macroscopic experience can't comprehend.""",
             return explanations[key]
 
         # Try keyword extraction if exact match fails
-        keywords = ['gravity', 'inertia', 'momentum', 'entropy', 'temperature', 'magnetism', 'light', 'superposition', 'uncertainty', 'entanglement']
+        keywords = [
+            # Classical Mechanics
+            'gravity', 'inertia', 'momentum', 'friction', 'circular', 'projectile',
+            # Thermodynamics
+            'entropy', 'temperature', 'heat', 'phase', 'transition',
+            # Electromagnetism
+            'magnetism', 'light', 'current', 'electric', 'circuit',
+            # Quantum Mechanics
+            'superposition', 'uncertainty', 'entanglement', 'atomic', 'atom', 'tunnel',
+            # Sacred Geometry
+            'golden', 'ratio', 'fractal'
+        ]
         phenomenon_lower = phenomenon.lower()
         for keyword in keywords:
             if keyword in phenomenon_lower:
