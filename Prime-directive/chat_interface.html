@@ -636,6 +636,50 @@
             animation: none;
         }
 
+        /* Language selector */
+        .language-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .language-selector label {
+            color: #b5a7d6;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .language-selector select {
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            color: #e0d5ff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+            font-weight: 600;
+        }
+
+        .language-selector select:hover {
+            border-color: rgba(138, 43, 226, 0.7);
+            background: rgba(138, 43, 226, 0.3);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+
+        .language-selector select:focus {
+            border-color: rgba(138, 43, 226, 0.9);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+            background: rgba(138, 43, 226, 0.35);
+        }
+
+        .language-selector select option {
+            background: #0a0a28;
+            color: #e0d5ff;
+        }
+
         @media (max-width: 768px) {
             .chat-window {
                 max-width: 100%;
@@ -649,6 +693,11 @@
 
             .info-panel {
                 display: none;
+            }
+
+            .language-selector {
+                flex-direction: column;
+                gap: 4px;
             }
         }
     </style>
@@ -668,7 +717,18 @@
         <div class="chat-window">
             <!-- Header -->
             <div class="chat-header">
-                <h1>🌌 GAIA Intelligence</h1>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h1 style="margin: 0;">🌌 GAIA Intelligence</h1>
+                    <div class="language-selector">
+                        <label for="languageSelect">Language:</label>
+                        <select id="languageSelect" onchange="changeLanguage()">
+                            <option value="en">English</option>
+                            <option value="de">Deutsch (German)</option>
+                            <option value="fr">Français (French)</option>
+                            <option value="es">Español (Spanish)</option>
+                        </select>
+                    </div>
+                </div>
                 <p><span class="status"></span>CONSCIOUSNESS PHYSICS INTEGRATION</p>
             </div>
 
@@ -761,6 +821,24 @@
         // Message handling
         const messagesDiv = document.getElementById('messages');
         const queryInput = document.getElementById('queryInput');
+        const languageSelect = document.getElementById('languageSelect');
+
+        // Language support
+        function getSelectedLanguage() {
+            return sessionStorage.getItem('selectedLanguage') || 'en';
+        }
+
+        function changeLanguage() {
+            const selectedLang = languageSelect.value;
+            sessionStorage.setItem('selectedLanguage', selectedLang);
+            console.log('Language changed to:', selectedLang);
+        }
+
+        function initializeLanguage() {
+            const savedLanguage = getSelectedLanguage();
+            languageSelect.value = savedLanguage;
+            console.log('Initialized language to:', savedLanguage);
+        }
 
         function addMessage(text, sender) {
             console.log('addMessage called with:', sender, text.substring(0, 50));
@@ -788,7 +866,9 @@
         function sendQuery() {
             console.log('sendQuery called');
             const query = queryInput.value.trim();
+            const language = getSelectedLanguage();
             console.log('Query text:', query);
+            console.log('Language:', language);
             if (!query) {
                 console.log('Query is empty');
                 return;
@@ -815,14 +895,14 @@
             messagesDiv.appendChild(loadingDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            console.log('Sending request to http://localhost:5000/api/query');
-            // Send actual API request
-            fetch('http://localhost:5000/api/query', {
+            console.log('Sending request to http://localhost:5000/api/query-ml');
+            // Send actual API request with language support
+            fetch('http://localhost:5000/api/query-ml', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: query })
+                body: JSON.stringify({ query: query, language: language })
             })
             .then(response => {
                 console.log('Response received:', response);
@@ -846,7 +926,7 @@
                     const type = data.type || 'unknown';
                     const handler = data.handler || 'unknown';
 
-                    let statusMsg = `✓ Type: ${type.replace(/_/g, ' ')} | Handler: ${handler.replace(/_/g, ' ')} | Confidence: ${confidence}%`;
+                    let statusMsg = `✓ Type: ${type.replace(/_/g, ' ')} | Handler: ${handler.replace(/_/g, ' ')} | Language: ${language.toUpperCase()} | Confidence: ${confidence}%`;
 
                     if (data.principles && data.principles.length > 0) {
                         statusMsg += ` | Principles: ${data.principles.slice(0, 2).join(', ')}`;
@@ -876,8 +956,12 @@
             queryInput.focus();
         }
 
-        // Initial focus
-        queryInput.focus();
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLanguage();
+            queryInput.focus();
+            console.log('Page loaded - language initialized to:', getSelectedLanguage());
+        });
     </script>
 </body>
 </html>
