@@ -115,6 +115,58 @@ Esto no viola la relatividad porque no puedes usar el entrelazamiento para trans
 
 Los experimentos han confirmado que el entrelazamiento es real y no se debe a variables ocultas. Es la base de la computación cuántica (qubits en superposición) y la criptografía cuántica (cifrado imposible de piratear). El entrelazamiento muestra que el mundo cuántico está fundamentalmente interconectado de maneras que nuestra intuición de la experiencia macroscópica no puede comprender.""",
             },
+
+            'friction': {
+                Language.ENGLISH.value: """Friction is the force opposing motion between two surfaces in contact. Without friction, you couldn't walk, cars couldn't brake, and everything would slide indefinitely. Friction arises from microscopic imperfections and interactions between surface atoms.
+
+There are three types of friction: static friction prevents initial motion, kinetic friction opposes moving objects, and rolling friction is much lower than sliding friction. Engineers work to minimize friction in machinery using lubricants and ball bearings, but also exploit friction in brakes, tires, and clutches where it's essential.
+
+Friction causes 15-20% of fuel consumption in cars. High-speed trains use magnetic levitation to eliminate friction entirely. Friction also generates heat—rubbing wood creates fire, meteor entries create fireballs, and brake pads heat up when stopping.""",
+
+                Language.GERMAN.value: """Reibung ist die Kraft, die der Bewegung zwischen zwei kontaktierenden Oberflächen entgegenwirkt. Ohne Reibung könntest du nicht gehen, Autos könnten nicht bremsen, und alles würde unbegrenzt gleiten. Reibung entsteht durch mikroskopische Unebenheiten und Wechselwirkungen zwischen Oberflächenatomen.
+
+Es gibt drei Arten von Reibung: Haftreibung verhindert die anfängliche Bewegung, Gleitreibung widersteht bewegten Objekten, und Rollreibung ist viel kleiner als Gleitreibung. Ingenieure arbeiten daran, Reibung in Maschinen durch Schmieröle und Kugellager zu minimieren, nutzen sie aber auch in Bremsen, Reifen und Kupplungen, wo sie notwendig ist.
+
+Reibung verursacht 15-20% des Kraftstoffverbrauchs in Autos. Hochgeschwindigkeitszüge verwenden magnetische Levitation, um Reibung völlig zu beseitigen. Reibung erzeugt auch Wärme—Holz reiben erzeugt Feuer, Meteoreintritte erzeugen Feuerquellen, und Bremsbeläge heizen sich beim Bremsen auf.""",
+
+                Language.FRENCH.value: """Le frottement est la force qui s'oppose au mouvement entre deux surfaces en contact. Sans frottement, vous ne pourriez pas marcher, les voitures ne pourraient pas freiner, et tout glisserait indéfiniment. Le frottement résulte des imperfections microscopiques et des interactions entre les atomes de surface.
+
+Il existe trois types de frottement : le frottement statique empêche le mouvement initial, le frottement cinétique s'oppose aux objets en mouvement, et le frottement de roulement est beaucoup plus faible que le frottement de glissement. Les ingénieurs travaillent pour minimiser le frottement dans les machines en utilisant des lubrifiants et des roulements à billes, mais l'exploitent également dans les freins, les pneus et les embrayages où il est essentiel.
+
+Le frottement provoque 15-20 % de la consommation de carburant des voitures. Les trains à grande vitesse utilisent la lévitation magnétique pour éliminer complètement le frottement. Le frottement génère également de la chaleur—frotter du bois crée du feu, les entrées de météores créent des boules de feu, et les plaquettes de frein chauffent lors du freinage.""",
+
+                Language.SPANISH.value: """La fricción es la fuerza que se opone al movimiento entre dos superficies en contacto. Sin fricción, no podrías caminar, los autos no podrían frenar, y todo resbaläría indefinidamente. La fricción surge de imperfecciones microscópicas e interacciones entre átomos de superficie.
+
+Hay tres tipos de fricción: fricción estática previene el movimiento inicial, fricción cinética se opone a objetos en movimiento, y fricción de rodadura es mucho menor que fricción de deslizamiento. Los ingenieros trabajan para minimizar la fricción en maquinaria usando lubricantes y rodamientos de bolas, pero también la explotan en frenos, neumáticos y embragues donde es esencial.
+
+La fricción causa el 15-20% del consumo de combustible en autos. Los trenes de alta velocidad usan levitación magnética para eliminar completamente la fricción. La fricción también genera calor—frotar madera crea fuego, las entradas de meteoros crean bolas de fuego, y las pastillas de freno se calientan al frenar.""",
+            },
+
+            'temperature': {
+                Language.ENGLISH.value: """Temperature is the average kinetic energy of particles in a substance. At absolute zero (-273.15°C), particles have minimal motion; as temperature increases, particles vibrate and move faster. Temperature differs fundamentally from heat: temperature is a property of an object, while heat is energy transfer between objects.
+
+A cup of hot water has high temperature, but a swimming pool at warm temperature contains far more thermal energy because it has so much more mass. The three temperature scales (Celsius, Fahrenheit, Kelvin) measure the same physical phenomenon differently. Scientists use Kelvin because it's an absolute scale—making ratios physically meaningful (200K is twice as hot as 100K).
+
+Understanding temperature is crucial for daily life: cooking, air conditioning, weather forecasting, and thermometer use all depend on temperature concepts. Industrial processes carefully control temperature: steel manufacturing requires precise temperatures, pharmaceuticals must be kept at specific temperatures, and cryogenic technology uses extreme cold for superconductors and rocket fuel.""",
+
+                Language.GERMAN.value: """Temperatur ist die durchschnittliche kinetische Energie von Teilchen in einer Substanz. Bei absolutem Nullpunkt (-273,15°C) haben Teilchen minimale Bewegung; mit zunehmender Temperatur vibrieren und bewegen sich Teilchen schneller. Temperatur unterscheidet sich grundlegend von Wärme: Temperatur ist eine Eigenschaft eines Objekts, während Wärme Energieübertragung zwischen Objekten ist.
+
+Eine Tasse heißes Wasser hat hohe Temperatur, aber ein Schwimmbecken bei warmer Temperatur enthält viel mehr thermische Energie, weil es viel mehr Masse hat. Die drei Temperaturskalen (Celsius, Fahrenheit, Kelvin) messen das gleiche physikalische Phänomen unterschiedlich. Wissenschaftler verwenden Kelvin, weil es eine absolute Skala ist—was Verhältnisse physikalisch sinnvoll macht (200K ist doppelt so heiß wie 100K).
+
+Das Verständnis der Temperatur ist entscheidend für das tägliche Leben: Kochen, Klimaanlage, Wettervorhersage und Thermometerverwendung hängen alle von Temperaturkonzepten ab. Industrielle Prozesse kontrollieren Temperatur sorgfältig: Stahlherstellung erfordert präzise Temperaturen, Arzneimittel müssen bei bestimmten Temperaturen gelagert werden, und Kryotechnik verwendet extreme Kälte für Supraleiter und Raketentreibstoff.""",
+
+                Language.FRENCH.value: """La température est l'énergie cinétique moyenne des particules dans une substance. Au zéro absolu (-273,15°C), les particules ont un mouvement minimal ; à mesure que la température augmente, les particules vibrent et se déplacent plus vite. La température diffère fondamentalement de la chaleur : la température est une propriété d'un objet, tandis que la chaleur est le transfert d'énergie entre les objets.
+
+Une tasse d'eau chaude a une température élevée, mais une piscine à température chaude contient bien plus d'énergie thermique car elle a beaucoup plus de masse. Les trois échelles de température (Celsius, Fahrenheit, Kelvin) mesurent le même phénomène physique différemment. Les scientifiques utilisent Kelvin car c'est une échelle absolue—rendant les ratios physiquement significatifs (200K est deux fois plus chaud que 100K).
+
+Comprendre la température est crucial pour la vie quotidienne : la cuisine, la climatisation, la prévision météorologique et l'utilisation de thermomètres dépendent tous des concepts de température. Les processus industriels contrôlent soigneusement la température : la fabrication de l'acier nécessite des températures précises, les produits pharmaceutiques doivent être conservés à des températures spécifiques, et la technologie cryogénique utilise le froid extrême pour les supraconducteurs et les carburants pour fusées.""",
+
+                Language.SPANISH.value: """La temperatura es la energía cinética promedio de las partículas en una sustancia. En cero absoluto (-273,15°C), las partículas tienen movimiento mínimo; a medida que aumenta la temperatura, las partículas vibran y se mueven más rápido. La temperatura difiere fundamentalmente del calor: la temperatura es una propiedad de un objeto, mientras que el calor es la transferencia de energía entre objetos.
+
+Una taza de agua caliente tiene alta temperatura, pero una piscina a temperatura cálida contiene mucha más energía térmica porque tiene mucha más masa. Las tres escalas de temperatura (Celsius, Fahrenheit, Kelvin) miden el mismo fenómeno físico de manera diferente. Los científicos usan Kelvin porque es una escala absoluta—haciendo que los ratios sean físicamente significativos (200K es el doble de caliente que 100K).
+
+Entender la temperatura es crucial para la vida cotidiana: cocinar, aire acondicionado, pronóstico del tiempo y uso de termómetros dependen todos de conceptos de temperatura. Los procesos industriales controlan cuidadosamente la temperatura: la fabricación de acero requiere temperaturas precisas, los productos farmacéuticos deben almacenarse a temperaturas específicas, y la tecnología criogénica usa frío extremo para superconductores y combustible de cohetes.""",
+            },
         }
 
     def get_explanation(self, phenomenon: str, language: str = "en") -> str:
@@ -128,7 +180,12 @@ Los experimentos han confirmado que el entrelazamiento es real y no se debe a va
         Returns:
             Physics explanation in specified language
         """
-        phenomenon_key = phenomenon.lower().replace(" ", "_")
+        # Clean up the phenomenon string - remove punctuation and extra spaces
+        import re
+        phenomenon_clean = re.sub(r'[^\w\s]', '', phenomenon).lower().strip()
+
+        # Try exact match first
+        phenomenon_key = phenomenon_clean.replace(" ", "_")
 
         if phenomenon_key in self.explanations:
             explanation = self.explanations[phenomenon_key]
@@ -137,7 +194,37 @@ Los experimentos han confirmado que el entrelazamiento es real y no se debe a va
             # Fallback to English if language not available
             return explanation.get("en", f"Explanation for {phenomenon} not available")
 
-        return f"No explanation available for {phenomenon}"
+        # Try keyword extraction if exact match fails
+        keywords = [
+            # Classical Mechanics
+            'gravity', 'gravitational', 'inertia', 'momentum', 'friction', 'motion',
+            'circular', 'projectile', 'force', 'newton',
+            # Thermodynamics
+            'entropy', 'disorder', 'temperature', 'heat', 'transfer', 'phase', 'transition',
+            'thermodynamics',
+            # Electromagnetism
+            'magnetism', 'magnetic', 'light', 'current', 'electric', 'circuit', 'electron',
+            'electromagnetic', 'radiation',
+            # Quantum Mechanics
+            'quantum', 'superposition', 'uncertainty', 'entanglement', 'atomic', 'atom',
+            'tunnel', 'photon', 'wave',
+            # Sacred Geometry
+            'golden', 'ratio', 'fractal', 'pattern', 'fibonacci', 'harmony'
+        ]
+
+        phenomenon_lower = phenomenon_clean.lower()
+        for keyword in keywords:
+            if keyword in phenomenon_lower:
+                key = (language, keyword.replace(" ", "_"))
+                # Search for this keyword in explanations
+                for exp_key in self.explanations.keys():
+                    if keyword in exp_key:
+                        explanation = self.explanations[exp_key]
+                        if language in explanation:
+                            return explanation[language]
+                        return explanation.get("en", f"Explanation for {phenomenon} not available")
+
+        return f"Physics explanation for '{phenomenon}' not available in {language}. Try: gravity, entropy, quantum entanglement, light, temperature, friction, current, superposition"
 
     def get_supported_languages(self) -> List[Dict[str, str]]:
         """Get list of supported languages."""
