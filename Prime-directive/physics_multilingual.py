@@ -167,6 +167,214 @@ Una taza de agua caliente tiene alta temperatura, pero una piscina a temperatura
 
 Entender la temperatura es crucial para la vida cotidiana: cocinar, aire acondicionado, pronóstico del tiempo y uso de termómetros dependen todos de conceptos de temperatura. Los procesos industriales controlan cuidadosamente la temperatura: la fabricación de acero requiere temperaturas precisas, los productos farmacéuticos deben almacenarse a temperaturas específicas, y la tecnología criogénica usa frío extremo para superconductores y combustible de cohetes.""",
             },
+
+            'light': {
+                Language.ENGLISH.value: """Light is electromagnetic radiation that travels at the speed of light (300,000 km/s) and exhibits both wave and particle properties. This wave-particle duality is central to modern physics: light behaves as a wave (showing diffraction and interference) and as a particle (photons with energy E=hf).
+
+The electromagnetic spectrum extends far beyond visible light, from radio waves (very long wavelengths) to gamma rays (very short wavelengths). Visible light is just a tiny window between about 400-700 nanometers. Different wavelengths produce different colors: red light has longer wavelengths, blue light shorter wavelengths.
+
+Light interacts with matter through reflection, refraction, absorption, and dispersion. When light enters a denser medium (like water), it slows down and bends—explaining why objects appear bent underwater. Lenses and mirrors exploit refraction and reflection to focus light. Photosynthesis converts light energy into chemical energy, powering nearly all life on Earth. Modern technology depends on light: fiber optics carry data at light speed, lasers concentrate light into powerful beams, and LED lights are revolutionizing energy efficiency.""",
+
+                Language.GERMAN.value: """Licht ist elektromagnetische Strahlung, die sich mit Lichtgeschwindigkeit (300.000 km/s) ausbreitet und zeigt sowohl Wellen- als auch Teilcheneigenschaften. Diese Welle-Teilchen-Dualität ist zentral für die moderne Physik: Licht verhält sich als Welle (mit Beugung und Interferenz) und als Teilchen (Photonen mit Energie E=hf).
+
+Das elektromagnetische Spektrum erstreckt sich weit über sichtbares Licht hinaus, von Radiowellen (sehr lange Wellenlängen) bis zu Gammastrahlen (sehr kurze Wellenlängen). Sichtbares Licht ist nur ein winziges Fenster zwischen etwa 400-700 Nanometern. Verschiedene Wellenlängen erzeugen verschiedene Farben: rotes Licht hat längere Wellenlängen, blaues Licht kürzere.
+
+Licht interagiert mit Materie durch Reflexion, Brechung, Absorption und Dispersion. Wenn Licht in ein dichteres Medium (wie Wasser) eindringt, verlangsamt es sich und wird abgelenkt—erklärt, warum Objekte unter Wasser gebogen aussehen. Linsen und Spiegel nutzen Brechung und Reflexion, um Licht zu fokussieren. Photosynthese wandelt Lichtenergie in chemische Energie um und treibt fast alles Leben auf der Erde an. Moderne Technologie hängt von Licht ab: Glasfasern transportieren Daten mit Lichtgeschwindigkeit, Laser konzentrieren Licht in leistungsstarke Strahlen, und LED-Leuchten revolutionieren Energieeffizienz.""",
+
+                Language.FRENCH.value: """La lumière est une radiation électromagnétique qui se propage à la vitesse de la lumière (300 000 km/s) et présente à la fois des propriétés d'onde et de particule. Cette dualité onde-particule est centrale à la physique moderne : la lumière se comporte comme une onde (montrant diffraction et interférence) et comme une particule (photons avec énergie E=hf).
+
+Le spectre électromagnétique s'étend bien au-delà de la lumière visible, des ondes radio (très longues longueurs d'onde) aux rayons gamma (très courtes longueurs d'onde). La lumière visible n'est qu'une petite fenêtre entre environ 400-700 nanomètres. Différentes longueurs d'onde produisent différentes couleurs : la lumière rouge a des longueurs d'onde plus longues, la lumière bleue plus courtes.
+
+La lumière interagit avec la matière par réflexion, réfraction, absorption et dispersion. Quand la lumière entre dans un milieu plus dense (comme l'eau), elle ralentit et se plie—expliquant pourquoi les objets semblent pliés sous l'eau. Les lentilles et miroirs exploitent la réfraction et la réflexion pour focaliser la lumière. La photosynthèse convertit l'énergie lumineuse en énergie chimique, alimentant presque toute la vie sur Terre. La technologie moderne dépend de la lumière : les fibres optiques transportent les données à la vitesse de la lumière, les lasers concentrent la lumière en faisceaux puissants, et les LEDs révolutionnent l'efficacité énergétique.""",
+
+                Language.SPANISH.value: """La luz es radiación electromagnética que viaja a la velocidad de la luz (300.000 km/s) y exhibe propiedades tanto de onda como de partícula. Esta dualidad onda-partícula es central para la física moderna: la luz se comporta como una onda (mostrando difracción e interferencia) y como una partícula (fotones con energía E=hf).
+
+El espectro electromagnético se extiende mucho más allá de la luz visible, desde ondas de radio (longitudes de onda muy largas) hasta rayos gamma (longitudes de onda muy cortas). La luz visible es apenas una pequeña ventana entre aproximadamente 400-700 nanómetros. Diferentes longitudes de onda producen diferentes colores: la luz roja tiene longitudes de onda más largas, la luz azul más cortas.
+
+La luz interactúa con la materia a través de reflexión, refracción, absorción y dispersión. Cuando la luz entra en un medio más denso (como agua), se ralentiza y se dobla—explicando por qué los objetos parecen doblados bajo el agua. Las lentes y espejos explotan la refracción y reflexión para enfocar la luz. La fotosíntesis convierte la energía luminosa en energía química, alimentando casi toda la vida en la Tierra. La tecnología moderna depende de la luz: las fibras ópticas transportan datos a velocidad de luz, los láseres concentran luz en haces poderosos, y los LEDs están revolucionando la eficiencia energética.""",
+            },
+
+            'superposition': {
+                Language.ENGLISH.value: """Quantum superposition states that a quantum particle can exist in multiple states simultaneously until measured. An electron can be in two places at once, a photon can be both vertically and horizontally polarized, and a radioactive atom can be both decayed and intact.
+
+This isn't just uncertainty—Schrödinger's famous thought experiment with a cat that is simultaneously alive and dead illustrates the conceptual challenge. The quantum system genuinely exists in multiple states described by a mathematical wavefunction. When measured, the wavefunction collapses to a single definite state. This is why quantum computing is so powerful: a quantum bit (qubit) can be 0, 1, or both simultaneously, allowing parallel computation.
+
+Superposition is verified daily in experiments: the double-slit experiment shows electrons taking multiple paths simultaneously, creating interference patterns only atoms can produce. Quantum interference technologies like atomic clocks and sensors exploit superposition for unprecedented precision. The apparent paradox vanishes when you understand that superposition and collapse aren't contradictions but complementary aspects of quantum reality. Decoherence explains why we don't observe superposition at macroscopic scales—larger objects interact with their environment too much.""",
+
+                Language.GERMAN.value: """Quantenüberlagerung besagt, dass ein Quantenteilchen mehrere Zustände gleichzeitig einnehmen kann, bis es gemessen wird. Ein Elektron kann an zwei Orten gleichzeitig sein, ein Photon kann sowohl vertikal als auch horizontal polarisiert sein, und ein radioaktives Atom kann sowohl zerfallen als auch intakt sein.
+
+Dies ist nicht nur Unsicherheit—Schrödinger's berühmtes Gedankenexperiment mit einer Katze, die gleichzeitig lebend und tot ist, veranschaulicht die konzeptionelle Herausforderung. Das Quantensystem existiert wirklich in mehreren Zuständen, die durch eine mathematische Wellenfunktion beschrieben werden. Bei Messung kollabiert die Wellenfunktion zu einem einzelnen definierten Zustand. Deshalb ist Quantencomputing so mächtig: ein Quantenbit (Qubit) kann 0, 1 oder beides gleichzeitig sein, was parallele Berechnung ermöglicht.
+
+Überlagerung wird täglich in Experimenten verifiziert: Das Doppelspalt-Experiment zeigt Elektronen, die mehrere Pfade gleichzeitig nehmen und Interferenzmuster erzeugen, die nur Atome erzeugen können. Quanteninterferenz-Technologien wie Atomuhren und Sensoren nutzen Überlagerung für beispiellose Präzision. Das scheinbare Paradoxon verschwindet, wenn man versteht, dass Überlagerung und Kollaps keine Widersprüche sind, sondern komplementäre Aspekte der Quantenrealität.""",
+
+                Language.FRENCH.value: """La superposition quantique stipule qu'une particule quantique peut exister dans plusieurs états simultanément jusqu'à ce qu'elle soit mesurée. Un électron peut être en deux endroits à la fois, un photon peut être à la fois polarisé verticalement et horizontalement, et un atome radioactif peut être à la fois désintégré et intact.
+
+Ce n'est pas seulement de l'incertitude—la fameuse expérience de pensée de Schrödinger avec un chat simultanément vivant et mort illustre le défi conceptuel. Le système quantique existe réellement dans plusieurs états décrits par une fonction d'onde mathématique. Lorsque mesuré, la fonction d'onde s'effondre à un seul état défini. C'est pourquoi l'informatique quantique est si puissante : un bit quantique (qubit) peut être 0, 1, ou les deux simultanément, permettant le calcul parallèle.
+
+La superposition est vérifiée quotidiennement dans les expériences : l'expérience des fentes doubles montre les électrons prenant plusieurs chemins simultanément, créant des motifs d'interférence que seuls les atomes peuvent produire. Les technologies d'interférence quantique comme les horloges atomiques et les capteurs exploitent la superposition pour une précision sans précédent.""",
+
+                Language.SPANISH.value: """La superposición cuántica establece que una partícula cuántica puede existir en múltiples estados simultáneamente hasta ser medida. Un electrón puede estar en dos lugares a la vez, un fotón puede ser tanto polarizado verticalmente como horizontalmente, y un átomo radiactivo puede estar tanto desintegrado como intacto.
+
+Esto no es solo incertidumbre—el famoso experimento de pensamiento de Schrödinger con un gato simultáneamente vivo y muerto ilustra el desafío conceptual. El sistema cuántico existe genuinamente en múltiples estados descritos por una función de onda matemática. Cuando se mide, la función de onda colapsa a un único estado definido. Por eso la computación cuántica es tan poderosa: un bit cuántico (qubit) puede ser 0, 1, o ambos simultáneamente, permitiendo cálculo paralelo.
+
+La superposición se verifica diariamente en experimentos: el experimento de doble rendija muestra electrones tomando múltiples caminos simultáneamente, creando patrones de interferencia que solo los átomos pueden producir. Las tecnologías de interferencia cuántica como relojes atómicos y sensores explotan la superposición para precisión sin precedentes.""",
+            },
+
+            'atomic_structure': {
+                Language.ENGLISH.value: """Atomic structure describes the organization of electrons around a nucleus of protons and neutrons. The nucleus is extraordinarily small—if an atom were the size of a football stadium, the nucleus would be a marble in the center, with electrons dancing in orbital regions around it.
+
+Electrons don't orbit like planets but occupy probability clouds called orbitals where they have specific energy levels. The lowest energy level holds electrons closest to the nucleus. Higher energy levels are farther away and hold more electrons. The arrangement of electrons determines chemical properties: atoms bond by sharing or transferring electrons between outer energy levels.
+
+Quantum mechanics revolutionized atomic understanding: electrons don't have definite positions but exist in superposition until measured. The periodic table organizes elements by their electron configurations, explaining chemical similarities and differences. Photons emitted when electrons drop to lower energy levels produce spectral lines—unique signatures used to identify elements even in distant stars. Nuclear reactions releasing tremendous energy power the sun and nuclear weapons. Understanding atomic structure enabled the development of chemistry, materials science, semiconductors, and nuclear energy.""",
+
+                Language.GERMAN.value: """Atomare Struktur beschreibt die Organisation von Elektronen um einen Atomkern aus Protonen und Neutronen. Der Atomkern ist außerordentlich klein—wenn ein Atom die Größe eines Fußballstadions hätte, wäre der Kern eine Murmel in der Mitte, mit Elektronen, die in orbitalen Regionen um ihn herum tanzen.
+
+Elektronen umkreisen nicht wie Planeten, sondern besetzen Wahrscheinlichkeitswolken, sogenannte Orbitale, wo sie spezifische Energieniveaus haben. Das niedrigste Energieniveau hält Elektronen am nächsten zum Atomkern. Höhere Energieniveaus sind weiter weg und halten mehr Elektronen. Die Anordnung von Elektronen bestimmt chemische Eigenschaften: Atome binden durch Teilen oder Übertragen von Elektronen zwischen äußeren Energieniveaus.
+
+Die Quantenmechanik revolutionierte das Verständnis von Atomen: Elektronen haben keine definierten Positionen, sondern existieren in Überlagerung bis zur Messung. Das Periodensystem organisiert Elemente nach ihren Elektronenkonfigurationen und erklärt chemische Ähnlichkeiten und Unterschiede. Photonen, die emittiert werden, wenn Elektronen zu niedrigeren Energieniveaus abfallen, erzeugen Spektrallinien—einzigartige Signaturen zur Identifizierung von Elementen sogar in fernen Sternen.""",
+
+                Language.FRENCH.value: """La structure atomique décrit l'organisation des électrons autour d'un noyau de protons et de neutrons. Le noyau est extraordinairement petit—si un atome avait la taille d'un stade de football, le noyau serait une bille au centre, avec des électrons dansant dans des régions orbitales autour de lui.
+
+Les électrons ne tournent pas comme des planètes mais occupent des nuages de probabilité appelés orbitales où ils ont des niveaux d'énergie spécifiques. Le niveau d'énergie le plus bas contient les électrons les plus proches du noyau. Les niveaux d'énergie plus élevés sont plus éloignés et contiennent plus d'électrons. L'arrangement des électrons détermine les propriétés chimiques : les atomes se lient en partageant ou en transférant des électrons entre les niveaux d'énergie externes.
+
+La mécanique quantique a révolutionné la compréhension atomique : les électrons n'ont pas de positions définies mais existent en superposition jusqu'à être mesurés. Le tableau périodique organise les éléments selon leurs configurations électroniques, expliquant les similitudes et différences chimiques. Les photons émis quand les électrons chutent à des niveaux d'énergie inférieurs produisent des raies spectrales—des signatures uniques pour identifier les éléments même dans les étoiles lointaines.""",
+
+                Language.SPANISH.value: """La estructura atómica describe la organización de los electrones alrededor de un núcleo de protones y neutrones. El núcleo es extraordinariamente pequeño—si un átomo tuviera el tamaño de un estadio de fútbol, el núcleo sería una canica en el centro, con electrones danzando en regiones orbitales a su alrededor.
+
+Los electrones no orbitan como planetas sino que ocupan nubes de probabilidad llamadas orbitales donde tienen niveles de energía específicos. El nivel de energía más bajo contiene electrones más cercanos al núcleo. Los niveles de energía más altos están más alejados y contienen más electrones. La disposición de los electrones determina las propiedades químicas: los átomos se unen compartiendo o transfiriendo electrones entre niveles de energía externos.
+
+La mecánica cuántica revolucionó la comprensión atómica: los electrones no tienen posiciones definidas sino que existen en superposición hasta ser medidos. La tabla periódica organiza los elementos según sus configuraciones electrónicas, explicando similitudes y diferencias químicas. Los fotones emitidos cuando los electrones caen a niveles de energía más bajos producen líneas espectrales—firmas únicas para identificar elementos incluso en estrellas lejanas.""",
+            },
+
+            'electric_current': {
+                Language.ENGLISH.value: """Electric current is the flow of electric charge through a conductor, measured in amperes (amps). Current flows when there's a potential difference (voltage) that pushes electrons through a circuit. Think of it like water flowing through a pipe—voltage is the pressure, current is the flow rate, and resistance is friction that opposes flow.
+
+Ohm's law (V = IR) relates voltage, current, and resistance: doubling voltage doubles current (if resistance stays constant). Different materials have different resistances: copper and aluminum conduct electricity easily (low resistance), while rubber and plastic resist flow (high resistance). Superconductors have zero resistance at extremely low temperatures, allowing perpetual current.
+
+Electrical current powers nearly all modern technology: lighting, heating, motors, computers, and communications depend on controlled current flow. AC (alternating) current powers homes and cities, flowing back and forth 50-60 times per second. DC (direct) current powers batteries and electronics. Electric circuits combine resistors, capacitors, and inductors in specific patterns to perform functions. Lightning is an intense current flowing through air, containing hundreds of millions of volts. Electrocution occurs when harmful current passes through the human body.""",
+
+                Language.GERMAN.value: """Elektrischer Strom ist die Strömung elektrischer Ladung durch einen Leiter, gemessen in Ampere (A). Der Strom fließt, wenn es einen Potentialunterschied (Spannung) gibt, der Elektronen durch einen Stromkreis treibt. Denk daran wie Wasser, das durch ein Rohr fließt—Spannung ist der Druck, Strom ist die Durchflussrate, und Widerstand ist Reibung, die den Fluss behindert.
+
+Ohms Gesetz (V = IR) bezieht Spannung, Strom und Widerstand: Verdoppeln der Spannung verdoppelt den Strom (falls der Widerstand gleich bleibt). Verschiedene Materialien haben unterschiedliche Widerstände: Kupfer und Aluminium leiten Elektrizität leicht (niedriger Widerstand), während Gummi und Kunststoff den Fluss behindern (hoher Widerstand). Supraleiter haben bei extrem niedrigen Temperaturen Nullwiderstand, was permanenten Strom ermöglicht.
+
+Elektrischer Strom treibt fast alle moderne Technologie an: Beleuchtung, Heizung, Motoren, Computer und Kommunikation hängen von kontrolliertem Stromfluss ab. AC (Wechsel-)Strom versorgt Häuser und Städte und fließt 50-60 Mal pro Sekunde hin und her. DC (Gleich-)Strom treibt Batterien und Elektronik an. Stromkreise kombinieren Widerstände, Kondensatoren und Induktivitäten in spezifischen Mustern, um Funktionen auszuführen.""",
+
+                Language.FRENCH.value: """Le courant électrique est le flux de charge électrique à travers un conducteur, mesuré en ampères (A). Le courant s'écoule quand il y a une différence de potentiel (tension) qui pousse les électrons à travers un circuit. Pensez-le comme l'eau coulant dans un tuyau—la tension est la pression, le courant est le débit, et la résistance est la friction qui oppose le flux.
+
+La loi d'Ohm (V = IR) relie la tension, le courant et la résistance : doubler la tension double le courant (si la résistance reste constante). Différents matériaux ont différentes résistances : le cuivre et l'aluminium conduisent l'électricité facilement (faible résistance), tandis que le caoutchouc et le plastique résistent au flux (haute résistance). Les supraconducteurs ont une résistance zéro à des températures extrêmement basses, permettant le courant perpétuel.
+
+Le courant électrique alimente presque toute la technologie moderne : l'éclairage, le chauffage, les moteurs, les ordinateurs et les communications dépendent du flux de courant contrôlé. Le courant AC (alternatif) alimente les maisons et les villes, circulant d'avant en arrière 50-60 fois par seconde. Le courant DC (continu) alimente les batteries et l'électronique.""",
+
+                Language.SPANISH.value: """La corriente eléctrica es el flujo de carga eléctrica a través de un conductor, medida en amperios (A). La corriente fluye cuando hay una diferencia de potencial (voltaje) que impulsa electrones a través de un circuito. Piensa en ello como agua fluyendo a través de una tubería—el voltaje es la presión, la corriente es la tasa de flujo, y la resistencia es la fricción que se opone al flujo.
+
+La ley de Ohm (V = IR) relaciona voltaje, corriente y resistencia: duplicar el voltaje duplica la corriente (si la resistencia se mantiene constante). Diferentes materiales tienen diferentes resistencias: el cobre y el aluminio conducen la electricidad fácilmente (baja resistencia), mientras que el caucho y el plástico resisten el flujo (alta resistencia). Los superconductores tienen resistencia cero a temperaturas extremadamente bajas, permitiendo corriente perpetua.
+
+La corriente eléctrica alimenta casi toda la tecnología moderna: iluminación, calefacción, motores, computadoras y comunicaciones dependen del flujo de corriente controlado. La corriente AC (alterna) alimenta hogares y ciudades, fluyendo de un lado a otro 50-60 veces por segundo. La corriente DC (directa) alimenta baterías y electrónica.""",
+            },
+
+            'golden_ratio': {
+                Language.ENGLISH.value: """The golden ratio (φ ≈ 1.618) is a mathematical proportion found throughout nature and art. When a line is divided so that the ratio of the whole to the larger part equals the ratio of the larger part to the smaller part, you get the golden ratio. This unique relationship creates aesthetically pleasing proportions.
+
+Nature uses the golden ratio extensively: spiral galaxies, hurricane formation, seashells, and flower petals follow golden spiral patterns. Pine cones, sunflower seeds, and pineapple patterns display Fibonacci numbers (1, 1, 2, 3, 5, 8, 13...) whose ratios converge toward the golden ratio. Human facial proportions, when considered most beautiful, often reflect golden ratio relationships.
+
+Artists and architects exploit the golden ratio intentionally: the Parthenon's proportions, Leonardo da Vinci's compositions, and modern graphic design use golden rectangles and spirals. The golden ratio appears in music theory, where it relates to harmonic intervals. Phyllotaxis (leaf arrangement) follows golden angle patterns to optimize sunlight exposure. This mathematical constant represents an intersection between mathematics, physics, biology, and aesthetics—demonstrating deep order in apparently chaotic natural systems.""",
+
+                Language.GERMAN.value: """Der goldene Schnitt (φ ≈ 1,618) ist eine mathematische Proportion, die überall in der Natur und Kunst gefunden wird. Wenn eine Linie so geteilt wird, dass das Verhältnis des Ganzen zum größeren Teil gleich dem Verhältnis des größeren zum kleineren Teil ist, erhält man den goldenen Schnitt. Diese einzigartige Beziehung erzeugt ästhetisch angenehme Proportionen.
+
+Die Natur nutzt den goldenen Schnitt umfangreich: Spiralgalaxien, Wirbelstürme, Muscheln und Blütenblätter folgen goldenen Spiralmustern. Tannenzapfen, Sonnenblumenkerne und Ananasmuster zeigen Fibonacci-Zahlen (1, 1, 2, 3, 5, 8, 13...), deren Verhältnisse sich dem goldenen Schnitt annähern. Menschliche Gesichtsproportionen, wenn als am schönsten betrachtet, weisen oft goldene Schnitt-Beziehungen auf.
+
+Künstler und Architekten nutzen den goldenen Schnitt absichtlich: das Parthenon, Leonardos Kompositionen und modernes Grafikdesign verwenden goldene Rechtecke und Spiralen. Der goldene Schnitt erscheint in Musiktheorie, wo er zu harmonischen Intervallen passt. Phyllotaxis (Blattanordnung) folgt goldenen Winkelmuster, um die Sonnenlichtexposition zu optimieren.""",
+
+                Language.FRENCH.value: """Le nombre d'or (φ ≈ 1,618) est une proportion mathématique trouvée partout dans la nature et l'art. Quand une ligne est divisée pour que le rapport du tout à la plus grande partie égale le rapport de la plus grande partie à la plus petite partie, vous obtenez le nombre d'or. Cette relation unique crée des proportions esthétiquement agréables.
+
+La nature utilise le nombre d'or extensivement : les galaxies spirales, la formation d'ouragan, les coquilles et les pétales de fleurs suivent des motifs de spirale dorée. Les cônes de pin, les graines de tournesol et les motifs d'ananas affichent les nombres de Fibonacci (1, 1, 2, 3, 5, 8, 13...) dont les rapports convergent vers le nombre d'or. Les proportions du visage humain, lorsque considérées comme les plus belles, reflètent souvent les relations du nombre d'or.
+
+Les artistes et architectes exploitent intentionnellement le nombre d'or : les proportions du Parthénon, les compositions de Léonard de Vinci et le design graphique moderne utilisent des rectangles et spirales d'or. Le nombre d'or apparaît dans la théorie musicale, où il se rapporte aux intervalles harmoniques.""",
+
+                Language.SPANISH.value: """La proporción áurea (φ ≈ 1,618) es una proporción matemática encontrada en toda la naturaleza y el arte. Cuando una línea se divide de modo que la razón del todo a la parte mayor es igual a la razón de la parte mayor a la parte menor, obtienes la proporción áurea. Esta relación única crea proporciones estéticamente agradables.
+
+La naturaleza usa la proporción áurea extensamente: las galaxias espirales, la formación de huracanes, las conchas y los pétalos de flores siguen patrones de espiral dorada. Las piñas, las semillas de girasol y los patrones de piña muestran números de Fibonacci (1, 1, 2, 3, 5, 8, 13...) cuyos ratios convergen hacia la proporción áurea. Las proporciones faciales humanas, cuando se consideran las más hermosas, a menudo reflejan relaciones de proporción áurea.
+
+Los artistas y arquitectos explotan intencionalmente la proporción áurea: las proporciones del Partenón, las composiciones de Leonardo da Vinci y el diseño gráfico moderno utilizan rectángulos y espirales dorados.""",
+            },
+
+            'waves': {
+                Language.ENGLISH.value: """Waves are disturbances that transfer energy through space without moving matter. Common waves include sound waves (pressure disturbances), water waves (surface disturbances), and electromagnetic waves (oscillating fields). All waves share properties: wavelength (distance between peaks), frequency (oscillations per second), amplitude (height of disturbance), and speed.
+
+Wave relationships: speed = frequency × wavelength, and energy is proportional to frequency squared. High-frequency waves carry more energy than low-frequency waves. A tsunami has long wavelength but devastating energy. Light is an electromagnetic wave; radio signals travel at light speed but with much lower frequency and longer wavelength.
+
+Waves exhibit interference (combining to amplify or cancel each other) and diffraction (bending around obstacles). Noise-canceling headphones use destructive interference—playing anti-noise that cancels ambient sound. Doppler effect explains why sirens change pitch as ambulances approach and pass. Resonance occurs when waves match an object's natural frequency, causing dramatic amplification: soldiers breaking step crossing bridges prevents resonance-induced collapse. Wave understanding revolutionized technology: sonar uses sound waves to detect submarines, ultrasound images medical conditions, and radar uses electromagnetic waves to detect aircraft.""",
+
+                Language.GERMAN.value: """Wellen sind Störungen, die Energie durch den Raum übertragen, ohne Materie zu bewegen. Häufige Wellen sind Schallwellen (Druckstörungen), Wasserwellen (Oberflächenstörungen) und elektromagnetische Wellen (oszillierende Felder). Alle Wellen teilen Eigenschaften: Wellenlänge (Abstand zwischen Spitzen), Frequenz (Oszillationen pro Sekunde), Amplitude (Höhe der Störung) und Geschwindigkeit.
+
+Wellenbeziehungen: Geschwindigkeit = Frequenz × Wellenlänge, und Energie ist proportional zum Quadrat der Frequenz. Hochfrequente Wellen transportieren mehr Energie als niederfrequente Wellen. Ein Tsunami hat lange Wellenlänge, aber verheerende Energie. Licht ist eine elektromagnetische Welle; Radiosignale reisen mit Lichtgeschwindigkeit, aber mit viel niedrigerer Frequenz und längerer Wellenlänge.
+
+Wellen zeigen Interferenz (kombinieren sich zu Verstärkung oder Aufhebung) und Beugung (Biegung um Hindernisse). Lärmschutz-Kopfhörer nutzen destruktive Interferenz—spielen Anti-Lärm, der Umgebungslärm aufhebt. Der Doppler-Effekt erklärt, warum sich Sirenen ändern, wenn Krankenwagen sich nähern und vorbeifahren. Resonanz tritt auf, wenn Wellen die natürliche Frequenz eines Objekts entsprechen, was zu dramatischer Verstärkung führt.""",
+
+                Language.FRENCH.value: """Les ondes sont des perturbations qui transfèrent l'énergie dans l'espace sans déplacer la matière. Les ondes communes incluent les ondes sonores (perturbations de pression), les ondes d'eau (perturbations de surface) et les ondes électromagnétiques (champs oscillants). Toutes les ondes partagent des propriétés : longueur d'onde (distance entre les pics), fréquence (oscillations par seconde), amplitude (hauteur de la perturbation) et vitesse.
+
+Relations ondulatoires : vitesse = fréquence × longueur d'onde, et l'énergie est proportionnelle au carré de la fréquence. Les ondes haute fréquence transportent plus d'énergie que les ondes basse fréquence. Un tsunami a une longue longueur d'onde mais une énergie dévastatrice. La lumière est une onde électromagnétique ; les signaux radio se déplacent à la vitesse de la lumière mais avec une fréquence beaucoup plus basse et une longueur d'onde plus longue.
+
+Les ondes présentent l'interférence (combinaison pour amplifier ou annuler) et la diffraction (flexion autour des obstacles). Les casques antibruit utilisent l'interférence destructive—jouent un anti-bruit qui annule le bruit ambiant. L'effet Doppler explique pourquoi les sirènes changent de hauteur à mesure que les ambulances approchent et passent.""",
+
+                Language.SPANISH.value: """Las ondas son perturbaciones que transfieren energía a través del espacio sin mover materia. Las ondas comunes incluyen ondas de sonido (perturbaciones de presión), ondas de agua (perturbaciones de superficie) y ondas electromagnéticas (campos oscilantes). Todas las ondas comparten propiedades: longitud de onda (distancia entre picos), frecuencia (oscilaciones por segundo), amplitud (altura de la perturbación) y velocidad.
+
+Relaciones de ondas: velocidad = frecuencia × longitud de onda, y la energía es proporcional al cuadrado de la frecuencia. Las ondas de alta frecuencia transportan más energía que las ondas de baja frecuencia. Un tsunami tiene una longitud de onda larga pero una energía devastadora. La luz es una onda electromagnética; las señales de radio viajan a la velocidad de la luz pero con una frecuencia mucho más baja y una longitud de onda más larga.
+
+Las ondas exhiben interferencia (combinación para amplificar o cancelar) y difracción (flexión alrededor de obstáculos). Los auriculares con cancelación de ruido utilizan interferencia destructiva—reproduciendo anti-ruido que cancela el sonido ambiental.""",
+            },
+
+            'energy_conservation': {
+                Language.ENGLISH.value: """Energy conservation states that energy cannot be created or destroyed, only transformed from one form to another. This fundamental law explains why perpetual motion machines are impossible—they would require creating energy from nothing.
+
+Energy takes many forms: kinetic (motion), potential (stored), thermal (heat), chemical (bonds), nuclear (atomic nucleus), and electromagnetic (light). A roller coaster continuously transforms potential energy (at the top) into kinetic energy (going down). Your body transforms chemical energy (food) into kinetic energy (movement) and thermal energy (body heat). The sun transforms nuclear energy into electromagnetic radiation (light), which plants transform into chemical energy through photosynthesis.
+
+In any closed system, total energy remains constant. However, energy often transforms to less useful forms: friction converts mechanical energy to heat, heat disperses into surroundings, and efficient motors minimize this loss. Conservation of energy enables calculating work: a hammer weighing 2kg dropped from 10 meters has gravitational potential energy (mgh = 2×10×10 = 200 Joules), which converts to kinetic energy just before impact. Energy efficiency technologies like LED lights, hybrid cars, and solar panels work by minimizing energy waste and converting renewable sources into useful forms.""",
+
+                Language.GERMAN.value: """Energieerhaltung besagt, dass Energie nicht erzeugt oder zerstört werden kann, sondern nur von einer Form in eine andere transformiert wird. Dieses fundamentale Gesetz erklärt, warum Perpetuum-Mobile-Maschinen unmöglich sind—sie würden erfordern, Energie aus dem Nichts zu erschaffen.
+
+Energie nimmt viele Formen an: kinetisch (Bewegung), potentiell (gespeichert), thermisch (Wärme), chemisch (Bindungen), nuklear (Atomkern) und elektromagnetisch (Licht). Eine Achterbahn transformiert kontinuierlich potentielle Energie (am Gipfel) in kinetische Energie (bergab). Dein Körper transformiert chemische Energie (Essen) in kinetische Energie (Bewegung) und thermische Energie (Körperwärme). Die Sonne transformiert Kernenergie in elektromagnetische Strahlung (Licht), die Pflanzen durch Photosynthese in chemische Energie transformieren.
+
+In jedem geschlossenen System bleibt die Gesamtenergie konstant. Energie transformiert sich jedoch oft in weniger nützliche Formen: Reibung wandelt mechanische Energie in Wärme um, Wärme dispersiert in Umgebung, und effiziente Motoren minimieren diesen Verlust. Energieerhaltung ermöglicht das Berechnen von Arbeit: Ein 2kg Hammer, der aus 10 Metern fällt, hat Gravitationspotentialenergie (mgh = 2×10×10 = 200 Joule), die sich in kinetische Energie umwandelt.""",
+
+                Language.FRENCH.value: """La conservation de l'énergie stipule que l'énergie ne peut pas être créée ou détruite, seulement transformée d'une forme à une autre. Cette loi fondamentale explique pourquoi les machines à mouvement perpétuel sont impossibles—elles nécessiteraient de créer de l'énergie à partir de rien.
+
+L'énergie prend de nombreuses formes : cinétique (mouvement), potentielle (stockée), thermique (chaleur), chimique (liaisons), nucléaire (noyau atomique) et électromagnétique (lumière). Un parc d'attractions transforme continuellement l'énergie potentielle (en haut) en énergie cinétique (en bas). Votre corps transforme l'énergie chimique (nourriture) en énergie cinétique (mouvement) et énergie thermique (chaleur corporelle). Le soleil transforme l'énergie nucléaire en rayonnement électromagnétique (lumière), que les plantes transforment en énergie chimique par photosynthèse.
+
+Dans tout système fermé, l'énergie totale reste constante. Cependant, l'énergie se transforme souvent en formes moins utiles : la friction convertit l'énergie mécanique en chaleur, la chaleur se disperse dans l'environnement, et les moteurs efficaces minimisent cette perte.""",
+
+                Language.SPANISH.value: """La conservación de la energía establece que la energía no puede ser creada o destruida, solo transformada de una forma a otra. Esta ley fundamental explica por qué las máquinas de movimiento perpetuo son imposibles—requerirían crear energía de la nada.
+
+La energía toma muchas formas: cinética (movimiento), potencial (almacenada), térmica (calor), química (enlaces), nuclear (núcleo atómico) y electromagnética (luz). Una montaña rusa transforma continuamente la energía potencial (en la parte superior) en energía cinética (bajando). Tu cuerpo transforma energía química (alimento) en energía cinética (movimiento) y energía térmica (calor corporal). El sol transforma energía nuclear en radiación electromagnética (luz), que las plantas transforman en energía química a través de la fotosíntesis.
+
+En cualquier sistema cerrado, la energía total permanece constante. Sin embargo, la energía a menudo se transforma en formas menos útiles: la fricción convierte la energía mecánica en calor, el calor se dispersa en el entorno, y los motores eficientes minimizan esta pérdida.""",
+            },
+
+            'projectile_motion': {
+                Language.ENGLISH.value: """Projectile motion describes how objects launched at an angle travel through the air under gravity's influence. A basketball shot toward the hoop, an arrow from a bow, or a cannon ball all follow parabolic paths—this is projectile motion.
+
+The key insight: horizontal and vertical motion are independent. Gravity only affects vertical motion (accelerating downward at 9.8 m/s²), while horizontal velocity remains constant (ignoring air resistance). This is why a ball dropped from a moving car lands directly below the drop point in the car's frame—the car and ball maintain the same horizontal velocity.
+
+Range depends on launch angle and speed. Maximum range occurs at 45 degrees; lower or higher angles give shorter ranges. Launch speed dramatically affects range: doubling speed approximately quadruples range. Trajectory is calculated using kinematic equations: y = y₀ + v₀ₓt + ½gt², and similar equations for vertical motion. Sports optimize projectile motion: baseball pitchers calculate angles, soccer players predict ball curves accounting for air resistance, basketball players use arc angles. Military applications historically depended on calculating projectile trajectories. Modern computers solve complex projectile problems including air resistance, which creates drag-dependent trajectories deviating from simple parabolas.""",
+
+                Language.GERMAN.value: """Projektilbewegung beschreibt, wie Objekte, die in einem Winkel gestartet werden, unter Einfluss der Schwerkraft durch die Luft reisen. Ein Basketball auf den Korb, ein Pfeil aus einem Bogen oder eine Kugel folgen alle parabolischen Pfaden—dies ist Projektilbewegung.
+
+Der Schlüsselgedanke: horizontale und vertikale Bewegung sind unabhängig. Gravitation beeinflusst nur die vertikale Bewegung (Beschleunigung nach unten bei 9,8 m/s^2), während die horizontale Geschwindigkeit konstant bleibt (Luftwiderstand ignoriert). Dies ist, warum ein Ball, der aus einem fahrenden Auto fallen gelassen wird, direkt unter dem Abwurfpunkt im Rahmen des Autos landet—das Auto und der Ball erhalten die gleiche horizontale Geschwindigkeit.
+
+Die Reichweite hängt vom Abschusswinkel und der Geschwindigkeit ab. Maximale Reichweite tritt bei 45 Grad auf; niedrigere oder höhere Winkel geben kürzere Reichweiten. Die Abschussgeschwindigkeit beeinflusst dramatisch die Reichweite: Verdopplung der Geschwindigkeit vervierfacht ungefähr die Reichweite. Die Flugbahn wird mit kinematischen Gleichungen berechnet: y = y₀ + v₀ₓt + ½gt^2, und ähnliche Gleichungen für vertikale Bewegung.""",
+
+                Language.FRENCH.value: """Le mouvement de projectile décrit comment les objets lancés à un angle se déplacent dans l'air sous l'influence de la gravité. Un ballon de basket tiré vers le panier, une flèche d'un arc ou un boulet de canon suivent tous des trajectoires paraboliques—c'est le mouvement de projectile.
+
+L'idée clé : le mouvement horizontal et vertical sont indépendants. La gravité n'affecte que le mouvement vertical (accélérant vers le bas à 9,8 m/s^2), tandis que la vitesse horizontale reste constante (ignorant la résistance de l'air). C'est pourquoi une balle lâchée d'une voiture en mouvement tombe directement sous le point de chute dans le cadre de la voiture—la voiture et la balle maintiennent la même vitesse horizontale.
+
+La portée dépend de l'angle de lancement et de la vitesse. La portée maximale se produit à 45 degrés ; les angles plus bas ou plus élevés donnent des portées plus courtes. La vitesse de lancement affecte dramatiquement la portée : doubler la vitesse quadruple approximativement la portée. La trajectoire est calculée avec les équations cinématiques : y = y₀ + v₀ₓt + ½gt^2, et équations similaires pour le mouvement vertical.""",
+
+                Language.SPANISH.value: """El movimiento de proyectil describe cómo los objetos lanzados en un ángulo viajan a través del aire bajo la influencia de la gravedad. Un baloncesto lanzado hacia la canasta, una flecha de un arco o una bala de cañón siguen trayectorias parabólicas—esto es movimiento de proyectil.
+
+La idea clave: el movimiento horizontal y vertical son independientes. La gravedad solo afecta el movimiento vertical (acelerando hacia abajo a 9,8 m/s²), mientras que la velocidad horizontal permanece constante (ignorando la resistencia del aire). Esta es la razón por la cual una bola lanzada desde un auto en movimiento cae directamente debajo del punto de lanzamiento en el marco del auto—el auto y la bola mantienen la misma velocidad horizontal.
+
+El alcance depende del ángulo de lanzamiento y la velocidad. El alcance máximo ocurre a 45 grados; ángulos más bajos o más altos dan alcances más cortos. La velocidad de lanzamiento afecta dramáticamente el alcance: duplicar la velocidad aproximadamente cuadriplica el alcance. La trayectoria se calcula usando ecuaciones cinemáticas: y = y₀ + v₀ₓt + ½gt², y ecuaciones similares para el movimiento vertical.""",
+            },
         }
 
     def get_explanation(self, phenomenon: str, language: str = "en") -> str:
@@ -198,18 +406,21 @@ Entender la temperatura es crucial para la vida cotidiana: cocinar, aire acondic
         keywords = [
             # Classical Mechanics
             'gravity', 'gravitational', 'inertia', 'momentum', 'friction', 'motion',
-            'circular', 'projectile', 'force', 'newton',
+            'circular', 'projectile', 'trajectory', 'force', 'newton', 'launch',
             # Thermodynamics
             'entropy', 'disorder', 'temperature', 'heat', 'transfer', 'phase', 'transition',
-            'thermodynamics',
+            'thermodynamics', 'thermal',
             # Electromagnetism
             'magnetism', 'magnetic', 'light', 'current', 'electric', 'circuit', 'electron',
-            'electromagnetic', 'radiation',
+            'electromagnetic', 'radiation', 'voltage', 'resistance',
             # Quantum Mechanics
             'quantum', 'superposition', 'uncertainty', 'entanglement', 'atomic', 'atom',
-            'tunnel', 'photon', 'wave',
-            # Sacred Geometry
-            'golden', 'ratio', 'fractal', 'pattern', 'fibonacci', 'harmony'
+            'tunnel', 'photon', 'wave', 'electron', 'orbital', 'orbital',
+            # Sacred Geometry & Waves
+            'golden', 'ratio', 'fractal', 'pattern', 'fibonacci', 'harmony',
+            'wave', 'oscillation', 'frequency', 'wavelength', 'interference', 'resonance',
+            # Energy
+            'energy', 'conservation', 'kinetic', 'potential', 'chemical', 'nuclear'
         ]
 
         phenomenon_lower = phenomenon_clean.lower()
@@ -224,7 +435,7 @@ Entender la temperatura es crucial para la vida cotidiana: cocinar, aire acondic
                             return explanation[language]
                         return explanation.get("en", f"Explanation for {phenomenon} not available")
 
-        return f"Physics explanation for '{phenomenon}' not available in {language}. Try: gravity, entropy, quantum entanglement, light, temperature, friction, current, superposition"
+        return f"Physics explanation for '{phenomenon}' not available in {language}. Try: gravity, entropy, quantum_entanglement, light, superposition, atomic_structure, electric_current, golden_ratio, waves, energy_conservation, projectile_motion, friction, temperature"
 
     def get_supported_languages(self) -> List[Dict[str, str]]:
         """Get list of supported languages."""
