@@ -583,32 +583,49 @@
             messagesDiv.appendChild(loadingDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-            // Simulate API call (replace with actual API call)
-            setTimeout(() => {
+            // Send actual API request
+            fetch('http://localhost:5000/api/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
                 loadingDiv.remove();
 
-                // Mock responses based on query
-                let response = '';
-                const lowerQuery = query.toLowerCase();
+                if (data.success) {
+                    // Extract answer
+                    const answer = data.answer || 'No answer available';
+                    addMessage(answer, 'bot');
 
-                if (lowerQuery.includes('entropy')) {
-                    response = "Entropy is a measure of disorder in a system. According to the Second Law of Thermodynamics, entropy in an isolated system always increases. This relates to understanding through the consciousness parallel: just as physical systems tend toward disorder without energy input, knowledge naturally degrades without reinforcement.";
-                } else if (lowerQuery.includes('empathy')) {
-                    response = "Empathy in our GAIA system emerges through the Ising spin model. Agents develop empathy by measuring state overlap - how well their individual understanding states align with others. Higher empathy correlates with agent synchronization and collective consciousness emergence.";
-                } else if (lowerQuery.includes('quantum')) {
-                    response = "Quantum superposition suggests particles exist in multiple states simultaneously until measured. This parallels consciousness: agents hold multiple possible understandings until interaction causes 'measurement.' Both involve fundamental uncertainty and observation-dependent reality.";
-                } else if (lowerQuery.includes('fall') || lowerQuery.includes('gravity')) {
-                    response = "Objects fall due to gravitational force. Mass curves spacetime, and objects follow the curved geometry. The acceleration is 9.8 m/s² near Earth's surface. This is fundamental to understanding planetary motion and orbital mechanics.";
+                    // Add system info
+                    const confidence = (data.confidence * 100).toFixed(1);
+                    const type = data.type || 'unknown';
+                    const handler = data.handler || 'unknown';
+
+                    let statusMsg = `✓ Type: ${type.replace(/_/g, ' ')} | Handler: ${handler.replace(/_/g, ' ')} | Confidence: ${confidence}%`;
+
+                    if (data.principles && data.principles.length > 0) {
+                        statusMsg += ` | Principles: ${data.principles.slice(0, 2).join(', ')}`;
+                    }
+
+                    addMessage(statusMsg, 'system');
                 } else {
-                    response = "This is a fascinating question about the intersection of physics and consciousness. The system is analyzing your query using multi-domain reasoning. Physics principles provide the mechanical foundation, while consciousness models offer perspective on emergent phenomena.";
+                    addMessage(`Error: ${data.error || 'Unknown error'}`, 'bot');
                 }
-
-                addMessage(response, 'bot');
-
-                // Add system info
-                const type = lowerQuery.includes('empathy') || lowerQuery.includes('consciousness') ? 'consciousness' : 'physics';
-                addMessage(`✓ Query routed to: ${type}_reasoning | Confidence: ${Math.floor(Math.random() * 20 + 55)}%`, 'system');
-            }, 1500 + Math.random() * 1000);
+            })
+            .catch(error => {
+                loadingDiv.remove();
+                addMessage(`Connection Error: ${error.message}. Make sure API server is running on http://localhost:5000`, 'bot');
+                console.error('API Error:', error);
+            });
         }
 
         function handleKeyPress(event) {
