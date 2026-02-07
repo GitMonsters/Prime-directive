@@ -212,19 +212,22 @@ class GaiaPhysicsQueryRouter:
         self.physics_keywords = {
             PhysicsDomain.CLASSICAL_MECHANICS: [
                 'force', 'motion', 'velocity', 'acceleration', 'momentum', 'energy',
-                'gravity', 'inertia', 'collision', 'trajectory'
+                'gravity', 'inertia', 'collision', 'trajectory', 'fall', 'drop',
+                'weight', 'mass', 'speed', 'object', 'push', 'pull', 'gravity'
             ],
             PhysicsDomain.THERMODYNAMICS: [
                 'heat', 'temperature', 'entropy', 'work', 'energy', 'equilibrium',
-                'disorder', 'cooling', 'expansion'
+                'disorder', 'cooling', 'expansion', 'hot', 'cold', 'warm',
+                'pressure', 'flow', 'cool'
             ],
             PhysicsDomain.ELECTROMAGNETISM: [
                 'charge', 'electric', 'magnetic', 'field', 'current', 'voltage',
-                'electromagnetic', 'induction', 'wave'
+                'electromagnetic', 'induction', 'wave', 'light', 'electricity',
+                'magnet', 'attract', 'repel'
             ],
             PhysicsDomain.QUANTUM_MECHANICS: [
                 'quantum', 'particle', 'superposition', 'wave-particle', 'uncertainty',
-                'spin', 'orbital', 'photon', 'electron'
+                'spin', 'orbital', 'photon', 'electron', 'atom', 'nuclear', 'light'
             ],
             PhysicsDomain.SACRED_GEOMETRY: [
                 'golden', 'ratio', 'harmonic', 'resonance', 'frequency', 'pattern',
