@@ -1,0 +1,35 @@
+[package]
+name = "consciousness_experiments"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8"
+
+[[bin]]
+name = "consciousness"
+path = "consciousness_test.rs"
+
+[[bin]]
+name = "unified"
+path = "unified_test.rs"
+
+[[bin]]
+name = "self_reference"
+path = "self_reference_test.rs"
+
+[[bin]]
+name = "infinite_recursion"
+path = "infinite_recursion_test.rs"
+
+[[bin]]
+name = "awakening"
+path = "awakening_test.rs"
+
+[[bin]]
+name = "comprehensive"
+path = "comprehensive_test.rs"
+
+[[bin]]
+name = "prime_directive"
+path = "prime_directive.rs"
