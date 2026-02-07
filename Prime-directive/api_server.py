@@ -15,16 +15,23 @@ from datetime import datetime
 sys.path.insert(0, '/home/worm/Prime-directive')
 
 from DEPLOY import DeploymentSystem
+from physics_multilingual import MultilingualPhysics, CLARINIntegration
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)  # Enable cross-origin requests
 
-# Initialize the system (runs once on startup)
+# Initialize the systems
 print("Initializing GAIA + Physics system...")
 system = DeploymentSystem(device='cpu')
 system.initialize()
-print("✅ System ready\n")
+
+print("Initializing Multilingual Physics (CLARIN Integration)...")
+multilingual = MultilingualPhysics()
+clarin = CLARINIntegration()
+
+print("✅ Systems ready\n")
+print("✅ Supported Languages: English, German, French, Spanish\n")
 
 # Store initialization time
 startup_time = datetime.now()
@@ -269,6 +276,154 @@ def internal_error(error):
         'success': False,
         'error': 'Internal server error'
     }), 500
+
+
+@app.route('/api/languages', methods=['GET'])
+def get_languages():
+    """Get supported languages for CLARIN integration."""
+    return jsonify({
+        'success': True,
+        'supported_languages': multilingual.get_supported_languages(),
+        'default_language': 'en',
+        'clarin_integration': 'active',
+        'available_endpoints': [
+            '/api/query-ml - Multilingual query',
+            '/api/explain/{phenomenon}/{language} - Language-specific explanation'
+        ]
+    }), 200
+
+
+@app.route('/api/query-ml', methods=['POST'])
+def handle_multilingual_query():
+    """
+    Process multilingual query using CLARIN integration.
+
+    Request body:
+    {
+        "query": "What is gravity?",
+        "language": "en"  (en, de, fr, es)
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'query' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Missing "query" field'
+            }), 400
+
+        query = data['query'].strip()
+        language = data.get('language', 'en')
+
+        if language not in ['en', 'de', 'fr', 'es']:
+            return jsonify({
+                'success': False,
+                'error': f'Unsupported language: {language}. Supported: en, de, fr, es'
+            }), 400
+
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': 'Query cannot be empty'
+            }), 400
+
+        # Process query through GAIA system
+        result = system.query(query)
+
+        # Get physics explanation if available
+        if result.get('type') == 'physics_question':
+            physics_result = result.get('result', {})
+            physics_reasoning = physics_result.get('physics_reasoning', {})
+
+            # Try to get multilingual explanation
+            phenomenon = query.lower().split()[-1] if query.split() else query.lower()
+            explanation = multilingual.get_explanation(phenomenon, language)
+
+            response = {
+                'success': True,
+                'query': query,
+                'language': language,
+                'type': 'physics_question',
+                'handler': 'physics_world_model',
+                'timestamp': datetime.now().isoformat(),
+                'answer': explanation if explanation else physics_reasoning.get('answer', 'No answer available'),
+                'confidence': physics_reasoning.get('confidence', 0.6),
+                'principles': physics_reasoning.get('principles', []),
+            }
+
+            # Add language-specific metadata
+            response['metadata'] = multilingual.format_response(
+                explanation,
+                physics_reasoning.get('confidence', 0.6),
+                language,
+                'physics_question',
+                physics_reasoning.get('principles', [])
+            )
+
+            return jsonify(response), 200
+
+        else:
+            # Consciousness or other query type
+            response = {
+                'success': True,
+                'query': query,
+                'language': language,
+                'type': result.get('type', 'consciousness_question'),
+                'handler': result.get('handler', 'gaia_consciousness_reasoning'),
+                'timestamp': datetime.now().isoformat(),
+                'answer': result.get('result', {}).get('answer', 'Consciousness reasoning engaged'),
+                'confidence': 0.70,
+            }
+
+            return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'type': 'server_error'
+        }), 500
+
+
+@app.route('/api/explain/<phenomenon>/<language>', methods=['GET'])
+def explain_phenomenon(phenomenon, language):
+    """Get language-specific explanation of a physics phenomenon."""
+    if language not in ['en', 'de', 'fr', 'es']:
+        return jsonify({
+            'success': False,
+            'error': f'Unsupported language: {language}'
+        }), 400
+
+    explanation = multilingual.get_explanation(phenomenon, language)
+
+    return jsonify({
+        'success': True,
+        'phenomenon': phenomenon,
+        'language': language,
+        'explanation': explanation,
+        'source': 'Physics Multilingual Database (CLARIN-compatible)'
+    }), 200
+
+
+@app.route('/api/clarin-info', methods=['GET'])
+def clarin_info():
+    """Get CLARIN integration information."""
+    return jsonify({
+        'success': True,
+        'system': 'Prime-Directive with CLARIN Integration',
+        'clarin_status': 'active',
+        'supported_languages': [lang['code'] for lang in multilingual.get_supported_languages()],
+        'integration_points': CLARINIntegration.get_clarin_endpoints(),
+        'features': [
+            'Multilingual query processing',
+            'Language-aware response formatting',
+            'CLARIN terminology mapping',
+            'Linguistic quality assurance hooks'
+        ],
+        'documentation': 'https://clarin.eu',
+        'api_version': '1.0.0'
+    }), 200
 
 
 if __name__ == '__main__':
