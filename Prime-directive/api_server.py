@@ -419,11 +419,193 @@ def clarin_info():
             'Multilingual query processing',
             'Language-aware response formatting',
             'CLARIN terminology mapping',
-            'Linguistic quality assurance hooks'
+            'Linguistic quality assurance',
+            'NLP text analysis',
+            'Entity extraction'
+        ],
+        'available_endpoints': [
+            '/api/clarin-analyze',
+            '/api/clarin-terminology',
+            '/api/clarin-quality',
+            '/api/clarin-entities',
+            '/api/clarin-detect-language'
         ],
         'documentation': 'https://clarin.eu',
-        'api_version': '1.0.0'
+        'api_version': '2.0.0'
     }), 200
+
+
+@app.route('/api/clarin-analyze', methods=['POST'])
+def clarin_analyze():
+    """
+    Perform linguistic analysis on text using CLARIN NLP services.
+
+    Request body:
+    {
+        "text": "Text to analyze",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+        language = data.get('language', 'en')
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        analysis = clarin.analyze_text(text, language)
+
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-terminology', methods=['POST'])
+def clarin_terminology():
+    """
+    Map physics terminology to CLARIN standardized forms.
+
+    Request body:
+    {
+        "term": "gravity",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'term' not in data:
+            return jsonify({'success': False, 'error': 'Missing "term" field'}), 400
+
+        term = data['term'].strip()
+        language = data.get('language', 'en')
+
+        if not term:
+            return jsonify({'success': False, 'error': 'Term cannot be empty'}), 400
+
+        mapping = clarin.map_physics_terminology(term, language)
+
+        return jsonify({
+            'success': True,
+            'terminology_mapping': mapping,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-quality', methods=['POST'])
+def clarin_quality():
+    """
+    Assess linguistic quality of text.
+
+    Request body:
+    {
+        "text": "Text to assess",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+        language = data.get('language', 'en')
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        quality_assessment = clarin.assess_linguistic_quality(text, language)
+
+        return jsonify({
+            'success': True,
+            'quality_assessment': quality_assessment,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-entities', methods=['POST'])
+def clarin_entities():
+    """
+    Extract physics concepts and named entities from text.
+
+    Request body:
+    {
+        "text": "Text to extract entities from",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+        language = data.get('language', 'en')
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        entities = clarin.extract_entities(text, language)
+
+        return jsonify({
+            'success': True,
+            'entities': entities,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-detect-language', methods=['POST'])
+def clarin_detect_language():
+    """
+    Detect language of input text.
+
+    Request body:
+    {
+        "text": "Text to detect language"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        detection = clarin.detect_language(text)
+
+        return jsonify({
+            'success': True,
+            'language_detection': detection,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':
@@ -431,7 +613,7 @@ if __name__ == '__main__':
     print("GAIA + PHYSICS INTEGRATION - API SERVER")
     print("="*80)
     print()
-    print("API Endpoints:")
+    print("Core API Endpoints:")
     print("  GET  /api/health           - Health check")
     print("  GET  /api/status           - System status")
     print("  POST /api/query            - Process query")
@@ -439,6 +621,19 @@ if __name__ == '__main__':
     print("  GET  /api/laws             - Physics laws")
     print("  GET  /api/examples         - Example queries")
     print("  GET  /api/info             - System information")
+    print()
+    print("Multilingual Endpoints:")
+    print("  GET  /api/languages        - Supported languages")
+    print("  POST /api/query-ml         - Multilingual query with language")
+    print("  GET  /api/explain          - Language-specific explanations")
+    print("  GET  /api/clarin-info      - CLARIN integration info")
+    print()
+    print("CLARIN NLP Analysis Endpoints:")
+    print("  POST /api/clarin-analyze   - Linguistic text analysis")
+    print("  POST /api/clarin-terminology - Physics terminology mapping")
+    print("  POST /api/clarin-quality   - Linguistic quality assessment")
+    print("  POST /api/clarin-entities  - Entity extraction")
+    print("  POST /api/clarin-detect-language - Language detection")
     print()
     print("Starting server on http://localhost:5000")
     print("Open chat_interface.html in browser to chat")
