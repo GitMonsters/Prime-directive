@@ -16,6 +16,9 @@ from physics_world_model import PhysicsWorldModel, PhysicsDomain
 from gaia_physics_integration import PhysicsEnhancedGAIAEvaluator
 from ising_empathy_module import IsingGPU, IsingEmpathyModule
 
+# Device configuration with platform protection
+from DEVICE_CONFIG import get_device, ProtectedDeviceConfig
+
 
 class DeploymentSystem:
     """Main deployment interface for GAIA + Physics integration."""
@@ -24,26 +27,34 @@ class DeploymentSystem:
         """Initialize the complete system.
 
         Args:
-            device: 'cpu', 'cuda', or 'auto' (auto-detect GPU, fallback to CPU)
+            device: 'cpu', 'cuda', 'mps', or 'auto' (auto-detect with platform protection)
+                   - 'auto' (default): Detects platform and uses optimal device
+                     * Linux: AMD ROCm (if available, else CPU)
+                     * macOS: Apple Metal (if available, else CPU)
+                     * Windows: NVIDIA CUDA (if available, else CPU)
+                   - Specific device: Use torch.device directly (for testing)
+
+        ⚠️  IMPORTANT: AMD GPU configuration is LOCKED to Linux.
+            When switching to/from MacBook, device settings auto-adapt per platform.
+            AMD ROCm setup is preserved and will be available when returning to Linux.
         """
         self.device_name = device
-
-        # Auto-detect GPU if requested
-        if device == 'auto':
-            if torch.cuda.is_available():
-                self.device = torch.device('cuda', 0)
-                self.device_name = 'cuda'
-            else:
-                self.device = torch.device('cpu')
-                self.device_name = 'cpu'
-        else:
-            self.device = torch.device(device)
-            self.device_name = device
-
         self.evaluator = None
         self.physics = None
         self.status = "uninitialized"
         self.startup_time = datetime.now()
+
+        # Use protected device configuration for platform awareness
+        if device == 'auto':
+            # Check for platform changes and warn if needed
+            ProtectedDeviceConfig.check_platform_change()
+            # Get platform-appropriate device
+            self.device = get_device(force_device=None)
+            self.device_name = str(self.device)
+        else:
+            # Direct device specification (use with caution)
+            self.device = torch.device(device)
+            self.device_name = device
 
     def initialize(self) -> bool:
         """Initialize all system components."""
