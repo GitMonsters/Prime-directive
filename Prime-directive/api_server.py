@@ -16,6 +16,8 @@ sys.path.insert(0, '/home/worm/Prime-directive')
 
 from DEPLOY import DeploymentSystem
 from physics_multilingual import MultilingualPhysics, CLARINIntegration
+from clarin_api_client import CLARINAPIClient
+from collaborative_learning import CollaborativeLearningManager, UserRole, AnnotationType
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -29,9 +31,15 @@ system.initialize()
 print("Initializing Multilingual Physics (CLARIN Integration)...")
 multilingual = MultilingualPhysics()
 clarin = CLARINIntegration()
+clarin_api = CLARINAPIClient()
+
+print("Initializing Collaborative Learning System...")
+learning_manager = CollaborativeLearningManager()
 
 print("✅ Systems ready\n")
-print("✅ Supported Languages: English, German, French, Spanish\n")
+print("✅ Supported Languages: English, German, French, Spanish")
+print("✅ CLARIN API Client initialized (with caching & fallback)")
+print("✅ Collaborative Learning System initialized\n")
 
 # Store initialization time
 startup_time = datetime.now()
@@ -264,7 +272,21 @@ def not_found(error):
             '/api/domains',
             '/api/laws',
             '/api/examples',
-            '/api/info'
+            '/api/info',
+            '/api/languages',
+            '/api/query-ml (POST)',
+            '/api/explain/{phenomenon}/{language}',
+            '/api/clarin-info',
+            '/api/clarin-analyze (POST)',
+            '/api/clarin-terminology (POST)',
+            '/api/clarin-quality (POST)',
+            '/api/clarin-entities (POST)',
+            '/api/clarin-detect-language (POST)',
+            '/api/clarin-realtime-analyze (POST)',
+            '/api/clarin-realtime-entities (POST)',
+            '/api/clarin-realtime-detect (POST)',
+            '/api/clarin-realtime-terminology (POST)',
+            '/api/clarin-health (GET)'
         ]
     }), 404
 
@@ -608,6 +630,409 @@ def clarin_detect_language():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+# ============================================================================
+# PHASE 6: Real-time CLARIN API Integration Endpoints
+# ============================================================================
+
+@app.route('/api/clarin-realtime-analyze', methods=['POST'])
+def clarin_realtime_analyze():
+    """
+    Real-time linguistic analysis using CLARIN infrastructure.
+    Uses actual CLARIN services with intelligent fallback.
+
+    Request body:
+    {
+        "text": "Text to analyze",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+        language = data.get('language', 'en')
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        analysis = clarin_api.analyze_text_clarin(text, language)
+
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'source': 'CLARIN Real-time API',
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-realtime-entities', methods=['POST'])
+def clarin_realtime_entities():
+    """
+    Real-time entity extraction using CLARIN NameTag service.
+    Extracts named entities and concepts from text.
+
+    Request body:
+    {
+        "text": "Text to extract entities from",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+        language = data.get('language', 'en')
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        entities = clarin_api.extract_entities_clarin(text, language)
+
+        return jsonify({
+            'success': True,
+            'entities': entities,
+            'source': 'CLARIN NameTag Real-time Service',
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-realtime-detect', methods=['POST'])
+def clarin_realtime_detect():
+    """
+    Real-time language detection using CLARIN UDPipe service.
+
+    Request body:
+    {
+        "text": "Text to detect language for"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': 'Missing "text" field'}), 400
+
+        text = data['text'].strip()
+
+        if not text:
+            return jsonify({'success': False, 'error': 'Text cannot be empty'}), 400
+
+        detection = clarin_api.detect_language(text)
+
+        return jsonify({
+            'success': True,
+            'language_detection': detection,
+            'source': 'CLARIN Real-time Language Detection',
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-realtime-terminology', methods=['POST'])
+def clarin_realtime_terminology():
+    """
+    Real-time terminology validation using CLARIN terminology service.
+
+    Request body:
+    {
+        "term": "physics term",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data or 'term' not in data:
+            return jsonify({'success': False, 'error': 'Missing "term" field'}), 400
+
+        term = data['term'].strip()
+        language = data.get('language', 'en')
+
+        if not term:
+            return jsonify({'success': False, 'error': 'Term cannot be empty'}), 400
+
+        validation = clarin_api.validate_terminology(term, language)
+
+        return jsonify({
+            'success': True,
+            'terminology_validation': validation,
+            'source': 'CLARIN Real-time Terminology Service',
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/clarin-health', methods=['GET'])
+def clarin_health():
+    """
+    Check CLARIN service availability and get performance metrics.
+    """
+    try:
+        health = clarin_api.health_check()
+
+        return jsonify({
+            'success': True,
+            'clarin_infrastructure': health,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================================
+# PHASE 7: Real-time Collaborative Learning Features
+# ============================================================================
+
+@app.route('/api/collaborative/create-session', methods=['POST'])
+def create_collaborative_session():
+    """
+    Create a new collaborative learning session.
+
+    Request body:
+    {
+        "title": "Session title",
+        "topic": "physics_topic",
+        "language": "en",
+        "creator_id": "instructor_001",
+        "max_participants": 50
+    }
+    """
+    try:
+        data = request.get_json()
+
+        required = ['title', 'topic', 'language', 'creator_id']
+        if not data or not all(field in data for field in required):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+        result = learning_manager.create_session(
+            title=data['title'],
+            topic=data['topic'],
+            language=data['language'],
+            creator_id=data['creator_id'],
+            max_participants=data.get('max_participants', 50)
+        )
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/join-session', methods=['POST'])
+def join_collaborative_session():
+    """
+    Add a user to a collaborative session.
+
+    Request body:
+    {
+        "session_id": "session_uuid",
+        "user_id": "user_001",
+        "name": "User Name",
+        "role": "student",
+        "language": "en"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        required = ['session_id', 'user_id', 'name', 'role', 'language']
+        if not data or not all(field in data for field in required):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+        try:
+            role = UserRole[data['role'].upper()]
+        except KeyError:
+            return jsonify({'success': False, 'error': f'Invalid role: {data["role"]}'}), 400
+
+        result = learning_manager.add_user(
+            session_id=data['session_id'],
+            user_id=data['user_id'],
+            name=data['name'],
+            role=role,
+            language=data['language']
+        )
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/add-annotation', methods=['POST'])
+def add_annotation():
+    """
+    Add an annotation (question, explanation, bookmark, etc.) to session content.
+
+    Request body:
+    {
+        "session_id": "session_uuid",
+        "user_id": "user_001",
+        "content_id": "concept_name",
+        "type": "question",
+        "text": "Annotation text",
+        "start_position": 0,
+        "end_position": 50
+    }
+    """
+    try:
+        data = request.get_json()
+
+        required = ['session_id', 'user_id', 'content_id', 'type', 'text']
+        if not data or not all(field in data for field in required):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+        try:
+            ann_type = AnnotationType[data['type'].upper()]
+        except KeyError:
+            return jsonify({'success': False, 'error': f'Invalid annotation type: {data["type"]}'}), 400
+
+        result = learning_manager.add_annotation(
+            session_id=data['session_id'],
+            user_id=data['user_id'],
+            content_id=data['content_id'],
+            annotation_type=ann_type,
+            text=data['text'],
+            start_pos=data.get('start_position'),
+            end_pos=data.get('end_position')
+        )
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/reply-annotation', methods=['POST'])
+def reply_annotation():
+    """
+    Reply to an existing annotation (start discussion thread).
+
+    Request body:
+    {
+        "session_id": "session_uuid",
+        "user_id": "user_001",
+        "annotation_id": "annotation_uuid",
+        "reply_text": "Reply text"
+    }
+    """
+    try:
+        data = request.get_json()
+
+        required = ['session_id', 'user_id', 'annotation_id', 'reply_text']
+        if not data or not all(field in data for field in required):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+        result = learning_manager.reply_to_annotation(
+            session_id=data['session_id'],
+            user_id=data['user_id'],
+            annotation_id=data['annotation_id'],
+            reply_text=data['reply_text']
+        )
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/record-concept', methods=['POST'])
+def record_concept():
+    """
+    Record that a user has learned a physics concept.
+
+    Request body:
+    {
+        "session_id": "session_uuid",
+        "user_id": "user_001",
+        "concept": "quantum_superposition",
+        "confidence": 0.85
+    }
+    """
+    try:
+        data = request.get_json()
+
+        required = ['session_id', 'user_id', 'concept', 'confidence']
+        if not data or not all(field in data for field in required):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+
+        result = learning_manager.record_concept_learning(
+            session_id=data['session_id'],
+            user_id=data['user_id'],
+            concept=data['concept'],
+            confidence=data['confidence']
+        )
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/session-stats/<session_id>', methods=['GET'])
+def get_session_stats(session_id):
+    """Get statistics for a collaborative learning session."""
+    try:
+        result = learning_manager.get_session_stats(session_id)
+        result['timestamp'] = datetime.now().isoformat()
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/user-progress/<session_id>/<user_id>', methods=['GET'])
+def get_user_progress(session_id, user_id):
+    """Get individual user progress in a collaborative session."""
+    try:
+        result = learning_manager.get_user_progress(session_id, user_id)
+        result['timestamp'] = datetime.now().isoformat()
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/knowledge-graph/<session_id>', methods=['GET'])
+def get_knowledge_graph(session_id):
+    """Get the knowledge graph for a collaborative session."""
+    try:
+        language = request.args.get('language', 'en')
+        result = learning_manager.get_knowledge_graph(session_id, language)
+        result['timestamp'] = datetime.now().isoformat()
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/collaborative/export-session/<session_id>', methods=['GET'])
+def export_session_data(session_id):
+    """Export complete session data for analysis and archiving."""
+    try:
+        result = learning_manager.export_session_data(session_id)
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("="*80)
     print("GAIA + PHYSICS INTEGRATION - API SERVER")
@@ -634,6 +1059,24 @@ if __name__ == '__main__':
     print("  POST /api/clarin-quality   - Linguistic quality assessment")
     print("  POST /api/clarin-entities  - Entity extraction")
     print("  POST /api/clarin-detect-language - Language detection")
+    print()
+    print("Phase 6: Real-time CLARIN API Endpoints:")
+    print("  POST /api/clarin-realtime-analyze - Real-time text analysis")
+    print("  POST /api/clarin-realtime-entities - Real-time entity extraction")
+    print("  POST /api/clarin-realtime-detect - Real-time language detection")
+    print("  POST /api/clarin-realtime-terminology - Real-time terminology validation")
+    print("  GET  /api/clarin-health    - CLARIN service health & metrics")
+    print()
+    print("Phase 7: Real-time Collaborative Learning Endpoints:")
+    print("  POST /api/collaborative/create-session - Create learning session")
+    print("  POST /api/collaborative/join-session - Join session")
+    print("  POST /api/collaborative/add-annotation - Add annotation/question")
+    print("  POST /api/collaborative/reply-annotation - Reply to discussion")
+    print("  POST /api/collaborative/record-concept - Record concept mastery")
+    print("  GET  /api/collaborative/session-stats/{id} - Session statistics")
+    print("  GET  /api/collaborative/user-progress/{id}/{uid} - User progress")
+    print("  GET  /api/collaborative/knowledge-graph/{id} - Concept relationships")
+    print("  GET  /api/collaborative/export-session/{id} - Export session data")
     print()
     print("Starting server on http://localhost:5000")
     print("Open chat_interface.html in browser to chat")
