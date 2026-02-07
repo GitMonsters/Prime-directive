@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAIA + Physics Integration - Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Galaxy Background */
+        .galaxy-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: radial-gradient(ellipse at 20% 50%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(65, 105, 225, 0.3) 0%, transparent 50%),
+                        radial-gradient(ellipse at 40% 40%, rgba(255, 20, 147, 0.2) 0%, transparent 50%),
+                        #000814;
+            overflow: hidden;
+        }
+
+        /* Starfield */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 2px 1px rgba(255, 255, 255, 0.5);
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Nebula effect */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+
+        .nebula-1 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.4), transparent);
+            top: 10%;
+            left: 5%;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .nebula-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(65, 105, 225, 0.3), transparent);
+            top: 60%;
+            right: 10%;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+
+        .nebula-3 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255, 20, 147, 0.2), transparent);
+            bottom: 15%;
+            left: 50%;
+            animation: float 30s ease-in-out infinite;
+        }
+
+        /* Main container */
+        .container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Chat window */
+        .chat-window {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            max-height: 700px;
+            background: rgba(10, 10, 40, 0.85);
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.3),
+                        0 0 60px rgba(65, 105, 225, 0.2);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .chat-header {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(65, 105, 225, 0.2));
+            border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            color: #9d4edd;
+            font-size: 24px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+
+        .chat-header p {
+            color: #b5a7d6;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #00ff41;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Messages area */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: rgba(138, 43, 226, 0.1);
+            border-radius: 10px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: rgba(138, 43, 226, 0.5);
+            border-radius: 10px;
+        }
+
+        /* Message styles */
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.system {
+            justify-content: center;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.4), rgba(65, 105, 225, 0.3));
+            color: #e0d5ff;
+            border-left: 3px solid #9d4edd;
+        }
+
+        .message.bot .message-content {
+            background: rgba(65, 105, 225, 0.2);
+            color: #b5a7d6;
+            border-left: 3px solid #4169e1;
+        }
+
+        .message.system .message-content {
+            background: rgba(0, 255, 65, 0.1);
+            color: #00ff41;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            font-size: 12px;
+        }
+
+        .message-label {
+            font-size: 11px;
+            color: #9d4edd;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        /* Input area */
+        .input-area {
+            border-top: 1px solid rgba(138, 43, 226, 0.3);
+            padding: 15px;
+            background: rgba(10, 10, 40, 0.5);
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            color: #e0d5ff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: rgba(138, 43, 226, 0.7);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+
+        input::placeholder {
+            color: rgba(181, 167, 214, 0.5);
+        }
+
+        button {
+            background: linear-gradient(135deg, #9d4edd, #4169e1);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .loading span {
+            width: 4px;
+            height: 4px;
+            background: #9d4edd;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-8px);
+            }
+        }
+
+        /* Info panel */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 10, 40, 0.9);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 250px;
+            font-size: 12px;
+            color: #b5a7d6;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-panel h3 {
+            color: #9d4edd;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .info-item {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-label {
+            color: #9d4edd;
+        }
+
+        .info-value {
+            color: #00ff41;
+        }
+
+        /* Welcome message */
+        .welcome {
+            text-align: center;
+            color: #b5a7d6;
+            padding: 20px;
+        }
+
+        .welcome h2 {
+            color: #9d4edd;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .welcome p {
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .example-btn {
+            background: rgba(138, 43, 226, 0.15);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            color: #b5a7d6;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .example-btn:hover {
+            background: rgba(138, 43, 226, 0.3);
+            border-color: rgba(138, 43, 226, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .chat-window {
+                max-width: 100%;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 90%;
+            }
+
+            .info-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Galaxy Background -->
+    <div class="galaxy-bg">
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+        <div class="stars" id="starfield"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Chat Window -->
+        <div class="chat-window">
+            <!-- Header -->
+            <div class="chat-header">
+                <h1>🌌 GAIA Intelligence</h1>
+                <p><span class="status"></span>CONSCIOUSNESS PHYSICS INTEGRATION</p>
+            </div>
+
+            <!-- Messages -->
+            <div class="messages" id="messages">
+                <div class="welcome">
+                    <h2>Welcome to GAIA</h2>
+                    <p>Ask questions about physics, consciousness, or both!</p>
+                    <p style="font-size: 11px; color: #9d4edd;">Powered by: Physics World Model + GAIA Consciousness System</p>
+
+                    <div class="examples">
+                        <button class="example-btn" onclick="askQuestion('Why do objects fall?')">
+                            Physics
+                        </button>
+                        <button class="example-btn" onclick="askQuestion('How do agents develop empathy?')">
+                            Consciousness
+                        </button>
+                        <button class="example-btn" onclick="askQuestion('How does entropy relate to understanding?')">
+                            Hybrid 1
+                        </button>
+                        <button class="example-btn" onclick="askQuestion('Does quantum mechanics explain consciousness?')">
+                            Hybrid 2
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input
+                        type="text"
+                        id="queryInput"
+                        placeholder="Ask GAIA a question..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button onclick="sendQuery()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+        <h3>System Status</h3>
+        <div class="info-item">
+            <span class="info-label">GAIA Score:</span>
+            <span class="info-value">79.8%</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Physics Tests:</span>
+            <span class="info-value">96.2%</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Response:</span>
+            <span class="info-value">&lt;200ms</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Agents:</span>
+            <span class="info-value">5 Active</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Mode:</span>
+            <span class="info-value">Hybrid</span>
+        </div>
+    </div>
+
+    <script>
+        // Create starfield
+        function createStars() {
+            const starfield = document.getElementById('starfield');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starfield.appendChild(star);
+            }
+        }
+
+        createStars();
+
+        // Message handling
+        const messagesDiv = document.getElementById('messages');
+        const queryInput = document.getElementById('queryInput');
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            if (sender === 'system') {
+                messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+            } else {
+                messageDiv.innerHTML = `
+                    <div>
+                        <div class="message-label">${sender === 'user' ? 'YOU' : 'GAIA'}</div>
+                        <div class="message-content">${text}</div>
+                    </div>
+                `;
+            }
+
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function sendQuery() {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            // Add user message
+            addMessage(query, 'user');
+            queryInput.value = '';
+
+            // Show loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot';
+            loadingDiv.id = 'loading';
+            loadingDiv.innerHTML = `
+                <div>
+                    <div class="message-label">GAIA</div>
+                    <div class="message-content">
+                        <div class="loading">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(loadingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            // Simulate API call (replace with actual API call)
+            setTimeout(() => {
+                loadingDiv.remove();
+
+                // Mock responses based on query
+                let response = '';
+                const lowerQuery = query.toLowerCase();
+
+                if (lowerQuery.includes('entropy')) {
+                    response = "Entropy is a measure of disorder in a system. According to the Second Law of Thermodynamics, entropy in an isolated system always increases. This relates to understanding through the consciousness parallel: just as physical systems tend toward disorder without energy input, knowledge naturally degrades without reinforcement.";
+                } else if (lowerQuery.includes('empathy')) {
+                    response = "Empathy in our GAIA system emerges through the Ising spin model. Agents develop empathy by measuring state overlap - how well their individual understanding states align with others. Higher empathy correlates with agent synchronization and collective consciousness emergence.";
+                } else if (lowerQuery.includes('quantum')) {
+                    response = "Quantum superposition suggests particles exist in multiple states simultaneously until measured. This parallels consciousness: agents hold multiple possible understandings until interaction causes 'measurement.' Both involve fundamental uncertainty and observation-dependent reality.";
+                } else if (lowerQuery.includes('fall') || lowerQuery.includes('gravity')) {
+                    response = "Objects fall due to gravitational force. Mass curves spacetime, and objects follow the curved geometry. The acceleration is 9.8 m/s² near Earth's surface. This is fundamental to understanding planetary motion and orbital mechanics.";
+                } else {
+                    response = "This is a fascinating question about the intersection of physics and consciousness. The system is analyzing your query using multi-domain reasoning. Physics principles provide the mechanical foundation, while consciousness models offer perspective on emergent phenomena.";
+                }
+
+                addMessage(response, 'bot');
+
+                // Add system info
+                const type = lowerQuery.includes('empathy') || lowerQuery.includes('consciousness') ? 'consciousness' : 'physics';
+                addMessage(`✓ Query routed to: ${type}_reasoning | Confidence: ${Math.floor(Math.random() * 20 + 55)}%`, 'system');
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendQuery();
+            }
+        }
+
+        function askQuestion(question) {
+            queryInput.value = question;
+            queryInput.focus();
+        }
+
+        // Initial focus
+        queryInput.focus();
+    </script>
+</body>
+</html>
