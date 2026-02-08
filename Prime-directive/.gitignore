@@ -1,26 +1,72 @@
-# Build artifacts
-/target/
-Cargo.lock
+# Build and runtime artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Model weights and checkpoints (large binaries)
+*.pth
+*.pt
+*.ckpt
+*.bin
+checkpoints/
+models/
+weights/
+
+# Virtual environments
+venv/
+env/
+.venv
+torch_gfx1151_venv/
+agi_rocm_venv/
+test_torch_venv/
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
+
+# System files
+.device_config
+.gitkeep
 Thumbs.db
 
-# Temporary files
-*.tmp
-*.bak
-
-# Test output
+# Logs and output
 *.log
+*.out
+*.err
 
-# Nested repositories and Python cache
-Prime-directive/
-__pycache__/
-*.pyc
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+.tox/
+
+# Large directories (nested)
+compound-integration/
+compound/
+
+# OS-specific
+.DS_Store
+.env
+*.bak
+*.tmp
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.psd
+*.zip
+*.tar.gz
+
+# Browser cache
+.cache/
