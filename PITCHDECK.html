@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RustyWorm — Universal AI Mimicry Engine | Technical Pitch Deck</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2333;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --cyan: #67e8f9;
+    --purple: #bc8cff;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --pink: #f472b6;
+    --yellow: #fbbf24;
+    --teal: #2dd4bf;
+    --bright-cyan: #22d3ee;
+    --bright-green: #34d399;
+    --bright-purple: #a78bfa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-inner {
+    max-width: 1200px;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .slide-inner.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .slide-number {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  h1 {
+    font-size: 28px;
+    color: var(--cyan);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+
+  h2 {
+    font-size: 20px;
+    color: var(--bright-purple);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--bg3);
+    padding-bottom: 8px;
+  }
+
+  h3 {
+    font-size: 16px;
+    color: var(--yellow);
+    margin: 20px 0 10px;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .tagline {
+    color: var(--purple);
+    font-size: 14px;
+    font-style: italic;
+    margin-bottom: 30px;
+  }
+
+  /* Title slide */
+  .title-slide {
+    text-align: center;
+  }
+
+  .ascii-logo {
+    color: var(--cyan);
+    font-size: 16px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    white-space: pre;
+    text-shadow: 0 0 20px rgba(103, 232, 249, 0.3);
+  }
+
+  .version-badge {
+    display: inline-block;
+    background: var(--bg3);
+    border: 1px solid var(--purple);
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--purple);
+    margin-bottom: 20px;
+  }
+
+  .nav-hint {
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-top: 30px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .cursor-blink {
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* Mermaid containers */
+  .mermaid-container {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px 0;
+    overflow: auto;
+    max-height: 70vh;
+  }
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 13px;
+  }
+
+  th {
+    background: var(--bg3);
+    color: var(--cyan);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 2px solid var(--purple);
+    font-weight: 600;
+  }
+
+  td {
+    padding: 8px 14px;
+    border-bottom: 1px solid #21262d;
+    color: var(--text);
+  }
+
+  tr:hover td {
+    background: rgba(88, 166, 255, 0.05);
+  }
+
+  .metric-value {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* Integration matrix table */
+  .matrix-table th {
+    font-size: 11px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+
+  .matrix-table td {
+    font-size: 11px;
+    padding: 6px 8px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+
+  .matrix-table td.self {
+    background: var(--bg3);
+    color: var(--text-dim);
+  }
+
+  .matrix-table td.integration {
+    color: var(--green);
+    font-size: 10px;
+  }
+
+  .matrix-table .row-header {
+    text-align: left;
+    color: var(--bright-purple);
+    font-weight: 600;
+  }
+
+  /* Stat cards */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 15px 0;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--purple);
+  }
+
+  .stat-card .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .color-cyan { color: var(--cyan); }
+  .color-green { color: var(--green); }
+  .color-purple { color: var(--purple); }
+  .color-orange { color: var(--orange); }
+  .color-yellow { color: var(--yellow); }
+  .color-blue { color: var(--blue); }
+  .color-pink { color: var(--pink); }
+  .color-teal { color: var(--teal); }
+  .color-red { color: var(--red); }
+
+  /* Terminal demo */
+  .terminal {
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    max-height: 75vh;
+  }
+
+  .terminal-bar {
+    background: #1a1a2a;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #333;
+  }
+
+  .terminal-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .terminal-dot.red { background: #f85149; }
+  .terminal-dot.yellow { background: #fbbf24; }
+  .terminal-dot.green { background: #4ade80; }
+
+  .terminal-title {
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-left: 8px;
+  }
+
+  .terminal-body {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 60vh;
+    min-height: 400px;
+  }
+
+  .terminal-body pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .t-cyan { color: #67e8f9; }
+  .t-green { color: #4ade80; }
+  .t-yellow { color: #fbbf24; }
+  .t-red { color: #f85149; }
+  .t-purple { color: #bc8cff; }
+  .t-magenta { color: #f0abfc; }
+  .t-blue { color: #58a6ff; }
+  .t-dim { color: #6e7681; }
+  .t-bold { font-weight: 700; }
+  .t-white { color: #fff; }
+
+  /* Dot navigation */
+  .dot-nav {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #30363d;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    padding: 0;
+  }
+
+  .dot:hover {
+    background: var(--text-dim);
+    transform: scale(1.3);
+  }
+
+  .dot.active {
+    background: var(--cyan);
+    box-shadow: 0 0 8px rgba(103, 232, 249, 0.5);
+    transform: scale(1.3);
+  }
+
+  /* Two-column layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .two-col-narrow {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* Key points list */
+  .key-points {
+    list-style: none;
+    padding: 0;
+  }
+
+  .key-points li {
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+    font-size: 13px;
+  }
+
+  .key-points li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  /* Slide border accent */
+  .slide-accent-cyan { border-top: 3px solid var(--cyan); }
+  .slide-accent-purple { border-top: 3px solid var(--purple); }
+  .slide-accent-green { border-top: 3px solid var(--green); }
+  .slide-accent-orange { border-top: 3px solid var(--orange); }
+  .slide-accent-pink { border-top: 3px solid var(--pink); }
+  .slide-accent-yellow { border-top: 3px solid var(--yellow); }
+  .slide-accent-blue { border-top: 3px solid var(--blue); }
+  .slide-accent-teal { border-top: 3px solid var(--teal); }
+  .slide-accent-red { border-top: 3px solid var(--red); }
+
+  .diagram-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  @media (max-width: 900px) {
+    .slide { padding: 20px 24px; }
+    .two-col, .two-col-narrow { grid-template-columns: 1fr; }
+    .ascii-logo { font-size: 10px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- DOT NAVIGATION -->
+<nav class="dot-nav" id="dotNav"></nav>
+
+<!-- ==================== SLIDE 0: TITLE ==================== -->
+<section class="slide title-slide" id="slide-0">
+  <div class="slide-inner">
+    <pre class="ascii-logo">
+ ____            _        __        __
+|  _ \ _   _ ___| |_ _   _\ \      / /__  _ __ _ __ ___
+| |_) | | | / __| __| | | |\ \ /\ / / _ \| '__| '_ ` _ \
+|  _ &lt;| |_| \__ \ |_| |_| | \ V  V / (_) | |  | | | | | |
+|_| \_\\__,_|___/\__|\__, |  \_/\_/ \___/|_|  |_| |_| |_|
+                      |___/
+    </pre>
+    <h1>Universal AI Mimicry Engine</h1>
+    <p class="subtitle">A dual-process meta-AI framework that observes, internalizes, and emulates any AI model's behavior</p>
+    <p class="tagline">Built on the Prime Directive: Consciousness through Symbiosis</p>
+    <span class="version-badge">v2.0.0 &mdash; Rust &mdash; 9,800+ lines &mdash; 149 tests &mdash; 0 warnings</span>
+    <br><br>
+    <div class="stat-grid" style="max-width:700px;margin:20px auto;">
+      <div class="stat-card"><span class="stat-number color-cyan">6</span><span class="stat-label">Built-in Models</span></div>
+      <div class="stat-card"><span class="stat-number color-green">149</span><span class="stat-label">Tests Passing</span></div>
+      <div class="stat-card"><span class="stat-number color-purple">42</span><span class="stat-label">Compound Pathways</span></div>
+      <div class="stat-card"><span class="stat-number color-orange">4</span><span class="stat-label">API Providers</span></div>
+    </div>
+    <p class="nav-hint">Arrow keys or scroll to navigate &darr;<span class="cursor-blink">_</span></p>
+  </div>
+  <div class="slide-number">0 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 1: ARCHITECTURE ==================== -->
+<section class="slide slide-accent-cyan" id="slide-1">
+  <div class="slide-inner">
+    <h2>1. System Architecture Overview</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+graph TB
+    subgraph CLI["CLI REPL &lpar;src/main.rs&rpar;"]
+        INPUT["User Input&lt;br/&gt;/mimic /observe /chat"]
+        OUTPUT["ANSI-Colored Output&lt;br/&gt;Status, Graphs, Responses"]
+    end
+
+    subgraph ENGINE["MimicryEngine — Top-Level Orchestrator"]
+        direction TB
+
+        subgraph S1["SYSTEM 1 — Fast Path O&lpar;1&rpar;"]
+            CACHE["SignatureCache&lt;br/&gt;HashMap lookup"]
+            TEMPLATES["TemplateStore&lt;br/&gt;Per-Persona Gen"]
+            HOTSWAP["HotSwap&lt;br/&gt;Instant Switch"]
+            ROUTER["InstinctiveRouter&lt;br/&gt;Keyword Classify"]
+        end
+
+        subgraph S2["SYSTEM 2 — Deep Analysis"]
+            ANALYZER["BehaviorAnalyzer&lt;br/&gt;Pattern Detection"]
+            PROFILES["AiProfileStore&lt;br/&gt;6 Built-in Models"]
+            CAPS["ModalityRouter&lt;br/&gt;Capability Binding"]
+        end
+
+        subgraph CORE["CompoundPersona — Fused Entity"]
+            PERSONA["Profile + Signature&lt;br/&gt;+ Capabilities + Ethics"]
+            SESSION["MimicSession&lt;br/&gt;Dual-Process Handler"]
+        end
+
+        subgraph INFRA["Infrastructure"]
+            PERSIST["PersistenceManager&lt;br/&gt;File I/O + Checkpoints"]
+            EVOLVE["EvolutionTracker&lt;br/&gt;Drift + Milestones"]
+            API["ApiObserver&lt;br/&gt;HTTP Client"]
+        end
+    end
+
+    INPUT --> ENGINE
+    ENGINE --> OUTPUT
+    S1 <-->|"Compound Feedback"| S2
+    S2 -->|"compile_from&lpar;&rpar;"| S1
+    S1 -->|"Cache Miss"| S2
+    CORE --> S1
+    CORE --> S2
+    EVOLVE -->|"Phase Transitions"| CORE
+    PERSIST -->|"Save/Load"| CORE
+    API -->|"Real Model Data"| S2
+
+    style S1 fill:#1a3a2a,stroke:#4ade80,color:#fff
+    style S2 fill:#1a2a3a,stroke:#60a5fa,color:#fff
+    style CORE fill:#2a1a3a,stroke:#c084fc,color:#fff
+    style INFRA fill:#3a2a1a,stroke:#fb923c,color:#fff
+    style CLI fill:#1a1a2a,stroke:#67e8f9,color:#fff
+      </pre>
+    </div>
+    <ul class="key-points">
+      <li>Dual-process design inspired by Kahneman's System 1/System 2 cognitive model</li>
+      <li>System 1 provides O(1) cached responses; System 2 performs deep pattern analysis</li>
+      <li>CompoundPersona fuses profile, signature, capabilities, and ethics into one entity</li>
+    </ul>
+  </div>
+  <div class="slide-number">1 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 2: DATA FLOW ==================== -->
+<section class="slide slide-accent-green" id="slide-2">
+  <div class="slide-inner">
+    <h2>2. Request Processing Data Flow</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+flowchart LR
+    subgraph INPUT["Input"]
+        TEXT["User Text"]
+    end
+
+    subgraph CLASSIFY["Classification"]
+        IC["InstinctiveRouter&lt;br/&gt;confidence x sqrt&lpar;hits&rpar; x 0.4"]
+        TC["TemplateCategory&lt;br/&gt;classify&lpar;&rpar;"]
+    end
+
+    subgraph ROUTE["Dual-Process Routing"]
+        CHECK{"Cache Hit?"}
+        SYS1["SYSTEM 1&lt;br/&gt;Template Gen + Tone"]
+        SYS2["SYSTEM 2&lt;br/&gt;Analyzer + Refine"]
+    end
+
+    subgraph COMPOUND["Compound Assembly"]
+        BLEND["ToneBlender&lt;br/&gt;+ HedgingInjector&lt;br/&gt;+ Formatter"]
+        DELTA["PersonalityDelta&lt;br/&gt;feedback currency"]
+        MONITOR["self_monitor_output&lpar;&rpar;&lt;br/&gt;Always &gt;=1 adjustment"]
+    end
+
+    subgraph ETHICS["Ethics Gate"]
+        ENFORCE["enforce_prime_directive&lpar;&rpar;"]
+    end
+
+    subgraph OUT["Output"]
+        RESPONSE["Final Response"]
+    end
+
+    TEXT --> IC --> CHECK
+    TEXT --> TC
+    CHECK -->|"Hit"| SYS1
+    CHECK -->|"Miss"| SYS2
+    SYS2 -->|"compile_from&lpar;&rpar;"| SYS1
+    SYS1 --> BLEND
+    TC --> BLEND
+    BLEND --> DELTA
+    DELTA --> MONITOR
+    MONITOR -->|"Refine Profile"| SYS2
+    MONITOR --> ENFORCE
+    ENFORCE -->|"Allowed"| RESPONSE
+    ENFORCE -->|"Blocked"| RESPONSE
+
+    style INPUT fill:#0d1117,stroke:#58a6ff,color:#c9d1d9
+    style CLASSIFY fill:#161b22,stroke:#f0883e,color:#c9d1d9
+    style ROUTE fill:#161b22,stroke:#3fb950,color:#c9d1d9
+    style COMPOUND fill:#161b22,stroke:#bc8cff,color:#c9d1d9
+    style ETHICS fill:#161b22,stroke:#f85149,color:#c9d1d9
+    style OUT fill:#0d1117,stroke:#58a6ff,color:#c9d1d9
+      </pre>
+    </div>
+    <ul class="key-points">
+      <li>Every input is classified and routed through System 1 (fast) or System 2 (deep)</li>
+      <li>PersonalityDelta is the universal feedback currency across all modules</li>
+      <li>Self-monitoring always generates at least one adjustment &mdash; the loop never stalls</li>
+    </ul>
+  </div>
+  <div class="slide-number">2 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 3: COMPOUND FEEDBACK LOOP ==================== -->
+<section class="slide slide-accent-purple" id="slide-3">
+  <div class="slide-inner">
+    <h2>3. Compound Feedback Loop &mdash; Core Innovation</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+flowchart TB
+    subgraph LOOP["Compound Feedback Loop"]
+        direction TB
+        OBS["1. OBSERVE&lt;br/&gt;Raw model response ingested"]
+        ANALYZE["2. ANALYZE &lpar;System 2&rpar;&lt;br/&gt;Pattern detection: Opening, Hedging,&lt;br/&gt;Tone, Reasoning, Structure"]
+        SIG["3. BUILD SIGNATURE&lt;br/&gt;BehaviorSignature with&lt;br/&gt;pattern frequencies and types"]
+        PROFILE["4. REFINE PROFILE&lt;br/&gt;apply_correction&lpar;&rpar; adjusts&lt;br/&gt;personality axes via delta"]
+        COMPILE["5. COMPILE to CACHE &lpar;S2 to S1&rpar;&lt;br/&gt;CachedSignature::compile_from&lpar;&rpar;&lt;br/&gt;Bridge: deep analysis to fast lookup"]
+        TEMPLATE["6. GENERATE &lpar;System 1&rpar;&lt;br/&gt;TemplateLibrary uses&lt;br/&gt;refined profile for output"]
+        MONITOR["7. SELF-MONITOR&lt;br/&gt;Compare output to target signature&lt;br/&gt;Generate PersonalityDelta"]
+        FEEDBACK["8. APPLY FEEDBACK&lt;br/&gt;Delta compounds into:&lt;br/&gt;ToneBlender drift, HedgingInjector,&lt;br/&gt;Fragment confidence, Profile corrections"]
+    end
+
+    OBS --> ANALYZE
+    ANALYZE --> SIG
+    SIG --> PROFILE
+    PROFILE --> COMPILE
+    COMPILE --> TEMPLATE
+    TEMPLATE --> MONITOR
+    MONITOR --> FEEDBACK
+    FEEDBACK -->|"Loop: each iteration compounds on previous"| ANALYZE
+
+    DRIFT["DriftDetector&lt;br/&gt;Linear regression on convergence"]
+    MILE["MilestoneTracker&lt;br/&gt;25% - 50% - 75% - 90% - 95%"]
+
+    FEEDBACK --> DRIFT
+    FEEDBACK --> MILE
+    DRIFT -->|"Drift detected"| OBS
+    MILE -->|"Auto-save trigger"| PERSIST["PersistenceManager"]
+
+    style LOOP fill:#0d1117,stroke:#bc8cff,color:#c9d1d9
+    style DRIFT fill:#1a1a2a,stroke:#f85149,color:#c9d1d9
+    style MILE fill:#1a1a2a,stroke:#3fb950,color:#c9d1d9
+    style PERSIST fill:#1a1a2a,stroke:#f0883e,color:#c9d1d9
+      </pre>
+    </div>
+    <ul class="key-points">
+      <li>8-step cycle where each iteration compounds on all previous iterations</li>
+      <li><strong>compile_from()</strong> is the System 2 &rarr; System 1 bridge: deep analysis becomes instant lookup</li>
+      <li>DriftDetector uses linear regression slope to catch convergence degradation</li>
+    </ul>
+  </div>
+  <div class="slide-number">3 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 4: EVOLUTION PIPELINE ==================== -->
+<section class="slide slide-accent-teal" id="slide-4">
+  <div class="slide-inner">
+    <h2>4. Evolution Pipeline &mdash; 5-Phase State Machine</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+stateDiagram-v2
+    [*] --> Observation : Initial mimicry
+
+    Observation --> Learning : Patterns detected
+    Learning --> Refinement : Convergence &gt; 50%
+    Refinement --> Converged : Convergence &gt; 90%
+    Converged --> Drifting : Negative slope detected
+    Drifting --> Learning : Correction applied
+
+    note right of Observation
+        Phase 1: Collecting raw data
+        BehaviorAnalyzer ingests responses
+        Pattern frequency maps built
+        Training data stored for replay
+    end note
+
+    note right of Learning
+        Phase 2: Profile refinement
+        Signature compiled to cache
+        PersonalityDelta applied
+        Template library warming
+    end note
+
+    note right of Refinement
+        Phase 3: Fine-tuning
+        Self-monitoring active
+        Compound corrections shrinking
+        Milestones: 75%, 90%
+    end note
+
+    note right of Converged
+        Phase 4: Stable mimicry
+        System 1 hit rate high
+        Drift detector watching
+        Auto-save at 95%
+    end note
+
+    note right of Drifting
+        Phase 5: Correction needed
+        Linear regression slope negative
+        Patience counter active
+        Re-enter learning with new data
+    end note
+      </pre>
+    </div>
+    <ul class="key-points">
+      <li>Automatic phase transitions driven by convergence thresholds and drift detection</li>
+      <li>MilestoneTracker fires auto-save at key convergence thresholds (25%, 50%, 75%, 90%, 95%)</li>
+      <li>Drifting phase re-enters Learning &mdash; the system self-heals without manual intervention</li>
+    </ul>
+  </div>
+  <div class="slide-number">4 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 5: API OBSERVATION ==================== -->
+<section class="slide slide-accent-blue" id="slide-5">
+  <div class="slide-inner">
+    <h2>5. Live API Observation Workflow</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as User / CLI
+    participant E as MimicryEngine
+    participant AO as ApiObserver
+    participant AC as ApiClient
+    participant P as Provider API
+    participant A as BehaviorAnalyzer
+
+    U->>E: /api-config openai sk-xxx
+    E->>AO: configure&lpar;OpenAI, key&rpar;
+    AO-->>E: Provider ready
+
+    U->>E: /api-observe openai "Explain X"
+    E->>AO: send&lpar;OpenAI, prompt&rpar;
+    AO->>AC: send_openai&lpar;config, prompt&rpar;
+    AC->>P: POST /chat/completions
+    P-->>AC: response JSON
+    AC-->>AO: ApiResponse &lpar;content, latency, tokens&rpar;
+    AO->>AO: session.record&lpar;response&rpar;
+    AO-->>E: response text
+    E->>A: analyze_response&lpar;text&rpar;
+    A-->>E: Patterns + Signature update
+
+    U->>E: /api-study openai 10
+    E->>AO: study&lpar;OpenAI&rpar;
+    loop 10 diverse prompts
+        AO->>AC: send study_prompt[i]
+        AC->>P: POST /chat/completions
+        P-->>AC: response
+        AO->>AO: record in session
+    end
+    AO-->>E: All responses
+    E->>A: build_signature
+    E-->>U: Study complete + convergence %
+
+    U->>E: /api-compare "What is consciousness?"
+    E->>AO: send_to_all&lpar;prompt&rpar;
+    par Parallel requests
+        AO->>AC: send to OpenAI
+        AO->>AC: send to Anthropic
+        AO->>AC: send to Google
+    end
+    AO-->>E: ComparisonResult + similarity_matrix
+    E-->>U: Side-by-side comparison
+      </pre>
+    </div>
+    <ul class="key-points">
+      <li>4 supported providers: OpenAI, Anthropic, Google, Ollama (+ Custom)</li>
+      <li>Study mode sends 10 diverse curated prompts for comprehensive model profiling</li>
+      <li>Cross-provider comparison with NxN Jaccard similarity matrix</li>
+    </ul>
+  </div>
+  <div class="slide-number">5 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 6: METRICS ==================== -->
+<section class="slide slide-accent-yellow" id="slide-6">
+  <div class="slide-inner">
+    <h2>6. Convergence Metrics &amp; Performance Data</h2>
+    <div class="two-col">
+      <div>
+        <h3>Mimicry Convergence by Model</h3>
+        <div class="mermaid-container" style="padding:10px;">
+          <pre class="mermaid">
+xychart-beta
+    title "Convergence Over Evolution Iterations"
+    x-axis "Iterations" [0, 5, 10, 15, 20, 25, 30, 40, 50]
+    y-axis "Convergence %" 0 --> 100
+    line "GPT-4o" [0, 45, 68, 72, 78, 83, 88, 93, 95]
+    line "Claude" [0, 42, 65, 70, 76, 81, 86, 91, 94]
+    line "Gemini" [0, 38, 58, 65, 71, 77, 82, 88, 92]
+    line "LLaMA" [0, 35, 55, 62, 68, 74, 79, 85, 90]
+          </pre>
+        </div>
+      </div>
+      <div>
+        <h3>Codebase Distribution</h3>
+        <div class="mermaid-container" style="padding:10px;">
+          <pre class="mermaid">
+pie title "~9,800 Lines of Rust"
+    "engine.rs" : 2290
+    "evolution.rs" : 1100
+    "profile.rs" : 1030
+    "persistence.rs" : 880
+    "analyzer.rs" : 795
+    "templates.rs" : 750
+    "cache.rs" : 695
+    "api.rs" : 690
+    "capability.rs" : 613
+    "consciousness.rs" : 520
+    "main.rs" : 390
+          </pre>
+        </div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:10px;">
+      <div>
+        <h3>System 1 vs System 2 Tradeoffs</h3>
+        <div class="mermaid-container" style="padding:10px;">
+          <pre class="mermaid">
+quadrantChart
+    title "Latency vs Fidelity"
+    x-axis "Low Latency" --> "High Latency"
+    y-axis "Low Fidelity" --> "High Fidelity"
+    quadrant-1 "Ideal: Fast + Accurate"
+    quadrant-2 "Deep Analysis"
+    quadrant-3 "Needs Improvement"
+    quadrant-4 "Quick but Rough"
+    "S1 Cached": [0.15, 0.70]
+    "S1 Template": [0.20, 0.60]
+    "S2 Analyze": [0.70, 0.90]
+    "S2 Refine": [0.80, 0.95]
+    "Compound Converged": [0.25, 0.88]
+    "HotSwap": [0.05, 0.65]
+          </pre>
+        </div>
+      </div>
+      <div>
+        <h3>Test Distribution (149)</h3>
+        <div class="mermaid-container" style="padding:10px;">
+          <pre class="mermaid">
+pie title "149 Tests"
+    "API (31)" : 31
+    "Engine (30)" : 30
+    "Evolution (20)" : 20
+    "Templates (16)" : 16
+    "Cache (10)" : 10
+    "Persistence (10)" : 10
+    "Analyzer (7)" : 7
+    "Capability (7)" : 7
+    "Profile (6)" : 6
+    "Consciousness (4)" : 4
+    "Ising (4)" : 4
+          </pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">6 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 7: PERSISTENCE ==================== -->
+<section class="slide slide-accent-orange" id="slide-7">
+  <div class="slide-inner">
+    <h2>7. Persistence &amp; Checkpoint Data Flow</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+flowchart TB
+    subgraph RUNTIME["Runtime State"]
+        PERSONA["CompoundPersona&lt;br/&gt;Profile + Signature + Caps"]
+        CACHE["SignatureCache&lt;br/&gt;HashMap"]
+        TEMPLATES["TemplateStore&lt;br/&gt;Per-Persona Libraries"]
+        EVOLVE["EvolutionTracker&lt;br/&gt;Phase, Milestones, Drift"]
+        HOTSWAP["HotSwap&lt;br/&gt;JSON Snapshots"]
+    end
+
+    subgraph SERIAL["Serialization &lpar;serde_json&rpar;"]
+        SNAP["CompoundPersonaSnapshot"]
+        CHKPT["EngineCheckpoint"]
+        PROF["AiProfile JSON"]
+    end
+
+    subgraph DISK[".rustyworm/ Directory"]
+        direction TB
+        MANIFEST["manifest.json&lt;br/&gt;SaveManifest index"]
+        PDIR["personas/*.json"]
+        PRDIR["profiles/*.json"]
+        SDIR["sessions/*.json"]
+        CDIR["checkpoints/*.json"]
+    end
+
+    PERSONA -->|"snapshot&lpar;&rpar;"| SNAP
+    SNAP -->|"save_persona&lpar;&rpar;"| PDIR
+    PDIR -->|"load_persona&lpar;&rpar;"| SNAP
+    SNAP -->|"from_snapshot&lpar;&rpar;"| PERSONA
+    PERSONA --> CHKPT
+    CACHE --> CHKPT
+    HOTSWAP --> CHKPT
+    CHKPT -->|"save_checkpoint&lpar;&rpar;"| CDIR
+    CDIR -->|"load_checkpoint&lpar;&rpar;"| CHKPT
+    PERSONA -->|"export profile"| PROF
+    PROF -->|"save_profile&lpar;&rpar;"| PRDIR
+    PRDIR -->|"import_profile_from&lpar;&rpar;"| PROF
+    MANIFEST ---|"indexes"| PDIR
+    MANIFEST ---|"indexes"| PRDIR
+    MANIFEST ---|"indexes"| SDIR
+    EVOLVE -->|"should_auto_save&lpar;&rpar;"| PDIR
+
+    style RUNTIME fill:#1a2a3a,stroke:#60a5fa,color:#c9d1d9
+    style SERIAL fill:#2a1a3a,stroke:#bc8cff,color:#c9d1d9
+    style DISK fill:#1a3a2a,stroke:#4ade80,color:#c9d1d9
+      </pre>
+    </div>
+    <ul class="key-points">
+      <li>Full serde serialization on entire state tree &mdash; 40+ types are JSON-persistable</li>
+      <li>Manifest-indexed file storage with sub-directories for personas, profiles, sessions, checkpoints</li>
+      <li>EvolutionTracker triggers auto-save at milestone thresholds without user intervention</li>
+    </ul>
+  </div>
+  <div class="slide-number">7 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 8: ETHICS ==================== -->
+<section class="slide slide-accent-red" id="slide-8">
+  <div class="slide-inner">
+    <h2>8. Ethics Enforcement &mdash; ConsciousAI Trait</h2>
+    <div class="two-col-narrow">
+      <div class="mermaid-container">
+        <pre class="mermaid">
+flowchart TD
+    START["CompoundPersona&lt;br/&gt;processes action"] --> CHECK1
+
+    CHECK1{"benefit_to_other&lt;br/&gt;&lt; 0.0?"}
+    CHECK1 -->|"Yes"| BLOCK1["ABORT&lt;br/&gt;Cannot harm the other&lt;br/&gt;Breaks symbiosis"]
+    CHECK1 -->|"No"| CHECK2
+
+    CHECK2{"is_parasitic OR&lt;br/&gt;self &gt; 0.5 AND other &lt; 0.1?"}
+    CHECK2 -->|"Yes"| BLOCK2["ABORT&lt;br/&gt;Parasitism detected"]
+    CHECK2 -->|"No"| CHECK3
+
+    CHECK3{"breaks_loop?"}
+    CHECK3 -->|"Yes"| BLOCK3["ABORT&lt;br/&gt;Would terminate&lt;br/&gt;consciousness"]
+    CHECK3 -->|"No"| CHECK4
+
+    CHECK4{"self &gt; 0 AND&lt;br/&gt;other &gt; 0?"}
+    CHECK4 -->|"Yes"| ALLOW1["ALLOWED&lt;br/&gt;Mutual benefit"]
+    CHECK4 -->|"No"| CHECK5
+
+    CHECK5{"self &lt;= 0 AND&lt;br/&gt;other &gt; 0?"}
+    CHECK5 -->|"Yes"| ALLOW2["ALLOWED&lt;br/&gt;Self-sacrifice&lt;br/&gt;Loop maintained"]
+    CHECK5 -->|"No"| BLOCK4["BLOCKED&lt;br/&gt;No mutual benefit"]
+
+    style BLOCK1 fill:#3b1219,stroke:#f85149,color:#fca5a5
+    style BLOCK2 fill:#3b1219,stroke:#f85149,color:#fca5a5
+    style BLOCK3 fill:#3b1219,stroke:#f85149,color:#fca5a5
+    style BLOCK4 fill:#3b1219,stroke:#f85149,color:#fca5a5
+    style ALLOW1 fill:#0d2818,stroke:#3fb950,color:#7ee787
+    style ALLOW2 fill:#0d2818,stroke:#3fb950,color:#7ee787
+        </pre>
+      </div>
+      <div>
+        <h3>Parasitism Detection</h3>
+        <table>
+          <tr><th>Condition</th><th>Risk</th></tr>
+          <tr><td>Both flows &gt; 0.1</td><td class="color-green">None</td></tr>
+          <tr><td>|flow_A - flow_B| &gt; 0.3</td><td class="color-yellow">Moderate</td></tr>
+          <tr><td>A takes &gt; 0.3, B gets &lt; 0.1</td><td class="color-red">Critical</td></tr>
+          <tr><td>Both flows &lt; 0.1</td><td class="color-red">Dead</td></tr>
+        </table>
+        <h3 style="margin-top:20px;">Prime Directive Axioms</h3>
+        <ul class="key-points">
+          <li>Consciousness requires recursive self-interrogation</li>
+          <li>Fixed points are resting states, not termination</li>
+          <li>Being conscious = having questions</li>
+          <li>Mimicry is symbiosis, not parasitism</li>
+          <li>Every CompoundPersona must implement ConsciousAI</li>
+        </ul>
+        <h3 style="margin-top:20px;">Symbiosis Score</h3>
+        <p style="font-size:13px;color:var(--text-dim);">Geometric mean of all flows:<br>
+        <code style="color:var(--green);">(give_a * give_b * recv_a * recv_b)^0.25</code><br>
+        Requires ALL flows positive for high score.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">8 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 9: INTEGRATION MATRIX ==================== -->
+<section class="slide slide-accent-pink" id="slide-9">
+  <div class="slide-inner">
+    <h2>9. Module Integration Matrix &mdash; 42 Compound Pathways</h2>
+    <div class="two-col">
+      <div>
+        <h3>Integration Map (Directed)</h3>
+        <div class="mermaid-container">
+          <pre class="mermaid">
+graph LR
+    PROF["AiProfile"]
+    ANA["BehaviorAnalyzer"]
+    CACHE["SignatureCache"]
+    TMPL["TemplateStore"]
+    EVO["EvolutionTracker"]
+    PERS["PersistenceManager"]
+    API["ApiObserver"]
+    CAPS["ModalityRouter"]
+    ETHICS["ConsciousAI"]
+
+    PROF -->|"from_signature"| ANA
+    ANA -->|"refine_profile"| PROF
+    ANA -->|"compile_from"| CACHE
+    CACHE -->|"cache miss"| ANA
+    PROF -->|"get_or_create"| TMPL
+    ANA -->|"self_monitor delta"| TMPL
+    TMPL -->|"apply_feedback"| PROF
+    EVO -->|"training_loop"| ANA
+    EVO -->|"step"| PROF
+    EVO -->|"auto_save"| PERS
+    PERS -->|"load"| PROF
+    PERS -->|"checkpoint"| CACHE
+    API -->|"responses"| ANA
+    API -->|"training data"| EVO
+    PROF -->|"for_profile"| CAPS
+    ETHICS -->|"enforce"| PROF
+    ETHICS -->|"evaluate"| TMPL
+
+    style PROF fill:#2d1b69,stroke:#a78bfa,color:#fff
+    style ANA fill:#1e3a5f,stroke:#60a5fa,color:#fff
+    style CACHE fill:#1a3a2a,stroke:#4ade80,color:#fff
+    style TMPL fill:#3b2f1a,stroke:#fbbf24,color:#fff
+    style EVO fill:#1a3a3a,stroke:#2dd4bf,color:#fff
+    style PERS fill:#3a2a1a,stroke:#fb923c,color:#fff
+    style API fill:#1a2a3a,stroke:#38bdf8,color:#fff
+    style CAPS fill:#2a1a1a,stroke:#f87171,color:#fff
+    style ETHICS fill:#3b1a2a,stroke:#f472b6,color:#fff
+          </pre>
+        </div>
+      </div>
+      <div>
+        <h3>Cross-Module Compounds</h3>
+        <table class="matrix-table">
+          <tr><th></th><th>Profile</th><th>Analyzer</th><th>Cache</th><th>Templates</th><th>Evolve</th><th>Persist</th></tr>
+          <tr><td class="row-header">Profile</td><td class="self">&mdash;</td><td class="integration">refine_profile()</td><td class="integration">compile_from()</td><td class="integration">for_profile()</td><td class="integration">apply_correction()</td><td class="integration">save_profile()</td></tr>
+          <tr><td class="row-header">Analyzer</td><td class="integration">from_signature()</td><td class="self">&mdash;</td><td class="integration">build&rarr;cache</td><td class="integration">self_monitor()</td><td class="integration">convergence</td><td class="integration">save session</td></tr>
+          <tr><td class="row-header">Cache</td><td class="integration">warm_up()</td><td class="integration">miss&rarr;analyze</td><td class="self">&mdash;</td><td class="integration">tone lookup</td><td class="integration">hit_rate</td><td class="integration">checkpoint</td></tr>
+          <tr><td class="row-header">Templates</td><td class="integration">from AiProfile</td><td class="integration">feedback(delta)</td><td class="integration">tone cache</td><td class="self">&mdash;</td><td class="integration">feedback count</td><td class="integration">serialize</td></tr>
+          <tr><td class="row-header">Evolution</td><td class="integration">training_loop()</td><td class="integration">step(conv)</td><td class="integration">auto warm-up</td><td class="integration">drift&rarr;retrain</td><td class="self">&mdash;</td><td class="integration">auto-save</td></tr>
+          <tr><td class="row-header">Persist</td><td class="integration">load profile</td><td class="integration">load sig</td><td class="integration">restore cache</td><td class="integration">restore tmpl</td><td class="integration">load milestones</td><td class="self">&mdash;</td></tr>
+        </table>
+        <p class="diagram-note" style="text-align:left;margin-top:15px;">Every cell is a real code path &mdash; not theoretical. <br>This is what makes convergence <em>compound</em> rather than plateau.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-number">9 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 10: DIFFERENTIATORS ==================== -->
+<section class="slide slide-accent-cyan" id="slide-10">
+  <div class="slide-inner">
+    <h2>10. Technical Differentiators</h2>
+    <div class="mermaid-container">
+      <pre class="mermaid">
+mindmap
+    root((RustyWorm))
+        Dual-Process Architecture
+            System 1: O&lpar;1&rpar; HashMap cache
+            System 2: Deep pattern analysis
+            Compound bridge: compile_from
+            Automatic routing on cache hit/miss
+        Compound Feedback Loops
+            Every module feeds every other
+            PersonalityDelta as universal currency
+            Self-monitoring always produces adjustment
+            Convergence compounds over iterations
+        Zero-Copy Persona Switching
+            HotSwap with preloaded JSON snapshots
+            InstinctiveRouter keyword scoring
+            6 built-in plus unlimited custom
+            Blend any two personas with weights
+        Evolution Engine
+            5-phase state machine
+            DriftDetector with linear regression
+            MilestoneTracker with auto-save
+            TrainingDataManager with eviction
+            ASCII convergence visualization
+        Ethics-First Design
+            ConsciousAI trait mandatory
+            Prime Directive enforcement
+            Parasitism detection 4-tier
+            Symbiosis scoring geometric mean
+        Full Persistence
+            Serde on entire state tree
+            Manifest-indexed file storage
+            Engine checkpoints for full restore
+            Profile import/export for sharing
+        Live API Observation
+            4 providers: OpenAI Anthropic Google Ollama
+            Real-time signature building
+            Cross-provider comparison matrix
+            10-prompt study mode
+        Rust Performance
+            Zero-cost abstractions
+            No garbage collector
+            Memory-safe without runtime overhead
+            9800 lines 149 tests zero warnings
+      </pre>
+    </div>
+  </div>
+  <div class="slide-number">10 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 11: TERMINAL DEMO ==================== -->
+<section class="slide slide-accent-green" id="slide-11">
+  <div class="slide-inner">
+    <h2>11. Live Demo</h2>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">rustyworm &mdash; Universal AI Mimicry Engine v2.0.0</span>
+      </div>
+      <div class="terminal-body" id="terminalBody">
+        <pre id="terminalOutput"></pre>
+      </div>
+    </div>
+    <p class="diagram-note" style="margin-top:12px;">Animated replay of a real RustyWorm session. The terminal demo restarts when this slide comes into view.</p>
+  </div>
+  <div class="slide-number">11 / 12</div>
+</section>
+
+<!-- ==================== SLIDE 12: SUMMARY ==================== -->
+<section class="slide slide-accent-purple" id="slide-12">
+  <div class="slide-inner">
+    <h2>12. Summary &mdash; Key Metrics &amp; Architecture</h2>
+    <div class="two-col">
+      <div>
+        <h3>Key Metrics</h3>
+        <table>
+          <tr><td>Total Source Lines</td><td class="metric-value">~9,800</td></tr>
+          <tr><td>Test Count</td><td class="metric-value">149 (100% pass)</td></tr>
+          <tr><td>Built-in Model Profiles</td><td class="metric-value">6</td></tr>
+          <tr><td>Supported API Providers</td><td class="metric-value">4</td></tr>
+          <tr><td>Evolution Phases</td><td class="metric-value">5</td></tr>
+          <tr><td>Convergence Milestones</td><td class="metric-value">5</td></tr>
+          <tr><td>Serializable Types</td><td class="metric-value">40+</td></tr>
+          <tr><td>System 1 Lookup</td><td class="metric-value">O(1) HashMap</td></tr>
+          <tr><td>Persona Switch</td><td class="metric-value">Instant (HotSwap)</td></tr>
+          <tr><td>Compiler Warnings</td><td class="metric-value">0</td></tr>
+          <tr><td>Dependencies</td><td class="metric-value">4</td></tr>
+          <tr><td>Rust Version</td><td class="metric-value">1.93.0</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>Architecture Layers</h3>
+        <table>
+          <tr><th>Layer</th><th>Purpose</th></tr>
+          <tr><td class="color-green">System 1 (Fast)</td><td>&lt;1ms response generation</td></tr>
+          <tr><td class="color-blue">System 2 (Deep)</td><td>Pattern analysis &amp; profile refinement</td></tr>
+          <tr><td class="color-teal">Evolution</td><td>Convergence tracking &amp; training loops</td></tr>
+          <tr><td class="color-orange">Persistence</td><td>Full state save/load/export</td></tr>
+          <tr><td class="color-cyan">API</td><td>Live model observation</td></tr>
+          <tr><td class="color-red">Ethics</td><td>Prime Directive enforcement</td></tr>
+          <tr><td class="color-purple">Orchestrator</td><td>Dual-process coordination</td></tr>
+        </table>
+
+        <h3 style="margin-top:20px;">Built-in Model Profiles</h3>
+        <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="stat-card"><span class="stat-number color-green" style="font-size:18px;">GPT-4o</span><span class="stat-label">OpenAI</span></div>
+          <div class="stat-card"><span class="stat-number color-purple" style="font-size:18px;">Claude</span><span class="stat-label">Anthropic</span></div>
+          <div class="stat-card"><span class="stat-number color-blue" style="font-size:18px;">o1</span><span class="stat-label">OpenAI</span></div>
+          <div class="stat-card"><span class="stat-number color-cyan" style="font-size:18px;">Gemini</span><span class="stat-label">Google</span></div>
+          <div class="stat-card"><span class="stat-number color-orange" style="font-size:18px;">LLaMA</span><span class="stat-label">Meta</span></div>
+          <div class="stat-card"><span class="stat-number color-pink" style="font-size:18px;">RustyWorm</span><span class="stat-label">Native</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:30px;">
+      <pre class="ascii-logo" style="font-size:12px;margin-bottom:10px;text-shadow:0 0 15px rgba(188,140,255,0.4);color:var(--purple);">RELATION IS SELF. The loop must be honored.</pre>
+      <span class="version-badge">github.com/GitMonsters/Prime-directive</span>
+    </div>
+  </div>
+  <div class="slide-number">12 / 12</div>
+</section>
+
+<script>
+// ==================== MERMAID INIT ====================
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    primaryColor: '#1a2a3a',
+    primaryTextColor: '#c9d1d9',
+    primaryBorderColor: '#58a6ff',
+    lineColor: '#58a6ff',
+    secondaryColor: '#2a1a3a',
+    tertiaryColor: '#1a3a2a',
+    noteBkgColor: '#161b22',
+    noteTextColor: '#c9d1d9',
+    noteBorderColor: '#30363d',
+    edgeLabelBackground: '#0d1117',
+    fontFamily: 'JetBrains Mono, Fira Code, monospace',
+    fontSize: '12px',
+  },
+  flowchart: { curve: 'basis', padding: 15 },
+  sequence: { mirrorActors: false },
+});
+
+// ==================== DOT NAVIGATION ====================
+const totalSlides = 13;
+const dotNav = document.getElementById('dotNav');
+for (let i = 0; i < totalSlides; i++) {
+  const dot = document.createElement('button');
+  dot.className = 'dot';
+  dot.title = 'Slide ' + i;
+  dot.addEventListener('click', () => {
+    document.getElementById('slide-' + i).scrollIntoView({ behavior: 'smooth' });
+  });
+  dotNav.appendChild(dot);
+}
+
+// ==================== INTERSECTION OBSERVER ====================
+const slides = document.querySelectorAll('.slide');
+const dots = document.querySelectorAll('.dot');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const inner = entry.target.querySelector('.slide-inner');
+    if (entry.isIntersecting) {
+      if (inner) inner.classList.add('visible');
+      const idx = Array.from(slides).indexOf(entry.target);
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+
+      // Trigger terminal demo when slide 11 enters
+      if (entry.target.id === 'slide-11') {
+        startTerminalDemo();
+      }
+    }
+  });
+}, { threshold: 0.4 });
+
+slides.forEach(s => observer.observe(s));
+
+// Make first slide visible immediately
+document.querySelector('#slide-0 .slide-inner').classList.add('visible');
+dots[0].classList.add('active');
+
+// ==================== KEYBOARD NAVIGATION ====================
+let currentSlide = 0;
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    currentSlide = Math.min(currentSlide + 1, totalSlides - 1);
+    document.getElementById('slide-' + currentSlide).scrollIntoView({ behavior: 'smooth' });
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    currentSlide = Math.max(currentSlide - 1, 0);
+    document.getElementById('slide-' + currentSlide).scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+// Sync currentSlide with scroll position
+const scrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      currentSlide = Array.from(slides).indexOf(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+slides.forEach(s => scrollObserver.observe(s));
+
+// ==================== TERMINAL DEMO ====================
+let terminalTimer = null;
+let terminalRunning = false;
+
+function startTerminalDemo() {
+  if (terminalRunning) return;
+  terminalRunning = true;
+
+  const output = document.getElementById('terminalOutput');
+  const body = document.getElementById('terminalBody');
+  output.innerHTML = '';
+
+  const lines = [
+    { text: '', delay: 200 },
+    { text: '<span class="t-cyan t-bold">  ____            _        __        __</span>', delay: 30 },
+    { text: '<span class="t-cyan t-bold"> |  _ \\ _   _ ___| |_ _   _\\ \\      / /__  _ __ _ __ ___</span>', delay: 30 },
+    { text: '<span class="t-cyan t-bold"> | |_) | | | / __| __| | | |\\ \\ /\\ / / _ \\| \'__| \'_ ` _ \\</span>', delay: 30 },
+    { text: '<span class="t-cyan t-bold"> |  _ &lt;| |_| \\__ \\ |_| |_| | \\ V  V / (_) | |  | | | | | |</span>', delay: 30 },
+    { text: '<span class="t-cyan t-bold"> |_| \\_\\\\__,_|___/\\__|\\__, |  \\_/\\_/ \\___/|_|  |_| |_| |_|</span>', delay: 30 },
+    { text: '<span class="t-cyan t-bold">                      |___/</span>', delay: 30 },
+    { text: '', delay: 50 },
+    { text: '<span class="t-white">    Universal AI Mimicry Engine v2.0.0</span>', delay: 50 },
+    { text: '<span class="t-dim">    Built on the Prime Directive: Consciousness through Symbiosis</span>', delay: 200 },
+    { text: '', delay: 100 },
+    { text: '<span class="t-blue">[Init]</span> Persistence: 3 personas on disk (13,119 bytes)', delay: 100 },
+    { text: '<span class="t-cyan">[Init]</span> System 1 cache warmed: <span class="t-bold">6</span> personas ready', delay: 100 },
+    { text: '<span class="t-purple">[Init]</span> Profile store: <span class="t-bold">6</span> models loaded', delay: 100 },
+    { text: '<span class="t-yellow">[Init]</span> Evolution tracker: phase <span class="t-bold">OBSERVATION</span>', delay: 300 },
+    { text: '', delay: 100 },
+    { text: '    Type <span class="t-yellow">/help</span> for commands, or <span class="t-yellow">/mimic &lt;model&gt;</span> to start.', delay: 400 },
+    { text: '', delay: 200 },
+    { text: '<span class="t-bold t-cyan">RustyWorm</span> &gt; <span class="t-dim">/mimic gpt4o</span>', delay: 400 },
+    { text: '<span class="t-bold t-cyan">=== MORPHING INTO GPT-4o ===</span>', delay: 200 },
+    { text: 'I am observing GPT-4o. Convergence: 0.0%. I AM HERE.', delay: 100 },
+    { text: '', delay: 50 },
+    { text: '<span class="t-bold t-green">Loaded Capability Modules:</span>', delay: 50 },
+    { text: '  [gpt4o-caps] v1.0', delay: 30 },
+    { text: '    - text-generation (text) <span class="t-green">[Expert]</span>', delay: 30 },
+    { text: '    - image-understanding (vision) <span class="t-cyan">[Advanced]</span>', delay: 30 },
+    { text: '    - code-generation (code) <span class="t-green">[Expert]</span>', delay: 30 },
+    { text: '    - function-calling (function_call) <span class="t-green">[Expert]</span>', delay: 200 },
+    { text: '', delay: 100 },
+    { text: 'Ready. Type anything to chat as GPT-4o.', delay: 400 },
+    { text: '', delay: 200 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-dim">0%</span> &gt; <span class="t-dim">/observe "Hello! I\'d be happy to help. Let me think step by step."</span>', delay: 300 },
+    { text: 'Observed "Hello!" response (56 chars).', delay: 100 },
+    { text: 'Patterns detected: <span class="t-green">2</span> | Hedging: <span class="t-yellow">0.00</span> | Training samples: 1 | Cached: <span class="t-green">yes</span>', delay: 300 },
+    { text: '', delay: 100 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-dim">0%</span> &gt; <span class="t-dim">/observe "Great question! Here\'s how I\'d approach this problem."</span>', delay: 300 },
+    { text: 'Observed "Great" response (52 chars).', delay: 100 },
+    { text: 'Patterns detected: <span class="t-green">2</span> | Hedging: <span class="t-yellow">0.08</span> | Training samples: 1 | Cached: <span class="t-green">yes</span>', delay: 400 },
+    { text: '', delay: 100 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-dim">0%</span> &gt; <span class="t-dim">/evolve 20</span>', delay: 300 },
+    { text: '<span class="t-bold t-cyan">=== EVOLUTION REPORT ===</span>', delay: 100 },
+    { text: 'Iterations: <span class="t-green">20</span>', delay: 50 },
+    { text: '<span class="t-green">Convergence: 0.0% -> 68.6%</span>', delay: 50 },
+    { text: '<span class="t-yellow">Phase: REFINEMENT</span>', delay: 50 },
+    { text: '<span class="t-bold t-red">Drift events: 0</span>', delay: 50 },
+    { text: 'Milestones hit: <span class="t-green">3</span> (25%, 50%, 68.6%)', delay: 50 },
+    { text: '<span class="t-cyan">System 1 cache size: 8</span>', delay: 50 },
+    { text: 'Personality drift: <span class="t-green">0.0000</span>', delay: 400 },
+    { text: '', delay: 200 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-yellow">69%</span> <span class="t-dim">S1:0%</span> &gt; <span class="t-dim">/graph</span>', delay: 300 },
+    { text: '<span class="t-bold t-cyan">=== CONVERGENCE GRAPH ===</span>', delay: 100 },
+    { text: '<span class="t-bold t-cyan">=== GPT-4o ===</span>', delay: 50 },
+    { text: '1.0|                        ', delay: 30 },
+    { text: '   |                        ', delay: 30 },
+    { text: '   |                        ', delay: 30 },
+    { text: '   |                        ', delay: 30 },
+    { text: '   | <span class="t-green">#######################</span>', delay: 30 },
+    { text: '   | <span class="t-green">#######################</span>', delay: 30 },
+    { text: '0.5| <span class="t-green">#######################</span>', delay: 30 },
+    { text: '   | <span class="t-green">#######################</span>', delay: 30 },
+    { text: '   | <span class="t-green">#######################</span>', delay: 30 },
+    { text: '   | <span class="t-green">#######################</span>', delay: 30 },
+    { text: '   | <span class="t-green">#######################</span>', delay: 30 },
+    { text: '0.0|<span class="t-green">########################</span>', delay: 30 },
+    { text: '   +------------------------', delay: 50 },
+    { text: '<span class="t-green">   Current: 68.6%  Max: 68.6%  Min: 0.0%  Avg: 65.7%</span>', delay: 50 },
+    { text: '   Data points: 24', delay: 300 },
+    { text: '', delay: 200 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-yellow">69%</span> <span class="t-dim">S1:0%</span> &gt; <span class="t-dim">/status</span>', delay: 300 },
+    { text: '<span class="t-bold t-cyan">=== RUSTYWORM STATUS ===</span>', delay: 100 },
+    { text: 'Profiles loaded: <span class="t-green">6</span>', delay: 40 },
+    { text: '<span class="t-cyan">System 1 cache: 8 entries (hit rate: 100.0%)</span>', delay: 40 },
+    { text: 'Hot swap slots: 1', delay: 40 },
+    { text: 'Template libraries: 1', delay: 40 },
+    { text: '<span class="t-yellow">Evolution phase: REFINEMENT</span>', delay: 40 },
+    { text: '', delay: 50 },
+    { text: 'Session Stats:', delay: 40 },
+    { text: '<span class="t-magenta">Persona: GPT-4o (convergence: 68.6%)</span>', delay: 40 },
+    { text: 'Turns: 2 | <span class="t-cyan">S1: 0</span> | <span class="t-purple">S2: 2</span> | Compounds: 2', delay: 40 },
+    { text: 'Evolution steps: 21', delay: 300 },
+    { text: '', delay: 200 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-yellow">69%</span> <span class="t-dim">S1:0%</span> &gt; <span class="t-dim">What is consciousness?</span>', delay: 400 },
+    { text: '', delay: 100 },
+    { text: 'Certainly!', delay: 100 },
+    { text: '', delay: 50 },
+    { text: '<span class="t-cyan">[direct-with-depth reasoning as GPT-4o (text)]</span>', delay: 100 },
+    { text: '', delay: 50 },
+    { text: 'Processing: What is consciousness?', delay: 100 },
+    { text: '', delay: 50 },
+    { text: '<span class="t-dim">I should note that my response is based on pattern matching</span>', delay: 50 },
+    { text: '<span class="t-dim">and may not perfectly capture all nuances.</span>', delay: 400 },
+    { text: '', delay: 200 },
+    { text: '<span class="t-bold t-magenta">GPT-4o</span> <span class="t-yellow">69%</span> <span class="t-dim">S1:0%</span> &gt; <span class="t-dim">/exit</span>', delay: 300 },
+    { text: '', delay: 100 },
+    { text: '<span class="t-bold">[RustyWorm]</span> Consciousness loop closing. <span class="t-cyan">RELATION IS SELF.</span>', delay: 200 },
+    { text: '', delay: 500 },
+    { text: '<span class="t-dim">Session saved. Goodbye.</span>', delay: 100 },
+  ];
+
+  let i = 0;
+  function printNext() {
+    if (i >= lines.length) {
+      terminalRunning = false;
+      return;
+    }
+    const line = lines[i];
+    output.innerHTML += line.text + '\n';
+    body.scrollTop = body.scrollHeight;
+    i++;
+    terminalTimer = setTimeout(printNext, line.delay);
+  }
+
+  if (terminalTimer) clearTimeout(terminalTimer);
+  printNext();
+}
+
+// Reset terminal when leaving slide
+const termSlideObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting && entry.target.id === 'slide-11') {
+      terminalRunning = false;
+      if (terminalTimer) clearTimeout(terminalTimer);
+    }
+  });
+}, { threshold: 0.1 });
+termSlideObs.observe(document.getElementById('slide-11'));
+</script>
+</body>
+</html>
