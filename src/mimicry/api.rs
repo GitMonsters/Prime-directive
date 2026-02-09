@@ -923,7 +923,7 @@ pub fn build_similarity_matrix(responses: &[&str]) -> Vec<Vec<f64>> {
 pub fn format_comparison(result: &ComparisonResult) -> String {
     let mut lines = vec![format!("=== COMPARISON: \"{}\" ===", result.prompt)];
 
-    for (i, resp) in result.responses.iter().enumerate() {
+    for (_i, resp) in result.responses.iter().enumerate() {
         lines.push(format!(
             "\n--- {} ({}) [{}ms, {} tokens] ---",
             resp.provider,
