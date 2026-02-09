@@ -2,13 +2,12 @@
 // Companion to ising_empathy_module.py
 // Implements empathy as coupling-mediated state correlation
 
-
 #[derive(Clone, Debug)]
 pub struct EmotionVector {
-    pub valence: f64,     // Energy-based affect (positive/negative)
-    pub arousal: f64,     // Order-based activation (calm/excited)
-    pub tension: f64,     // Frustration level
-    pub coherence: f64,   // Internal alignment (magnetization magnitude)
+    pub valence: f64,   // Energy-based affect (positive/negative)
+    pub arousal: f64,   // Order-based activation (calm/excited)
+    pub tension: f64,   // Frustration level
+    pub coherence: f64, // Internal alignment (magnetization magnitude)
 }
 
 impl EmotionVector {
@@ -41,8 +40,8 @@ pub struct IsingSystem {
 
 impl IsingSystem {
     pub fn new(n: usize, seed: u64) -> Self {
-        use rand::SeedableRng;
         use rand::Rng;
+        use rand::SeedableRng;
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
 
         let spins: Vec<i8> = (0..n)
@@ -149,9 +148,14 @@ impl IsingEmpathyModule {
     }
 
     /// Simulate other's Hamiltonian to predict ground state
-    pub fn simulate_other(&self, other: &IsingSystem, anneal_steps: usize, seed: u64) -> IsingSystem {
-        use rand::SeedableRng;
+    pub fn simulate_other(
+        &self,
+        other: &IsingSystem,
+        anneal_steps: usize,
+        seed: u64,
+    ) -> IsingSystem {
         use rand::Rng;
+        use rand::SeedableRng;
 
         let mut sim = IsingSystem::new(other.n, seed);
         sim.coupling = other.coupling.clone();
@@ -180,7 +184,11 @@ impl IsingEmpathyModule {
     }
 
     /// Measure how well prediction matches actual
-    pub fn perspective_accuracy(&self, predicted: &IsingSystem, actual: &IsingSystem) -> (f64, f64, f64) {
+    pub fn perspective_accuracy(
+        &self,
+        predicted: &IsingSystem,
+        actual: &IsingSystem,
+    ) -> (f64, f64, f64) {
         // State overlap (accounting for Z2 symmetry)
         let match_direct = predicted
             .spins
@@ -255,9 +263,10 @@ impl IsingEmpathyModule {
         let coupling_sim = self.coupling_similarity(&self_system.coupling, &other_system.coupling);
 
         // Combined empathy score (weighted average)
-        let empathy = (0.4 * state_overlap + 0.3 * (1.0 - energy_error.min(1.0)) + 0.3 * coupling_sim)
-            .max(0.0)
-            .min(1.0);
+        let empathy =
+            (0.4 * state_overlap + 0.3 * (1.0 - energy_error.min(1.0)) + 0.3 * coupling_sim)
+                .max(0.0)
+                .min(1.0);
 
         empathy
     }
@@ -294,8 +303,13 @@ impl IsingEmpathyModule {
 
     /// Store emotional state in memory buffer
     pub fn store_memory(&mut self, emotion: &EmotionVector, empathy_score: f64) {
-        self.memory_buffer[self.memory_pointer] =
-            vec![emotion.valence, emotion.arousal, emotion.tension, emotion.coherence, empathy_score];
+        self.memory_buffer[self.memory_pointer] = vec![
+            emotion.valence,
+            emotion.arousal,
+            emotion.tension,
+            emotion.coherence,
+            empathy_score,
+        ];
         self.memory_pointer = (self.memory_pointer + 1) % self.memory_size;
         self.memory_count = (self.memory_count + 1).min(self.memory_size);
     }
@@ -327,18 +341,29 @@ impl IsingEmpathyModule {
                 .map(|i| self.memory_buffer[i][4])
                 .sum::<f64>()
                 / (self.memory_count - half) as f64;
-            let older_avg: f64 = (0..half).map(|i| self.memory_buffer[i][4]).sum::<f64>()
-                / half as f64;
+            let older_avg: f64 =
+                (0..half).map(|i| self.memory_buffer[i][4]).sum::<f64>() / half as f64;
             recent_avg - older_avg
         } else {
             0.0
         };
 
-        (avg_valence, avg_arousal, avg_tension, avg_coherence, avg_empathy, trend)
+        (
+            avg_valence,
+            avg_arousal,
+            avg_tension,
+            avg_coherence,
+            avg_empathy,
+            trend,
+        )
     }
 
     /// Multi-agent social attention
-    pub fn social_attention(&mut self, self_system: &IsingSystem, others: &[IsingSystem]) -> Vec<f64> {
+    pub fn social_attention(
+        &mut self,
+        self_system: &IsingSystem,
+        others: &[IsingSystem],
+    ) -> Vec<f64> {
         let mut empathy_scores = Vec::new();
 
         for (idx, other) in others.iter().enumerate() {
@@ -394,7 +419,8 @@ mod tests {
     fn test_memory_storage() {
         let mut module = IsingEmpathyModule::new(16);
         for i in 0..10 {
-            let emo = EmotionVector::new(0.1 * i as f64, 1.0 - 0.1 * i as f64, 0.05, 0.1 * i as f64);
+            let emo =
+                EmotionVector::new(0.1 * i as f64, 1.0 - 0.1 * i as f64, 0.05, 0.1 * i as f64);
             module.store_memory(&emo, 0.1 * i as f64);
         }
 
