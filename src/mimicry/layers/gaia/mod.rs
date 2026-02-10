@@ -48,18 +48,20 @@
 //! let matches = gaia.match_patterns(&query, 0.7);
 //! ```
 
-pub mod pattern;
-pub mod intuition;
-pub mod resonance;
 pub mod analogical;
+pub mod intuition;
+pub mod pattern;
+pub mod persistence;
+pub mod resonance;
 
 // Re-export primary types
-pub use pattern::{Pattern, PatternId, PatternMemory, PatternMatch, PatternStats};
-pub use intuition::{GaiaConfig, GaiaIntuitionEngine, IntuitionResult};
-pub use resonance::{ActivationState, ResonanceConfig, ResonanceField, ResonanceResult};
 pub use analogical::{
     AnalogicalMapping, AnalogicalTransfer, DomainBridge, TransferResult, TransferStrength,
 };
+pub use intuition::{GaiaConfig, GaiaIntuitionEngine, IntuitionResult};
+pub use pattern::{Pattern, PatternId, PatternMatch, PatternMemory, PatternStats};
+pub use persistence::{GaiaPersistence, GaiaSnapshot, PatternData, SnapshotStats};
+pub use resonance::{ActivationState, ResonanceConfig, ResonanceField, ResonanceResult};
 
 /// Error types for GAIA operations.
 #[derive(Debug, Clone)]

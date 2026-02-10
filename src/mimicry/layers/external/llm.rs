@@ -3,7 +3,6 @@
 //! Provides access to LLM services for text generation, completion,
 //! and semantic understanding.
 
-
 use super::provider::{
     ApiError, ApiQuery, ApiResponse, ApiResult, ExternalApiProvider, ProviderConfig, ProviderInfo,
     ProviderStatus,

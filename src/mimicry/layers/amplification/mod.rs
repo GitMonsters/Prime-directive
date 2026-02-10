@@ -40,13 +40,13 @@
 //! println!("Iterations: {}", result.iterations);
 //! ```
 
-pub mod engine;
 pub mod convergence;
+pub mod engine;
 pub mod metrics;
 
 // Re-export primary types
-pub use engine::{AmplificationEngine, AmplificationConfig, AmplificationInput};
-pub use convergence::{ConvergenceDetector, ConvergenceConfig, ConvergenceStatus};
+pub use convergence::{ConvergenceConfig, ConvergenceDetector, ConvergenceStatus};
+pub use engine::{AmplificationConfig, AmplificationEngine, AmplificationInput};
 pub use metrics::{AmplificationMetrics, IterationMetrics, MetricsCollector};
 
 /// Error types for amplification operations.
@@ -65,11 +65,22 @@ pub enum AmplificationError {
 impl std::fmt::Display for AmplificationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AmplificationError::Divergence { iterations, final_value } => {
-                write!(f, "Amplification diverged after {} iterations (value: {})", iterations, final_value)
+            AmplificationError::Divergence {
+                iterations,
+                final_value,
+            } => {
+                write!(
+                    f,
+                    "Amplification diverged after {} iterations (value: {})",
+                    iterations, final_value
+                )
             }
             AmplificationError::MaxIterationsReached { iterations, delta } => {
-                write!(f, "Max iterations ({}) reached, delta still {}", iterations, delta)
+                write!(
+                    f,
+                    "Max iterations ({}) reached, delta still {}",
+                    iterations, delta
+                )
             }
             AmplificationError::InvalidInput(msg) => write!(f, "Invalid input: {}", msg),
             AmplificationError::ConfigError(msg) => write!(f, "Config error: {}", msg),

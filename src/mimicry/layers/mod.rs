@@ -78,31 +78,74 @@
 //! - `api`: External API providers for Layer 7
 //! - `rl`: Reinforcement learning integration for amplification
 
-pub mod layer;
 pub mod bridge;
+pub mod layer;
 pub mod registry;
 pub mod stack;
 
-pub mod bridges;
-pub mod gaia;
-pub mod external;
 pub mod amplification;
+pub mod bridges;
+pub mod compounding;
+pub mod domains;
+pub mod emergence;
+pub mod external;
+pub mod gaia;
+pub mod integration;
 
 // Re-export primary types
-pub use layer::{Domain, FlowDirection, Layer, LayerConfig, LayerSignal, LayerState};
 pub use bridge::{
-    AmplificationResult, BidirectionalBridge, BridgeConnection, BridgeError, BridgeNetwork,
-    BridgeResult, compute_multiplicative_confidence,
+    compute_multiplicative_confidence, AmplificationResult, BidirectionalBridge, BridgeConnection,
+    BridgeError, BridgeNetwork, BridgeResult,
 };
-pub use registry::{LayerHandler, LayerProcessError, LayerRegistry, PassthroughHandler, RegistryStats};
+pub use compounding::{BridgeMetrics, CompoundingAnalysis, CompoundingMetrics, LayerMetrics};
+pub use domains::{DomainConfig, DomainFactory, DomainLayer, DomainProcessor};
+pub use emergence::{
+    EmergenceAnalysis, EmergenceConfig, EmergenceFramework, EmergenceMechanism, EmergenceStats,
+};
+pub use integration::{IntegrationConfig, IntegrationResult, IntegrationStats, LayerIntegration};
+pub use layer::{Domain, FlowDirection, Layer, LayerConfig, LayerSignal, LayerState};
+pub use registry::{
+    LayerHandler, LayerProcessError, LayerRegistry, PassthroughHandler, RegistryStats,
+};
 pub use stack::{LayerStack, LayerStackConfig, StackProcessResult, StackStats};
 
 /// Prelude module for convenient imports.
 pub mod prelude {
     pub use super::{
-        AmplificationResult, BidirectionalBridge, BridgeConnection, BridgeError, BridgeNetwork,
-        BridgeResult, Domain, FlowDirection, Layer, LayerConfig, LayerHandler, LayerProcessError,
-        LayerRegistry, LayerSignal, LayerStack, LayerStackConfig, LayerState, StackProcessResult,
+        AmplificationResult,
+        BidirectionalBridge,
+        BridgeConnection,
+        BridgeError,
+        BridgeNetwork,
+        BridgeResult,
+        // Compounding types
+        CompoundingAnalysis,
+        CompoundingMetrics,
+        Domain,
+        // Domain types
+        DomainConfig,
+        DomainFactory,
+        DomainProcessor,
+        // Emergence types
+        EmergenceAnalysis,
+        EmergenceFramework,
+        EmergenceMechanism,
+        FlowDirection,
+        // Integration types
+        IntegrationConfig,
+        IntegrationResult,
+        IntegrationStats,
+        Layer,
+        LayerConfig,
+        LayerHandler,
+        LayerIntegration,
+        LayerProcessError,
+        LayerRegistry,
+        LayerSignal,
+        LayerStack,
+        LayerStackConfig,
+        LayerState,
+        StackProcessResult,
     };
 }
 

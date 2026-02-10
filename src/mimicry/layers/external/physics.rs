@@ -3,7 +3,6 @@
 //! Provides access to computational physics services for validating
 //! physical laws, computing values, and checking unit consistency.
 
-
 use super::provider::{
     ApiError, ApiQuery, ApiResponse, ApiResult, ExternalApiProvider, ProviderConfig, ProviderInfo,
     ProviderStatus,

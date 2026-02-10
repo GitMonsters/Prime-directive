@@ -31,23 +31,23 @@
 //! Real implementations can be enabled through feature flags and
 //! environment configuration.
 
-pub mod provider;
-pub mod physics;
-pub mod llm;
-pub mod knowledge;
 pub mod clarin;
 pub mod collaborative;
+pub mod knowledge;
+pub mod llm;
+pub mod physics;
+pub mod provider;
 
 // Re-export primary types
+pub use clarin::ClarinProvider;
+pub use collaborative::CollaborativeProvider;
+pub use knowledge::KnowledgeProvider;
+pub use llm::LlmProvider;
+pub use physics::PhysicsProvider;
 pub use provider::{
     ApiError, ApiQuery, ApiResponse, ApiResult, ExternalApiProvider, ProviderConfig, ProviderInfo,
     ProviderStatus,
 };
-pub use physics::PhysicsProvider;
-pub use llm::LlmProvider;
-pub use knowledge::KnowledgeProvider;
-pub use clarin::ClarinProvider;
-pub use collaborative::CollaborativeProvider;
 
 use std::collections::HashMap;
 use std::sync::RwLock;
@@ -89,11 +89,7 @@ impl ProviderRegistry {
 
     /// Get a provider by name.
     pub fn get(&self, name: &str) -> Option<ProviderInfo> {
-        self.providers
-            .read()
-            .unwrap()
-            .get(name)
-            .map(|p| p.info())
+        self.providers.read().unwrap().get(name).map(|p| p.info())
     }
 
     /// List all registered providers.
