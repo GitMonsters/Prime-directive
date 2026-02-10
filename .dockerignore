@@ -1,0 +1,14 @@
+target/
+.git/
+.github/
+.rustyworm/
+benches/
+Formula/
+*.md
+!README.md
+*.py
+__pycache__/
+*.log
+*.tmp
+.DS_Store
+PITCHDECK*

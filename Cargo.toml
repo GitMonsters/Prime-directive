@@ -3,6 +3,23 @@ name = "consciousness_experiments"
 version = "2.0.0"
 edition = "2021"
 description = "RustyWorm: Universal AI Mimicry Engine with Dual-Process Architecture"
+license = "MIT"
+repository = "https://github.com/GitMonsters/Prime-directive"
+homepage = "https://github.com/GitMonsters/Prime-directive"
+readme = "README.md"
+keywords = ["ai", "mimicry", "consciousness", "dual-process", "llm"]
+categories = ["simulation", "command-line-utilities"]
+authors = ["GitMonsters"]
+exclude = [
+    ".github/",
+    "benches/",
+    "gpu_comprehensive_test.py",
+    "PITCHDECK*",
+    "*.md",
+    "!README.md",
+    "Dockerfile",
+    "Formula/",
+]
 
 [lib]
 name = "consciousness_experiments"

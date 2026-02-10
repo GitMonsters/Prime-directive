@@ -1777,6 +1777,7 @@ impl MimicryEngine {
 
     /// Help text
     pub fn help(&self) -> String {
+        #[allow(unused_mut)]
         let mut text = "\
 === RUSTYWORM COMMANDS ===
 
