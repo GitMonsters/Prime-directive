@@ -41,7 +41,8 @@ api = ["reqwest"]
 rl = ["uuid", "mongodb", "reqwest", "chrono"]
 agentdock = ["uuid", "reqwest", "chrono"]
 gui = ["reqwest", "base64"]
-full = ["api", "rl", "agentdock", "gui"]
+layers = []
+full = ["api", "rl", "agentdock", "gui", "layers"]
 
 [[bin]]
 name = "rustyworm"
