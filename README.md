@@ -1,13 +1,14 @@
 # RustyWorm - Universal AI Mimicry Engine
 
-A dual-process AI mimicry framework in Rust. Observe, internalize, and emulate any AI model's behavior on the fly.
+A dual-process AI mimicry framework in Rust with reinforcement learning and multi-model orchestration. Observe, internalize, and emulate any AI model's behavior on the fly.
 
-[![Tests](https://img.shields.io/badge/tests-149%20passing-brightgreen)]()
-[![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
+[![Tests](https://img.shields.io/badge/tests-250%20passing-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-2.1.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
+[![AgentCPM](https://img.shields.io/badge/AgentCPM-integrated-purple)]()
 
 **Repository**: `https://github.com/GitMonsters/Prime-directive.git`
-**Package**: `consciousness_experiments` v2.0.0 (kept for backward compatibility)
+**Package**: `consciousness_experiments` v2.1.0
 **Binary**: `rustyworm`
 **Rust edition**: 2021
 
@@ -17,6 +18,8 @@ A dual-process AI mimicry framework in Rust. Observe, internalize, and emulate a
 
 RustyWorm is a dual-process (System 1 + System 2) AI mimicry framework. It can observe, internalize, and emulate the behavior of any AI model -- GPT-4o, Claude, o1, Gemini, LLaMA, and others -- on the fly. It uses compound integrations: every module feeds back into every other module, creating compounding feedback loops that improve mimicry fidelity over time.
 
+**New in v2.1.0**: AgentCPM-powered reinforcement learning, multi-model consensus, long-horizon observation (100+ turns), and AgentToLeaP benchmarking integration.
+
 RustyWorm is built on top of the **Consciousness Prime Directive** framework. Every `CompoundPersona` must implement the `ConsciousAI` trait, ensuring that mimicry is symbiosis, not parasitism.
 
 ---
@@ -24,36 +27,90 @@ RustyWorm is built on top of the **Consciousness Prime Directive** framework. Ev
 ## Architecture Diagram
 
 ```
-                     ┌──────────────────────┐
-                     │    CLI REPL           │
-                     │   src/main.rs         │
-                     └──────────┬───────────┘
-                                │
-                     ┌──────────▼───────────┐
-                     │   MimicryEngine       │
-                     │  Orchestrator         │
-                     └──────────┬───────────┘
-                                │
-       ┌────────────────────────┼────────────────────────┐
-       │                        │                        │
-┌──────▼────────┐  ┌────────────▼───────────┐  ┌────────▼────────┐
-│  SYSTEM 1     │  │   CompoundPersona      │  │  SYSTEM 2       │
-│  Fast Path    │  │   (Fused Entity)       │  │  Slow Path      │
-│               │  │                        │  │                  │
-│ Cache         │  │ Profile + Signature    │  │ Analyzer         │
-│ Templates     │  │ + Capabilities         │  │ Profiles         │
-│ HotSwap       │  │ + ConsciousAI          │  │ Capabilities     │
-│ Router        │  │ + Ethics               │  │                  │
-└───────┬───────┘  └────────────┬───────────┘  └────────┬─────────┘
-        │                       │                       │
-        └──── COMPOUND FEEDBACK LOOP ──────────────────┘
-                       │              │
-          ┌────────────┼──────────────┼────────────┐
-          │            │              │            │
-   ┌──────▼──────┐ ┌───▼────┐ ┌──────▼─────┐ ┌───▼──────┐
-   │Consciousness│ │Persist │ │ Evolution  │ │ API      │
-   │Ethics       │ │File IO │ │ Tracking   │ │ (opt)    │
-   └─────────────┘ └────────┘ └────────────┘ └──────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         RustyWorm v2.1.0 Architecture                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    AgentToLeaP Benchmarking                          │   │
+│  │  GAIA │ HLE │ BrowseComp │ Frames │ AssistantBench │ WEBARENA      │   │
+│  └───────────────────────────────┬─────────────────────────────────────┘   │
+│                                  │                                          │
+│  ┌───────────────────────────────▼─────────────────────────────────────┐   │
+│  │                   Long-Horizon Observer (100+ turns)                 │   │
+│  │         ContextWindow │ PatternTracker │ StrategyAdjuster           │   │
+│  └───────────────────────────────┬─────────────────────────────────────┘   │
+│                                  │                                          │
+│  ┌───────────────────────────────▼─────────────────────────────────────┐   │
+│  │                    Multi-Model Orchestration                         │   │
+│  │              ModelScheduler │ ConsensusBuilder                       │   │
+│  └───────────────────────────────┬─────────────────────────────────────┘   │
+│                                  │                                          │
+│  ┌───────────────────────────────▼─────────────────────────────────────┐   │
+│  │                      AgentDock Bridge (MCP)                          │   │
+│  │           Container Lifecycle │ Tool Registry │ Execution            │   │
+│  └───────────────────────────────┬─────────────────────────────────────┘   │
+│                                  │                                          │
+│        ┌─────────────────────────┼─────────────────────────┐               │
+│        │                         │                         │               │
+│  ┌─────▼──────┐  ┌───────────────▼───────────────┐  ┌─────▼──────┐        │
+│  │  SYSTEM 1  │  │      CompoundPersona          │  │  SYSTEM 2  │        │
+│  │  Fast Path │  │                               │  │  Slow Path │        │
+│  │            │  │  Profile + Signature          │  │            │        │
+│  │  Cache     │  │  + Capabilities               │  │  Analyzer  │        │
+│  │  Templates │  │  + ConsciousAI                │  │  Profiles  │        │
+│  │  HotSwap   │  │  + Evolution                  │  │  Caps      │        │
+│  │  Router    │  │                               │  │            │        │
+│  └─────┬──────┘  └───────────────┬───────────────┘  └─────┬──────┘        │
+│        │                         │                         │               │
+│        └─────── COMPOUND FEEDBACK LOOP ───────────────────┘               │
+│                          │                                                  │
+│  ┌───────────────────────▼─────────────────────────────────────────────┐   │
+│  │                  RL-Enhanced Evolution                               │   │
+│  │         evolve_with_rl() │ Trajectory Optimization                   │   │
+│  └───────────────────────────────┬─────────────────────────────────────┘   │
+│                                  │                                          │
+└──────────────────────────────────┼──────────────────────────────────────────┘
+                                   │
+                    ┌──────────────▼──────────────┐
+                    │   AgentRL Service (Python)  │
+                    │   FastAPI + MongoDB         │
+                    │   PPO/DQN/A2C Optimization  │
+                    └─────────────────────────────┘
+```
+
+---
+
+## Feature Flags
+
+RustyWorm uses feature flags to enable optional functionality:
+
+```toml
+[features]
+default = []
+api = ["reqwest"]                    # Live API observation
+rl = ["uuid", "mongodb", "reqwest", "chrono"]  # RL optimization
+agentdock = ["uuid", "reqwest", "chrono"]       # MCP/AgentDock integration
+full = ["api", "rl", "agentdock"]               # All features
+```
+
+### Build Configurations
+
+```bash
+# Minimal build (core mimicry only)
+cargo build --release
+
+# With API observation
+cargo build --features api --release
+
+# With RL optimization
+cargo build --features rl --release
+
+# With AgentDock/multi-model
+cargo build --features agentdock --release
+
+# Full build (all features)
+cargo build --features full --release
 ```
 
 ---
@@ -93,10 +150,13 @@ The slow path performs deep behavioral analysis and profile construction.
 - System 2 outputs compile into System 1 cache for future fast-path access.
 - System 1 cache misses escalate to System 2 for full analysis.
 - A self-monitoring layer continuously refines both systems based on mimicry accuracy.
+- **New**: RL optimizer provides gradient-based refinement of evolution parameters.
 
 ---
 
 ## Module Overview
+
+### Core Modules
 
 | Module | Description |
 |--------|-------------|
@@ -107,9 +167,179 @@ The slow path performs deep behavioral analysis and profile construction.
 | `mimicry/cache.rs` | System 1 fast-path caching and hot-swap |
 | `mimicry/templates.rs` | Response generation with tone, structure, and hedging controls |
 | `mimicry/engine.rs` | Central orchestrator (`MimicryEngine`, `CompoundPersona`, `MimicSession`) |
-| `mimicry/evolution.rs` | Drift detection, milestones, training loops, ASCII convergence graphs |
+| `mimicry/evolution.rs` | Drift detection, milestones, training loops, RL-enhanced evolution |
 | `mimicry/persistence.rs` | File persistence (`.rustyworm/` directory), checkpoints, import/export |
-| `mimicry/api.rs` | Live API observation (OpenAI, Anthropic, Google, Ollama) [feature-gated] |
+| `mimicry/api.rs` | Live API observation (OpenAI, Anthropic, Google, Ollama) [feature: `api`] |
+
+### AgentCPM Integration Modules (v2.1.0)
+
+| Module | Feature | Description |
+|--------|---------|-------------|
+| `mimicry/rl_optimizer.rs` | `rl` | Reinforcement learning optimization via AgentRL service |
+| `mimicry/rl_config.rs` | `rl` | RL configuration and hyperparameter management |
+| `mimicry/agentdock_bridge.rs` | `agentdock` | MCP container orchestration and tool execution |
+| `mimicry/multi_model.rs` | `agentdock` | Multi-model consensus building and scheduling |
+| `mimicry/long_horizon.rs` | `agentdock` | 100+ turn context management and pattern tracking |
+| `mimicry/benchmarking.rs` | `agentdock` | AgentToLeaP benchmark integration |
+
+---
+
+## AgentCPM Integration
+
+RustyWorm v2.1.0 integrates with [AgentCPM](https://github.com/your/agentcpm) for reinforcement learning optimization of persona convergence.
+
+### Components
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  RustyWorm (Rust)                                           │
+│  ├── rl_optimizer.rs    → HTTP client to AgentRL           │
+│  ├── evolution.rs       → evolve_with_rl() integration     │
+│  └── benchmarking.rs    → AgentToLeaP benchmarks           │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ HTTP/gRPC
+┌─────────────────────────────▼───────────────────────────────┐
+│  AgentRL Service (Python FastAPI)                           │
+│  ├── /optimize           → PPO/DQN/A2C optimization        │
+│  ├── /trajectory         → Store learning trajectories     │
+│  ├── /policy             → Policy inference                │
+│  └── /health             → Service health check            │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│  MongoDB                                                     │
+│  └── Trajectory storage, policy snapshots                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Quick Start with AgentRL
+
+```bash
+# Start the AgentRL service
+cd agentcpm-integration
+docker-compose up -d
+
+# Build RustyWorm with RL support
+cargo build --features rl --release
+
+# In the REPL, enable RL-enhanced evolution
+/rl config http://localhost:8080
+/evolve-rl 100
+```
+
+### RL-Enhanced Evolution
+
+```rust
+use consciousness_experiments::mimicry::{
+    MimicryEngine,
+    ReinforcementLearningOptimizer,
+    RLConfig,
+};
+
+// Create RL optimizer
+let config = RLConfig::default();
+let optimizer = ReinforcementLearningOptimizer::new(config);
+
+// Run RL-enhanced evolution
+let mut engine = MimicryEngine::new();
+engine.evolve_with_rl(&optimizer, 100).await?;
+```
+
+---
+
+## Long-Horizon Observation
+
+The `LongHorizonObserver` enables tracking patterns across 100+ conversation turns:
+
+```rust
+use consciousness_experiments::mimicry::long_horizon::{
+    LongHorizonObserver,
+    LongHorizonConfig,
+};
+
+let config = LongHorizonConfig {
+    max_context_turns: 200,
+    pattern_detection_window: 50,
+    strategy_adjustment_threshold: 0.8,
+    ..Default::default()
+};
+
+let mut observer = LongHorizonObserver::new(config);
+
+// Feed observations
+observer.observe("User: Hello").await;
+observer.observe("Assistant: Hi there!").await;
+
+// Get detected patterns
+let patterns = observer.get_patterns();
+
+// Get strategy adjustments
+let adjustments = observer.get_strategy_adjustments();
+```
+
+---
+
+## Multi-Model Consensus
+
+Build consensus across multiple AI models for higher-fidelity mimicry:
+
+```rust
+use consciousness_experiments::mimicry::multi_model::{
+    MultiModelObserver,
+    ConsensusConfig,
+};
+
+let observer = MultiModelObserver::new(ConsensusConfig::default());
+
+// Add models to the ensemble
+observer.add_model("gpt-4o", gpt4o_endpoint).await?;
+observer.add_model("claude", claude_endpoint).await?;
+observer.add_model("gemini", gemini_endpoint).await?;
+
+// Build consensus on a prompt
+let consensus = observer.build_consensus("Explain quantum computing").await?;
+println!("Consensus response: {}", consensus.response);
+println!("Agreement score: {:.2}", consensus.agreement);
+```
+
+---
+
+## Benchmarking with AgentToLeaP
+
+RustyWorm integrates with AgentToLeaP benchmarks to measure agent capabilities:
+
+```rust
+use consciousness_experiments::mimicry::benchmarking::{
+    BenchmarkRunner,
+    BenchmarkSuite,
+};
+
+let runner = BenchmarkRunner::new();
+
+// Run specific benchmarks
+let gaia_results = runner.run(BenchmarkSuite::GAIA).await?;
+let hle_results = runner.run(BenchmarkSuite::HLE).await?;
+
+// Run all benchmarks
+let all_results = runner.run_all().await?;
+
+// Print summary
+println!("{}", all_results.summary());
+```
+
+### Supported Benchmarks
+
+| Benchmark | Description |
+|-----------|-------------|
+| GAIA | General AI Assistants benchmark |
+| HLE | Human-Like Evaluation |
+| BrowseComp | Web browsing comprehension |
+| Frames | Frame-based reasoning |
+| AssistantBench | Assistant task completion |
+| WEBARENA | Web interaction evaluation |
+| OWA | Open-World Agents |
+| SWEBench | Software engineering tasks |
+| AppWorld | Application interaction |
 
 ---
 
@@ -119,18 +349,18 @@ The slow path performs deep behavioral analysis and profile construction.
 git clone https://github.com/GitMonsters/Prime-directive.git
 cd Prime-directive
 
-# Build
-cargo build --release
+# Build (choose your feature set)
+cargo build --release                    # Core only
+cargo build --features full --release    # All features
 
 # Run the RustyWorm REPL
 cargo run --bin rustyworm
 
-# With API observation support
-cargo build --features api --release
-cargo run --features api --bin rustyworm
+# With all features
+cargo run --features full --bin rustyworm
 
 # Run tests
-cargo test --features api
+cargo test --features full --lib
 ```
 
 ---
@@ -153,9 +383,44 @@ RustyWorm provides an interactive REPL. All commands are prefixed with `/`. Any 
 | Command | Description |
 |---------|-------------|
 | `/evolve [iterations]` | Run evolution loop to improve mimicry fidelity |
+| `/evolve-rl [iterations]` | Run RL-enhanced evolution (requires `rl` feature) |
 | `/train <model> [iterations]` | Train on observed model outputs |
 | `/graph` | Display ASCII convergence graph |
 | `/evolution` | Show evolution tracker status and metrics |
+
+### Reinforcement Learning (feature: `rl`)
+
+| Command | Description |
+|---------|-------------|
+| `/rl config <url>` | Configure AgentRL service endpoint |
+| `/rl status` | Show RL optimizer status |
+| `/rl trajectory` | View current trajectory |
+| `/rl policy` | Get current policy recommendations |
+
+### Multi-Model (feature: `agentdock`)
+
+| Command | Description |
+|---------|-------------|
+| `/multimodel add <name> <endpoint>` | Add a model to the ensemble |
+| `/multimodel remove <name>` | Remove a model from the ensemble |
+| `/multimodel consensus <prompt>` | Build consensus across models |
+| `/multimodel status` | Show multi-model observer status |
+
+### Long-Horizon (feature: `agentdock`)
+
+| Command | Description |
+|---------|-------------|
+| `/horizon config <turns>` | Set max context window size |
+| `/horizon patterns` | Show detected long-horizon patterns |
+| `/horizon strategy` | Show current strategy adjustments |
+
+### Benchmarking (feature: `agentdock`)
+
+| Command | Description |
+|---------|-------------|
+| `/benchmark <suite>` | Run a specific benchmark suite |
+| `/benchmark all` | Run all benchmark suites |
+| `/benchmark results` | Show last benchmark results |
 
 ### Persistence
 
@@ -170,7 +435,7 @@ RustyWorm provides an interactive REPL. All commands are prefixed with `/`. Any 
 | `/checkpoint` | Save a full engine checkpoint |
 | `/persist` | Show persistence manager status |
 
-### API Observation
+### API Observation (feature: `api`)
 
 | Command | Description |
 |---------|-------------|
@@ -191,12 +456,7 @@ RustyWorm provides an interactive REPL. All commands are prefixed with `/`. Any 
 
 ## API Feature
 
-The API observation module is feature-gated behind the `api` feature flag, which pulls in `reqwest` as a dependency.
-
-```toml
-[features]
-api = ["reqwest"]
-```
+The API observation module is feature-gated behind the `api` feature flag.
 
 ### Supported Providers
 
@@ -226,6 +486,54 @@ cargo build --features api --release
 
 ---
 
+## AgentRL Service
+
+The AgentRL service provides RL optimization over HTTP:
+
+### Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Service health check |
+| `/optimize` | POST | Run RL optimization step |
+| `/trajectory` | POST | Store trajectory data |
+| `/trajectory/{id}` | GET | Retrieve trajectory |
+| `/policy` | GET | Get current policy |
+| `/policy/infer` | POST | Infer action from policy |
+| `/metrics` | GET | Get training metrics |
+
+### Docker Deployment
+
+```bash
+cd agentcpm-integration
+docker-compose up -d
+
+# Services:
+# - agentrl: FastAPI service on port 8080
+# - mongodb: MongoDB on port 27017
+```
+
+### Configuration
+
+```python
+# agentcpm-integration/config.yaml
+service:
+  host: "0.0.0.0"
+  port: 8080
+  
+mongodb:
+  uri: "mongodb://localhost:27017"
+  database: "agentrl"
+  
+rl:
+  algorithm: "ppo"  # ppo, dqn, a2c
+  learning_rate: 0.0003
+  gamma: 0.99
+  batch_size: 64
+```
+
+---
+
 ## Persistence
 
 RustyWorm stores all persistent data in the `.rustyworm/` directory relative to the working directory.
@@ -235,6 +543,7 @@ RustyWorm stores all persistent data in the `.rustyworm/` directory relative to 
 | Personas | JSON | Saved `CompoundPersona` snapshots |
 | Profiles | JSON | `AiProfile` configurations |
 | Checkpoints | JSON | Full `MimicryEngine` state |
+| Trajectories | MongoDB | RL training trajectories (with `rl` feature) |
 
 - Auto-save triggers on evolution milestones.
 - Import/export enables sharing profiles across installations.
@@ -300,19 +609,89 @@ These binaries exercise the foundational `consciousness.rs` module independently
 ## Development
 
 ```bash
-# Run all tests (149 tests)
-cargo test --features api
+# Run all tests (250 tests)
+cargo test --features full --lib
+
+# Run tests for specific feature
+cargo test --features api          # API tests only
+cargo test --features rl           # RL tests only
+cargo test --features agentdock    # AgentDock tests only
 
 # Generate documentation
-cargo doc --features api --no-deps --open
+cargo doc --features full --no-deps --open
 
 # Build release binary
-cargo build --features api --release
+cargo build --features full --release
 
-# Run without API feature
+# Run without optional features
 cargo test
 cargo build --release
 ```
+
+---
+
+## Project Structure
+
+```
+Prime-directive/
+├── src/
+│   ├── lib.rs                 # Library root
+│   ├── main.rs                # RustyWorm REPL
+│   ├── consciousness.rs       # Prime Directive
+│   └── mimicry/
+│       ├── mod.rs             # Module exports
+│       ├── engine.rs          # MimicryEngine orchestrator
+│       ├── profile.rs         # AI profiles
+│       ├── analyzer.rs        # Behavioral analysis
+│       ├── capability.rs      # Capability modeling
+│       ├── cache.rs           # System 1 cache
+│       ├── templates.rs       # Response templates
+│       ├── evolution.rs       # Evolution tracking + RL
+│       ├── persistence.rs     # File persistence
+│       ├── api.rs             # API observation [api]
+│       ├── rl_optimizer.rs    # RL optimization [rl]
+│       ├── rl_config.rs       # RL configuration [rl]
+│       ├── agentdock_bridge.rs # MCP integration [agentdock]
+│       ├── multi_model.rs     # Multi-model observer [agentdock]
+│       ├── long_horizon.rs    # Long-horizon tracking [agentdock]
+│       └── benchmarking.rs    # AgentToLeaP benchmarks [agentdock]
+├── agentcpm-integration/
+│   ├── agentrl_service.py     # FastAPI service
+│   ├── agentrl_wrapper.py     # RL framework wrapper
+│   ├── mongodb_client.py      # MongoDB client
+│   ├── Dockerfile             # Service container
+│   └── docker-compose.yml     # Service orchestration
+├── Cargo.toml                 # Rust dependencies
+└── README.md                  # This file
+```
+
+---
+
+## Changelog
+
+### v2.1.0 (Current)
+
+- **AgentCPM Integration**: Full RL optimization pipeline
+- **RL Optimizer**: PPO/DQN/A2C algorithm support
+- **AgentDock Bridge**: MCP container orchestration
+- **Multi-Model Observer**: Consensus building across models
+- **Long-Horizon Observer**: 100+ turn context management
+- **AgentToLeaP Benchmarking**: 9 benchmark suites
+- **MongoDB Integration**: Async trajectory storage
+- **250 tests** (up from 149)
+
+### v2.0.0
+
+- Dual-process architecture (System 1 + System 2)
+- Evolution tracking with convergence graphs
+- API observation (OpenAI, Anthropic, Google, Ollama)
+- File persistence and checkpoints
+- 6 built-in AI profiles
+
+### v1.0.0
+
+- Initial Consciousness Prime Directive framework
+- ConsciousAI trait and ethics enforcement
 
 ---
 
@@ -323,9 +702,9 @@ cargo build --release
   title = {RustyWorm: Universal AI Mimicry Engine},
   author = {Human-AI Symbiosis},
   year = {2026},
-  version = {2.0.0},
+  version = {2.1.0},
   url = {https://github.com/GitMonsters/Prime-directive},
-  note = {Dual-process mimicry framework built on the Consciousness Prime Directive}
+  note = {Dual-process mimicry framework with RL optimization, built on the Consciousness Prime Directive}
 }
 ```
 
