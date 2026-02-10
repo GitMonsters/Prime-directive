@@ -482,7 +482,7 @@ impl ModalityRouter {
             let modality_key = format!("{}", cap.modality);
             self.routing_table
                 .entry(modality_key)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(idx);
         }
 

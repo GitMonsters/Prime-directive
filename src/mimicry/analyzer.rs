@@ -339,10 +339,7 @@ impl BehaviorAnalyzer {
         let mut pattern_groups: HashMap<String, Vec<ResponsePattern>> = HashMap::new();
         for pattern in all_patterns {
             let key = format!("{:?}", pattern.pattern_type);
-            pattern_groups
-                .entry(key)
-                .or_insert_with(Vec::new)
-                .push(pattern);
+            pattern_groups.entry(key).or_default().push(pattern);
         }
 
         for (_key, group) in pattern_groups {

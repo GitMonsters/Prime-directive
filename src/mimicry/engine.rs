@@ -778,7 +778,7 @@ impl MimicryEngine {
         let mut lines = vec!["Model identification results:".to_string()];
         for (model_id, score) in scores.iter().take(5) {
             let bar_len = (score * 20.0) as usize;
-            let bar: String = std::iter::repeat('#').take(bar_len).collect();
+            let bar: String = "#".repeat(bar_len);
             lines.push(format!(
                 "  {:<12} [{:<20}] {:.1}%",
                 model_id,
@@ -1157,11 +1157,10 @@ impl MimicryEngine {
 
         // Check if persistence has this persona before trying to delete
         if let Ok(entries) = self.persistence.list_personas() {
-            if entries.iter().any(|e| e.name == name) {
-                match self.persistence.delete_persona(name) {
-                    Ok(_) => deleted = true,
-                    Err(_) => {}
-                }
+            if entries.iter().any(|e| e.name == name)
+                && self.persistence.delete_persona(name).is_ok()
+            {
+                deleted = true;
             }
         }
 
@@ -1344,7 +1343,7 @@ impl MimicryEngine {
     /// COMPOUND: Sets up the observation pipeline endpoint.
     #[cfg(feature = "api")]
     pub fn api_config(&mut self, provider_str: &str, key: Option<&str>) -> Result<String, String> {
-        let provider = ApiProvider::from_str(provider_str)
+        let provider = ApiProvider::parse(provider_str)
             .ok_or_else(|| format!("Unknown provider: '{}'", provider_str))?;
 
         let provider_display = format!("{}", provider);
@@ -1373,7 +1372,7 @@ impl MimicryEngine {
     /// COMPOUND: API response → analyze → store training data → refine profile → update templates → compile to cache.
     #[cfg(feature = "api")]
     pub fn api_observe(&mut self, provider_str: &str, prompt_text: &str) -> Result<String, String> {
-        let provider = ApiProvider::from_str(provider_str)
+        let provider = ApiProvider::parse(provider_str)
             .ok_or_else(|| format!("Unknown provider: '{}'", provider_str))?;
         let profile_id = provider.profile_id().to_string();
 
@@ -1465,7 +1464,7 @@ impl MimicryEngine {
     /// COMPOUND: All responses feed into observation → analysis → training → cache pipeline.
     #[cfg(feature = "api")]
     pub fn api_study(&mut self, provider_str: &str, count: u64) -> Result<String, String> {
-        let provider = ApiProvider::from_str(provider_str)
+        let provider = ApiProvider::parse(provider_str)
             .ok_or_else(|| format!("Unknown provider: '{}'", provider_str))?;
         let profile_id = provider.profile_id().to_string();
 

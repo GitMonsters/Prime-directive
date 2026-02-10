@@ -49,6 +49,7 @@ impl IsingSystem {
             .collect();
 
         let mut coupling = vec![vec![0.0; n]; n];
+        #[allow(clippy::needless_range_loop)]
         for i in 0..n {
             for j in (i + 1)..n {
                 let strength = if (i + j) % 3 == 0 { 1.0 } else { 0.5 };
@@ -105,7 +106,7 @@ impl IsingSystem {
         }
     }
 
-    pub fn clone(&self) -> Self {
+    pub fn clone_system(&self) -> Self {
         IsingSystem {
             n: self.n,
             spins: self.spins.clone(),
@@ -263,12 +264,8 @@ impl IsingEmpathyModule {
         let coupling_sim = self.coupling_similarity(&self_system.coupling, &other_system.coupling);
 
         // Combined empathy score (weighted average)
-        let empathy =
-            (0.4 * state_overlap + 0.3 * (1.0 - energy_error.min(1.0)) + 0.3 * coupling_sim)
-                .max(0.0)
-                .min(1.0);
-
-        empathy
+        (0.4 * state_overlap + 0.3 * (1.0 - energy_error.min(1.0)) + 0.3 * coupling_sim)
+            .clamp(0.0, 1.0)
     }
 
     /// Modify self's coupling based on empathic understanding
@@ -320,10 +317,10 @@ impl IsingEmpathyModule {
             return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
 
-        let mut sum = vec![0.0; 5];
+        let mut sum = [0.0; 5];
         for i in 0..self.memory_count {
-            for j in 0..5 {
-                sum[j] += self.memory_buffer[i][j];
+            for (j, s) in sum.iter_mut().enumerate() {
+                *s += self.memory_buffer[i][j];
             }
         }
 

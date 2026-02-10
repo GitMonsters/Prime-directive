@@ -594,7 +594,7 @@ impl AiProfile {
             for axis in &profile.personality {
                 all_axes
                     .entry(axis.name.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push((axis.value, norm_weights[i]));
             }
         }

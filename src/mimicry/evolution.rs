@@ -126,13 +126,6 @@ impl DriftDetector {
             } else {
                 EvolutionPhase::Learning
             }
-        } else if slope > self.drift_threshold {
-            self.decline_count = 0;
-            if current > 0.5 {
-                EvolutionPhase::Refinement
-            } else {
-                EvolutionPhase::Learning
-            }
         } else {
             self.decline_count = 0;
             if current > 0.5 {
@@ -301,7 +294,7 @@ impl MilestoneTracker {
         }
 
         // Check iteration milestones (every 50 iterations)
-        if iteration > 0 && iteration % 50 == 0 {
+        if iteration > 0 && iteration.is_multiple_of(50) {
             let event = MilestoneEvent {
                 milestone_type: MilestoneType::IterationMilestone(iteration),
                 convergence,
@@ -465,7 +458,7 @@ impl ConvergenceVisualizer {
         }
 
         // X-axis
-        let axis_line: String = std::iter::repeat('-').take(data.len()).collect();
+        let axis_line: String = "-".repeat(data.len());
         lines.push(format!("   +{}", axis_line));
 
         // Summary stats
@@ -539,7 +532,7 @@ impl ConvergenceVisualizer {
             lines.push(format!("{}{}", label_str, row_chars));
         }
 
-        let axis_line: String = std::iter::repeat('-').take(max_len).collect();
+        let axis_line: String = "-".repeat(max_len);
         lines.push(format!("   +{}", axis_line));
         lines.push(format!(
             "   Legend: # = {} only, o = {} only, X = both",
@@ -815,7 +808,7 @@ impl EvolutionTracker {
             let obs = &observations[obs_idx];
 
             // Build a signature from the observation
-            let sig = analyzer.build_signature(model_id, &[obs.model_response.clone()]);
+            let sig = analyzer.build_signature(model_id, std::slice::from_ref(&obs.model_response));
 
             // Refine the profile based on the signature
             analyzer.refine_profile(profile, &sig);

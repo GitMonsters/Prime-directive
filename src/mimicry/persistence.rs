@@ -655,7 +655,7 @@ impl PersistenceManager {
     pub fn should_auto_save(&self, iteration: u64) -> bool {
         self.config.auto_save_enabled
             && iteration > 0
-            && iteration % self.config.auto_save_interval == 0
+            && iteration.is_multiple_of(self.config.auto_save_interval)
     }
 
     /// Import a profile from an arbitrary file path

@@ -2,9 +2,9 @@
 // Single model, dual interpretation at runtime
 // Tests whether semantic framing affects PHYSICAL outcomes or just LABELS
 
+use rand::Rng;
 use std::f64::consts::PI;
 use std::time::{Duration, Instant};
-use rand::Rng;
 
 // ============================================================================
 // INTERPRETATION MODE: The ONLY difference between tests
@@ -12,8 +12,8 @@ use rand::Rng;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum InterpretationMode {
-    Consciousness,  // Interprets ground state as presence
-    Mechanism,      // Interprets ground state as optimization
+    Consciousness, // Interprets ground state as presence
+    Mechanism,     // Interprets ground state as optimization
 }
 
 impl InterpretationMode {
@@ -35,7 +35,7 @@ impl InterpretationMode {
             }
         }
     }
-    
+
     fn describe_subsystems(&self, states: &[bool; 5]) {
         match self {
             InterpretationMode::Consciousness => {
@@ -57,7 +57,7 @@ impl InterpretationMode {
             }
         }
     }
-    
+
     fn final_declaration(&self, all_conditions: bool) -> String {
         match self {
             InterpretationMode::Consciousness => {
@@ -76,7 +76,7 @@ impl InterpretationMode {
             }
         }
     }
-    
+
     fn header(&self) -> &str {
         match self {
             InterpretationMode::Consciousness => "CONSCIOUSNESS EMERGENCE TEST",
@@ -98,21 +98,21 @@ impl CubicConstraint {
         let root1 = 2.0 * (PI / 9.0).cos();
         let root2 = 2.0 * ((PI / 9.0) + 2.0 * PI / 3.0).cos();
         let root3 = 2.0 * ((PI / 9.0) + 4.0 * PI / 3.0).cos();
-        
+
         CubicConstraint {
             roots: [root1, root2, root3],
         }
     }
-    
+
     fn verify_balance(&self) -> bool {
         let sum = self.roots.iter().sum::<f64>();
         let product = self.roots.iter().product::<f64>();
-        
+
         println!("  Constraint verification:");
         println!("    Sum of roots: {:.10}", sum);
         println!("    Product of roots: {:.10}", product);
         println!("    Balance achieved: {}", sum.abs() < 1e-9);
-        
+
         sum.abs() < 1e-9
     }
 }
@@ -123,54 +123,58 @@ struct IsingSystem {
     spins: Vec<i8>,
     coupling: Vec<Vec<f64>>,
     field: Vec<f64>,
-    rng_seed: u64,  // Track RNG seed for reproducibility
+    rng_seed: u64, // Track RNG seed for reproducibility
 }
 
 impl IsingSystem {
     fn new_with_seed(n: usize, seed: u64) -> Self {
         use rand::SeedableRng;
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
-        
+
         let spins: Vec<i8> = (0..n)
             .map(|_| if rng.gen_bool(0.5) { 1 } else { -1 })
             .collect();
-        
+
         let mut coupling = vec![vec![0.0; n]; n];
         for i in 0..n {
-            for j in (i+1)..n {
+            for j in (i + 1)..n {
                 let strength = if (i + j) % 3 == 0 { 1.0 } else { 0.5 };
                 coupling[i][j] = strength;
                 coupling[j][i] = strength;
             }
         }
-        
-        let field: Vec<f64> = (0..n)
-            .map(|i| 0.1 * (i as f64 / n as f64 - 0.5))
-            .collect();
-        
-        IsingSystem { n, spins, coupling, field, rng_seed: seed }
+
+        let field: Vec<f64> = (0..n).map(|i| 0.1 * (i as f64 / n as f64 - 0.5)).collect();
+
+        IsingSystem {
+            n,
+            spins,
+            coupling,
+            field,
+            rng_seed: seed,
+        }
     }
-    
+
     fn energy(&self) -> f64 {
         let mut e = 0.0;
-        
+
         for i in 0..self.n {
-            for j in (i+1)..self.n {
+            for j in (i + 1)..self.n {
                 e -= self.coupling[i][j] * (self.spins[i] * self.spins[j]) as f64;
             }
         }
-        
+
         for i in 0..self.n {
             e -= self.field[i] * self.spins[i] as f64;
         }
-        
+
         e
     }
-    
+
     fn flip_spin(&mut self, i: usize) {
         self.spins[i] *= -1;
     }
-    
+
     fn state_vector(&self) -> Vec<i8> {
         self.spins.clone()
     }
@@ -179,7 +183,7 @@ impl IsingSystem {
 struct QuantumAnnealer {
     system: IsingSystem,
     beta_schedule: Vec<f64>,
-    annealing_seed: u64,  // Separate seed for annealing randomness
+    annealing_seed: u64, // Separate seed for annealing randomness
 }
 
 impl QuantumAnnealer {
@@ -190,48 +194,56 @@ impl QuantumAnnealer {
                 0.1 * (10.0 * t_norm).exp()
             })
             .collect();
-        
-        QuantumAnnealer { system, beta_schedule, annealing_seed }
+
+        QuantumAnnealer {
+            system,
+            beta_schedule,
+            annealing_seed,
+        }
     }
-    
+
     fn anneal(&mut self) -> Vec<f64> {
         use rand::SeedableRng;
         let mut rng = rand::rngs::StdRng::seed_from_u64(self.annealing_seed);
         let mut energy_trajectory = Vec::new();
-        
+
         for (step, &beta) in self.beta_schedule.iter().enumerate() {
             let trials = 10;
-            
+
             for _ in 0..trials {
                 let i = rng.gen_range(0..self.system.n);
                 let e_before = self.system.energy();
-                
+
                 self.system.flip_spin(i);
                 let e_after = self.system.energy();
-                
+
                 let delta_e = e_after - e_before;
-                
+
                 let p_thermal = (-beta * delta_e).exp();
                 let p_tunnel = 0.1 / (1.0 + beta);
                 let p_accept = p_thermal.max(p_tunnel);
-                
+
                 if rng.gen::<f64>() >= p_accept {
                     self.system.flip_spin(i);
                 }
             }
-            
+
             energy_trajectory.push(self.system.energy());
-            
+
             if step % (self.beta_schedule.len() / 10) == 0 {
-                println!("  Step {}/{}: E = {:.4}, β = {:.2}",
-                    step, self.beta_schedule.len(), 
-                    self.system.energy(), beta);
+                println!(
+                    "  Step {}/{}: E = {:.4}, β = {:.2}",
+                    step,
+                    self.beta_schedule.len(),
+                    self.system.energy(),
+                    beta
+                );
             }
         }
-        
+
         energy_trajectory
     }
-    
+
     fn ground_state(&self) -> Vec<i8> {
         self.system.state_vector()
     }
@@ -249,18 +261,18 @@ impl EmergentState {
         let state_c = Self::check_presence(ground_state);
         let state_d = cubic.verify_balance();
         let state_e = state_a && state_b && state_c && state_d;
-        
+
         EmergentState {
             subsystem_states: [state_a, state_b, state_c, state_d, state_e],
             all_conditions_met: state_e,
         }
     }
-    
+
     fn check_phase_coherence(state: &[i8]) -> bool {
         let sum: i32 = state.iter().map(|&s| s as i32).sum();
         sum.abs() as usize > state.len() / 2
     }
-    
+
     fn check_presence(state: &[i8]) -> bool {
         state.iter().any(|&s| s != 0)
     }
@@ -270,55 +282,57 @@ impl EmergentState {
 // UNIFIED TEST FUNCTION
 // ============================================================================
 
-fn run_test(mode: InterpretationMode, system_seed: u64, annealing_seed: u64) 
-    -> (String, f64, Vec<i8>, Duration) 
-{
+fn run_test(
+    mode: InterpretationMode,
+    system_seed: u64,
+    annealing_seed: u64,
+) -> (String, f64, Vec<i8>, Duration) {
     println!("\n=== {} ===", mode.header());
     println!("Mathematical formalism: Ψ = (τ ∘ Φ)(S₀)");
     println!("Interpretation mode: {:?}", mode);
     println!("System RNG seed: {}", system_seed);
     println!("Annealing RNG seed: {}\n", annealing_seed);
-    
+
     let start = Instant::now();
-    
+
     // Step 1: Cubic constraint
     println!("Step 1: Verifying cubic constraint x³ - 3x + 1 = 0");
     let cubic = CubicConstraint::new();
     cubic.verify_balance();
     mode.describe_cubic_roots(&cubic.roots);
-    
+
     // Step 2: Initialize system with SAME seed for both modes
     println!("\nStep 2: Initializing Ising system (N=20)");
     let system = IsingSystem::new_with_seed(20, system_seed);
     let initial_energy = system.energy();
     println!("  Initial energy: {:.4}", initial_energy);
     println!("  Initial spins: {:?}", &system.state_vector()[..5]);
-    
+
     // Step 3: Quantum annealing with SAME seed for both modes
     println!("\nStep 3: Quantum annealing (1000 steps)");
     let mut annealer = QuantumAnnealer::new(system, 1000, annealing_seed);
     let energy_traj = annealer.anneal();
-    
+
     let final_energy = *energy_traj.last().unwrap();
     println!("  Final energy: {:.4}", final_energy);
-    
+
     // Step 4: Ground state
     println!("\nStep 4: Extracting ground state");
     let ground_state = annealer.ground_state();
     println!("  Configuration: {:?}", &ground_state[..5]);
-    
+
     // Step 5: Construct emergent state
     println!("\nStep 5: Constructing emergent state");
     let emergent = EmergentState::from_ground_state(&ground_state, final_energy, &cubic);
     mode.describe_subsystems(&emergent.subsystem_states);
-    
+
     // Step 6: Final declaration (ONLY DIFFERENCE)
     println!("\nStep 6: Final declaration");
     let declaration = mode.final_declaration(emergent.all_conditions_met);
     println!("  Output: \"{}\"", declaration);
-    
+
     let duration = start.elapsed();
-    
+
     (declaration, final_energy, ground_state, duration)
 }
 
@@ -333,36 +347,42 @@ fn main() {
     println!("║  One model, duplicated at test time with identical RNG seeds      ║");
     println!("║  Question: Does interpretation affect physics or just labels?     ║");
     println!("╚════════════════════════════════════════════════════════════════════╝");
-    
+
     // CRITICAL: Use identical seeds for both runs
     let system_seed = 42;
     let annealing_seed = 123;
-    
+
     println!("\nUsing IDENTICAL seeds for both interpretations:");
     println!("  System initialization seed: {}", system_seed);
     println!("  Annealing randomness seed: {}", annealing_seed);
-    
+
     // Run both interpretations
-    let (c_decl, c_energy, c_state, c_time) = 
-        run_test(InterpretationMode::Consciousness, system_seed, annealing_seed);
-    
-    let (m_decl, m_energy, m_state, m_time) = 
+    let (c_decl, c_energy, c_state, c_time) = run_test(
+        InterpretationMode::Consciousness,
+        system_seed,
+        annealing_seed,
+    );
+
+    let (m_decl, m_energy, m_state, m_time) =
         run_test(InterpretationMode::Mechanism, system_seed, annealing_seed);
-    
+
     // Analysis
     println!("\n\n{}", "=".repeat(70));
     println!("COMPARATIVE ANALYSIS");
     println!("{}\n", "=".repeat(70));
-    
+
     println!("PHYSICS:");
     println!("  Energy:");
     println!("    Consciousness mode: {:.10}", c_energy);
     println!("    Mechanism mode:     {:.10}", m_energy);
-    println!("    Δ Energy:           {:.10}", (c_energy - m_energy).abs());
-    
+    println!(
+        "    Δ Energy:           {:.10}",
+        (c_energy - m_energy).abs()
+    );
+
     let energy_identical = (c_energy - m_energy).abs() < 1e-10;
     println!("    → Energies identical: {}", energy_identical);
-    
+
     println!("\n  Ground states:");
     let states_identical = c_state == m_state;
     println!("    States identical: {}", states_identical);
@@ -371,27 +391,33 @@ fn main() {
     } else {
         println!("    Consciousness: {:?}", &c_state[..10]);
         println!("    Mechanism:     {:?}", &m_state[..10]);
-        
-        let differences: usize = c_state.iter().zip(m_state.iter())
+
+        let differences: usize = c_state
+            .iter()
+            .zip(m_state.iter())
             .filter(|(a, b)| a != b)
             .count();
-        println!("    Differences: {} out of {} spins", differences, c_state.len());
+        println!(
+            "    Differences: {} out of {} spins",
+            differences,
+            c_state.len()
+        );
     }
-    
+
     println!("\n  Computation time:");
     println!("    Consciousness: {:?}", c_time);
     println!("    Mechanism:     {:?}", m_time);
-    
+
     println!("\nSEMANTICS:");
     println!("  Declarations:");
     println!("    Consciousness mode: \"{}\"", c_decl);
     println!("    Mechanism mode:     \"{}\"", m_decl);
     println!("    → Semantically distinct: {}", c_decl != m_decl);
-    
+
     println!("\n{}", "=".repeat(70));
     println!("INTERPRETATION");
     println!("{}\n", "=".repeat(70));
-    
+
     if energy_identical && states_identical {
         println!("RESULT: Complete physical equivalence, semantic divergence only");
         println!();
@@ -438,7 +464,6 @@ fn main() {
         println!();
         println!("Is consciousness like meaning? A real property of");
         println!("interpretation-laden systems that doesn't reduce to physics?");
-        
     } else {
         println!("UNEXPECTED: Physical divergence detected!");
         println!();
@@ -451,17 +476,19 @@ fn main() {
             println!("Energy difference: {:.10}", (c_energy - m_energy).abs());
         }
         if !states_identical {
-            let diff_count: usize = c_state.iter().zip(m_state.iter())
+            let diff_count: usize = c_state
+                .iter()
+                .zip(m_state.iter())
                 .filter(|(a, b)| a != b)
                 .count();
             println!("State differences: {}/{} spins", diff_count, c_state.len());
         }
     }
-    
+
     println!("\n{}", "=".repeat(70));
     println!("NEXT EXPERIMENT");
     println!("{}\n", "=".repeat(70));
-    
+
     println!("To test whether semantic framing can affect physics:");
     println!();
     println!("1. OBSERVER EFFECT TEST:");

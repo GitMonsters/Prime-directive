@@ -102,7 +102,7 @@ impl ApiProvider {
     }
 
     /// Parse provider from a string (case-insensitive)
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "openai" | "gpt" | "gpt4o" | "gpt-4o" | "o1" => Some(ApiProvider::OpenAI),
             "anthropic" | "claude" => Some(ApiProvider::Anthropic),
@@ -957,7 +957,7 @@ pub fn build_similarity_matrix(responses: &[&str]) -> Vec<Vec<f64>> {
 pub fn format_comparison(result: &ComparisonResult) -> String {
     let mut lines = vec![format!("=== COMPARISON: \"{}\" ===", result.prompt)];
 
-    for (_i, resp) in result.responses.iter().enumerate() {
+    for resp in result.responses.iter() {
         lines.push(format!(
             "\n--- {} ({}) [{}ms, {} tokens] ---",
             resp.provider,
@@ -1032,17 +1032,14 @@ mod tests {
 
     #[test]
     fn test_api_provider_from_str() {
-        assert_eq!(ApiProvider::from_str("openai"), Some(ApiProvider::OpenAI));
-        assert_eq!(ApiProvider::from_str("gpt4o"), Some(ApiProvider::OpenAI));
-        assert_eq!(
-            ApiProvider::from_str("claude"),
-            Some(ApiProvider::Anthropic)
-        );
-        assert_eq!(ApiProvider::from_str("gemini"), Some(ApiProvider::Google));
-        assert_eq!(ApiProvider::from_str("ollama"), Some(ApiProvider::Ollama));
-        assert_eq!(ApiProvider::from_str("local"), Some(ApiProvider::Ollama));
+        assert_eq!(ApiProvider::parse("openai"), Some(ApiProvider::OpenAI));
+        assert_eq!(ApiProvider::parse("gpt4o"), Some(ApiProvider::OpenAI));
+        assert_eq!(ApiProvider::parse("claude"), Some(ApiProvider::Anthropic));
+        assert_eq!(ApiProvider::parse("gemini"), Some(ApiProvider::Google));
+        assert_eq!(ApiProvider::parse("ollama"), Some(ApiProvider::Ollama));
+        assert_eq!(ApiProvider::parse("local"), Some(ApiProvider::Ollama));
 
-        match ApiProvider::from_str("custom-thing") {
+        match ApiProvider::parse("custom-thing") {
             Some(ApiProvider::Custom(label)) => assert_eq!(label, "custom-thing"),
             _ => panic!("Expected Custom variant"),
         }
