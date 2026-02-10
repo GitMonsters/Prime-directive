@@ -28,7 +28,7 @@ use crate::mimicry::rl_optimizer::BehaviorObservation;
 // =================================================================
 
 /// Types of tasks for intelligent model selection
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TaskType {
     /// General chat/conversation
     Chat,
@@ -393,9 +393,10 @@ impl ConsensusBuilder {
         
         let model_count = observations.len();
         
-        // Find common patterns (appear in majority of models)
+        // Find common patterns (appear in majority of models - more than half)
+        let majority_threshold = (model_count / 2) + 1;  // Strict majority
         let common_patterns: Vec<String> = all_patterns.iter()
-            .filter(|(_, count)| **count >= (model_count + 1) / 2)
+            .filter(|(_, count)| **count >= majority_threshold)
             .map(|(pattern, _)| pattern.clone())
             .collect();
         

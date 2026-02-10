@@ -792,37 +792,49 @@ impl AgentDockBridge {
     ) -> Result<BehaviorObservation, String> {
         let start = std::time::Instant::now();
         
-        let session = self.sessions.get_mut(session_id)
-            .ok_or_else(|| format!("Session '{}' not found", session_id))?;
+        // Extract session data before mutable borrow
+        let (container_id, messages_json, model_name, max_tokens, temperature) = {
+            let session = self.sessions.get_mut(session_id)
+                .ok_or_else(|| format!("Session '{}' not found", session_id))?;
+            
+            if !session.is_active {
+                return Err("Session is not active".to_string());
+            }
+            
+            if session.is_at_max_turns() {
+                return Err(format!(
+                    "Session has reached max turns ({})", 
+                    session.max_turns
+                ));
+            }
+            
+            // Add user message to history
+            session.add_message("user", query);
+            
+            // Extract data for MCP call
+            let container_id = session.container_id.clone();
+            let messages: Vec<_> = session.conversation_history.iter()
+                .map(|m| serde_json::json!({
+                    "role": m.role,
+                    "content": m.content
+                }))
+                .collect();
+            let model_name = session.model_config.name.clone();
+            let max_tokens = session.model_config.max_tokens;
+            let temperature = session.model_config.temperature;
+            
+            (container_id, messages, model_name, max_tokens, temperature)
+        };
         
-        if !session.is_active {
-            return Err("Session is not active".to_string());
-        }
-        
-        if session.is_at_max_turns() {
-            return Err(format!(
-                "Session has reached max turns ({})", 
-                session.max_turns
-            ));
-        }
-        
-        // Add user message to history
-        session.add_message("user", query);
-        
-        // Call the model via MCP
+        // Call the model via MCP (no longer borrowing session)
         let tool_result = self.call_mcp_tool(
-            &session.container_id.clone(),
+            &container_id,
             "chat",
             serde_json::json!({
-                "messages": session.conversation_history.iter()
-                    .map(|m| serde_json::json!({
-                        "role": m.role,
-                        "content": m.content
-                    }))
-                    .collect::<Vec<_>>(),
-                "model": session.model_config.name,
-                "max_tokens": session.model_config.max_tokens,
-                "temperature": session.model_config.temperature,
+                "messages": messages_json,
+                "model": model_name,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
             }),
         ).await?;
         
@@ -835,7 +847,7 @@ impl AgentDockBridge {
             session.add_message("assistant", &tool_result.result);
         }
         
-        let elapsed = start.elapsed().as_millis() as u64;
+        let _elapsed = start.elapsed().as_millis() as u64;
         self.stats.observations_collected += 1;
         
         // Extract behavior patterns from response
