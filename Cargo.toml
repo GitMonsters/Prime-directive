@@ -82,3 +82,8 @@ path = "comprehensive_test.rs"
 [[bin]]
 name = "prime_directive"
 path = "prime_directive.rs"
+
+[[bin]]
+name = "demo_layers"
+path = "demo_layers.rs"
+required-features = ["layers"]
