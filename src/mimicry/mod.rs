@@ -18,6 +18,9 @@
 //! - [`multi_model`] — Multi-model parallel observation and consensus building (feature-gated).
 //! - [`long_horizon`] — Long-horizon observation: 100+ turn context & pattern tracking (feature-gated).
 //! - [`benchmarking`] — AgentToLeaP benchmarking integration for convergence validation (feature-gated).
+//! - [`gui_agent`] — Cross-platform GUI agent types and traits (feature-gated).
+//! - [`gui_bridge`] — AgentCPM-GUI integration bridge (feature-gated).
+//! - [`platforms`] — Platform-specific implementations: Android, iOS, Desktop (feature-gated).
 
 pub mod analyzer;
 #[cfg(feature = "api")]
@@ -41,3 +44,9 @@ pub mod multi_model;
 pub mod long_horizon;
 #[cfg(feature = "agentdock")]
 pub mod benchmarking;
+#[cfg(feature = "gui")]
+pub mod gui_agent;
+#[cfg(feature = "gui")]
+pub mod gui_bridge;
+#[cfg(feature = "gui")]
+pub mod platforms;
