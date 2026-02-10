@@ -1,0 +1,181 @@
+# RustyWorm Full Stack Deployment
+# Includes: RustyWorm, AgentRL Service, MongoDB, Optional GPU services
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # Core Services
+  # ==========================================================================
+  
+  # RustyWorm - AI Mimicry Engine
+  rustyworm:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: rustyworm
+    restart: unless-stopped
+    volumes:
+      - rustyworm-data:/data/.rustyworm
+      - ./config:/app/config:ro
+    environment:
+      - RUSTYWORM_DATA_DIR=/data/.rustyworm
+      - RUSTYWORM_LOG_LEVEL=info
+      - AGENTRL_ENDPOINT=http://agentrl:8080
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    networks:
+      - rustyworm-net
+    depends_on:
+      agentrl:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  # AgentRL - RL Optimization Service
+  agentrl:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.agentrl
+    container_name: agentrl
+    restart: unless-stopped
+    ports:
+      - "${AGENTRL_PORT:-8080}:8080"
+    environment:
+      - AGENTRL_HOST=0.0.0.0
+      - AGENTRL_PORT=8080
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE=agentrl
+      - RL_ALGORITHM=${RL_ALGORITHM:-ppo}
+      - RL_LEARNING_RATE=${RL_LEARNING_RATE:-0.0003}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    networks:
+      - rustyworm-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # MongoDB - Trajectory Storage
+  mongodb:
+    image: mongo:7.0
+    container_name: rustyworm-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    environment:
+      - MONGO_INITDB_DATABASE=agentrl
+    networks:
+      - rustyworm-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ==========================================================================
+  # Optional: AgentCPM-GUI (Vision-Language Model)
+  # ==========================================================================
+  
+  # Uncomment to enable GUI agent support (requires GPU)
+  # agentcpm-gui:
+  #   image: vllm/vllm-openai:latest
+  #   container_name: agentcpm-gui
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${AGENTCPM_PORT:-8000}:8000"
+  #   environment:
+  #     - MODEL=openbmb/AgentCPM-GUI
+  #     - TRUST_REMOTE_CODE=true
+  #   volumes:
+  #     - huggingface-cache:/root/.cache/huggingface
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   networks:
+  #     - rustyworm-net
+  #   command: >
+  #     --model openbmb/AgentCPM-GUI
+  #     --trust-remote-code
+  #     --port 8000
+
+  # ==========================================================================
+  # Optional: Monitoring Stack
+  # ==========================================================================
+  
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: rustyworm-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - rustyworm-net
+    profiles:
+      - monitoring
+
+  # Grafana - Dashboards
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: rustyworm-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - rustyworm-net
+    profiles:
+      - monitoring
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+
+networks:
+  rustyworm-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+
+volumes:
+  rustyworm-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  mongodb-config:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  huggingface-cache:
+    driver: local

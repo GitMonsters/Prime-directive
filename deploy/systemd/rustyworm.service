@@ -1,0 +1,47 @@
+[Unit]
+Description=RustyWorm AI Mimicry Engine
+Documentation=https://github.com/GitMonsters/Prime-directive
+After=network.target agentrl.service
+Wants=agentrl.service
+
+[Service]
+Type=simple
+User=rustyworm
+Group=rustyworm
+
+# Working directory
+WorkingDirectory=/opt/rustyworm
+
+# Environment
+Environment=RUSTYWORM_DATA_DIR=/var/lib/rustyworm
+Environment=RUSTYWORM_LOG_LEVEL=info
+Environment=AGENTRL_ENDPOINT=http://localhost:8080
+Environment=RUST_BACKTRACE=1
+EnvironmentFile=-/etc/rustyworm/rustyworm.env
+
+# Main binary
+ExecStart=/opt/rustyworm/bin/rustyworm --daemon
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=65535
+MemoryMax=4G
+
+# Security
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/rustyworm /var/log/rustyworm
+
+# Logging
+StandardOutput=append:/var/log/rustyworm/rustyworm.log
+StandardError=append:/var/log/rustyworm/rustyworm-error.log
+
+[Install]
+WantedBy=multi-user.target

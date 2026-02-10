@@ -1,0 +1,49 @@
+[Unit]
+Description=AgentRL - RL Optimization Service for RustyWorm
+Documentation=https://github.com/GitMonsters/Prime-directive
+After=network.target mongodb.service
+Wants=mongodb.service
+
+[Service]
+Type=simple
+User=agentrl
+Group=agentrl
+
+# Working directory
+WorkingDirectory=/opt/agentrl
+
+# Python virtual environment
+Environment=PATH=/opt/agentrl/venv/bin:/usr/local/bin:/usr/bin
+Environment=PYTHONUNBUFFERED=1
+Environment=AGENTRL_HOST=0.0.0.0
+Environment=AGENTRL_PORT=8080
+Environment=MONGODB_URI=mongodb://localhost:27017
+Environment=MONGODB_DATABASE=agentrl
+EnvironmentFile=-/etc/agentrl/agentrl.env
+
+# Main process
+ExecStart=/opt/agentrl/venv/bin/python -m uvicorn agentrl_service:app --host 0.0.0.0 --port 8080
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=65535
+MemoryMax=2G
+
+# Security
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/agentrl /var/log/agentrl
+
+# Logging
+StandardOutput=append:/var/log/agentrl/agentrl.log
+StandardError=append:/var/log/agentrl/agentrl-error.log
+
+[Install]
+WantedBy=multi-user.target
