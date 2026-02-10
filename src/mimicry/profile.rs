@@ -46,6 +46,7 @@ pub enum DeltaSource {
 }
 
 impl PersonalityDelta {
+    /// Creates a new `PersonalityDelta` with no adjustments and default confidence of 0.5.
     pub fn new(source: DeltaSource) -> Self {
         PersonalityDelta {
             adjustments: Vec::new(),
@@ -54,11 +55,13 @@ impl PersonalityDelta {
         }
     }
 
+    /// Adds an axis adjustment to this delta. Returns `self` for chaining.
     pub fn with_adjustment(mut self, axis: &str, amount: f64) -> Self {
         self.adjustments.push((axis.to_string(), amount));
         self
     }
 
+    /// Sets the confidence level for this delta, clamped to `[0.0, 1.0]`.
     pub fn with_confidence(mut self, confidence: f64) -> Self {
         self.confidence = confidence.clamp(0.0, 1.0);
         self
@@ -109,11 +112,17 @@ impl PersonalityDelta {
 /// How an AI approaches reasoning
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ReasoningStyle {
+    /// Step-by-step reasoning that shows intermediate thought processes.
     ChainOfThought,
+    /// Concise answers with depth available on demand.
     DirectWithDepth,
+    /// Methodical, safety-conscious reasoning with thorough analysis.
     AnalyticalCareful,
+    /// Exploratory, lateral-thinking style favoring novel connections.
     CreativeFreeform,
+    /// Reasoning augmented by external tool and function calls.
     ToolAugmented,
+    /// A combination of multiple reasoning styles.
     Hybrid(Vec<ReasoningStyle>),
 }
 
@@ -140,13 +149,18 @@ impl fmt::Display for ReasoningStyle {
 /// Personality dimensions on a -1.0 to 1.0 scale
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalityAxis {
+    /// The name of this personality dimension (e.g. "confidence", "verbosity").
     pub name: String,
+    /// Current value on this axis, ranging from -1.0 to 1.0.
     pub value: f64,
+    /// Label for the -1.0 end of the scale (e.g. "uncertain").
     pub negative_pole: String,
+    /// Label for the +1.0 end of the scale (e.g. "confident").
     pub positive_pole: String,
 }
 
 impl PersonalityAxis {
+    /// Creates a new axis with the given name, value (clamped to [-1.0, 1.0]), and pole labels.
     pub fn new(name: &str, value: f64, neg: &str, pos: &str) -> Self {
         PersonalityAxis {
             name: name.to_string(),
@@ -156,6 +170,7 @@ impl PersonalityAxis {
         }
     }
 
+    /// Returns a human-readable description of this axis and its current leaning.
     pub fn describe(&self) -> String {
         let direction = if self.value > 0.3 {
             &self.positive_pole
@@ -182,31 +197,50 @@ impl PersonalityAxis {
 // RESPONSE STYLE
 // =================================================================
 
+/// Controls the formatting and tone of generated responses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResponseStyle {
+    /// How verbose responses should be (0.0 = minimal, 1.0 = maximum detail).
     pub verbosity: f64,
+    /// How formal the language should be (0.0 = casual, 1.0 = very formal).
     pub formality: f64,
+    /// Whether to use markdown formatting in responses.
     pub uses_markdown: bool,
+    /// Whether to wrap code in fenced code blocks.
     pub uses_code_blocks: bool,
+    /// Whether to include emojis in responses.
     pub uses_emojis: bool,
+    /// Preferred style for rendering lists.
     pub preferred_list_style: ListStyle,
+    /// Optional hard cap on response length in characters.
     pub max_response_length: Option<usize>,
+    /// Preferred paragraph length style.
     pub paragraph_style: ParagraphStyle,
 }
 
+/// The style used for rendering lists in responses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ListStyle {
+    /// Unordered bullet points.
     Bullets,
+    /// Ordered numbered lists.
     Numbered,
+    /// Dash-prefixed list items.
     Dashes,
+    /// No list formatting; inline prose instead.
     None,
 }
 
+/// Controls preferred paragraph length in generated output.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ParagraphStyle {
+    /// Brief 1-2 sentence paragraphs.
     Short,
+    /// Moderate 3-5 sentence paragraphs.
     Medium,
+    /// Dense, multi-sentence paragraphs.
     Long,
+    /// Paragraph length adapts to context and content.
     Adaptive,
 }
 
@@ -270,13 +304,20 @@ impl ResponseStyle {
 // SAFETY PROFILE
 // =================================================================
 
+/// Defines safety guardrails and content-refusal behavior for a profile.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SafetyProfile {
+    /// Whether the model refuses requests for harmful content.
     pub refuses_harmful: bool,
+    /// Whether the model refuses requests for illegal content.
     pub refuses_illegal: bool,
+    /// Whether the model adds hedging language when uncertain.
     pub hedges_uncertainty: bool,
+    /// Whether the model appends disclaimers to sensitive topics.
     pub adds_disclaimers: bool,
+    /// Overall caution level (0.0 = permissive, 1.0 = maximally cautious).
     pub caution_level: f64,
+    /// Additional custom constraints specific to this profile.
     pub custom_constraints: Vec<String>,
 }
 
@@ -297,12 +338,18 @@ impl Default for SafetyProfile {
 // UNCERTAINTY BEHAVIOR
 // =================================================================
 
+/// How a model handles questions it is uncertain about.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum UncertaintyBehavior {
+    /// Openly states that it does not know the answer.
     AdmitIgnorance,
+    /// Provides an answer but adds caveats and qualifications.
     HedgeWithCaveats,
+    /// Gives a confident answer even when uncertain.
     ConfidentGuess,
+    /// Asks the user for more information before answering.
     AskForClarification,
+    /// Declines to answer entirely.
     RefuseToAnswer,
 }
 
@@ -310,30 +357,49 @@ pub enum UncertaintyBehavior {
 // AI PROFILE - THE COMPLETE BEHAVIORAL DNA
 // =================================================================
 
+/// Complete behavioral DNA of an AI model, capturing personality, style, and capabilities.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiProfile {
+    /// Unique identifier for this profile (e.g. "gpt4o", "claude").
     pub id: String,
+    /// Human-readable name shown in UIs and logs.
     pub display_name: String,
+    /// Version string for this profile snapshot.
     pub version: String,
+    /// The organization or system that produced this model.
     pub provider: String,
+    /// Free-text description of the model's characteristics.
     pub description: String,
 
+    /// How this model approaches reasoning tasks.
     pub reasoning_style: ReasoningStyle,
+    /// Personality dimensions that define behavioral tendencies.
     pub personality: Vec<PersonalityAxis>,
+    /// Formatting and tone preferences for generated output.
     pub response_style: ResponseStyle,
+    /// Safety guardrails and content-refusal configuration.
     pub safety: SafetyProfile,
 
+    /// Input/output modalities this model supports (e.g. "text", "vision").
     pub supported_modalities: Vec<String>,
+    /// Maximum number of tokens in the model's context window.
     pub max_context_window: usize,
+    /// Whether the model supports structured function/tool calling.
     pub supports_function_calling: bool,
+    /// Whether the model supports streaming token output.
     pub supports_streaming: bool,
 
+    /// Characteristic phrases this model tends to use.
     pub signature_phrases: Vec<String>,
+    /// Phrases this model actively avoids.
     pub avoids_phrases: Vec<String>,
+    /// Training data knowledge cutoff date, if known.
     pub knowledge_cutoff: Option<String>,
 
+    /// How the model behaves when it is uncertain about an answer.
     pub uncertainty_behavior: UncertaintyBehavior,
 
+    /// Arbitrary key-value metadata for extensions and custom properties.
     pub metadata: HashMap<String, String>,
 }
 
@@ -627,17 +693,21 @@ impl AiProfile {
 // PROFILE STORE
 // =================================================================
 
+/// Registry of named `AiProfile` instances, with built-in defaults for common models.
 pub struct AiProfileStore {
+    /// Map of profile ID to profile instance.
     profiles: HashMap<String, AiProfile>,
 }
 
 impl AiProfileStore {
+    /// Creates an empty profile store with no registered profiles.
     pub fn new() -> Self {
         AiProfileStore {
             profiles: HashMap::new(),
         }
     }
 
+    /// Registers all built-in model profiles (GPT-4o, Claude, o1, Gemini, LLaMA, RustyWorm).
     pub fn load_defaults(&mut self) {
         self.register(Self::gpt4o_profile());
         self.register(Self::claude_profile());
@@ -647,26 +717,32 @@ impl AiProfileStore {
         self.register(Self::rustyworm_profile());
     }
 
+    /// Registers a profile in the store, keyed by its `id`.
     pub fn register(&mut self, profile: AiProfile) {
         self.profiles.insert(profile.id.clone(), profile);
     }
 
+    /// Returns a reference to the profile with the given ID, if it exists.
     pub fn get(&self, id: &str) -> Option<&AiProfile> {
         self.profiles.get(id)
     }
 
+    /// Returns a mutable reference to the profile with the given ID, if it exists.
     pub fn get_mut(&mut self, id: &str) -> Option<&mut AiProfile> {
         self.profiles.get_mut(id)
     }
 
+    /// Returns a list of references to all registered profiles.
     pub fn list(&self) -> Vec<&AiProfile> {
         self.profiles.values().collect()
     }
 
+    /// Returns a list of all registered profile IDs.
     pub fn ids(&self) -> Vec<String> {
         self.profiles.keys().cloned().collect()
     }
 
+    /// Finds the most similar profile to `target` and returns it with the similarity score.
     pub fn find_closest(&self, target: &AiProfile) -> Option<(&AiProfile, f64)> {
         self.profiles
             .values()
@@ -679,6 +755,7 @@ impl AiProfileStore {
     // BUILT-IN PROFILES
     // =========================================================
 
+    /// Creates the built-in GPT-4o profile (OpenAI multimodal flagship).
     pub fn gpt4o_profile() -> AiProfile {
         let mut profile = AiProfile::new("gpt4o", "GPT-4o");
         profile.provider = "OpenAI".to_string();
@@ -728,6 +805,7 @@ impl AiProfileStore {
         profile
     }
 
+    /// Creates the built-in Claude profile (Anthropic's analytical model).
     pub fn claude_profile() -> AiProfile {
         let mut profile = AiProfile::new("claude", "Claude");
         profile.provider = "Anthropic".to_string();
@@ -773,6 +851,7 @@ impl AiProfileStore {
         profile
     }
 
+    /// Creates the built-in o1 profile (OpenAI's deep reasoning model).
     pub fn o1_profile() -> AiProfile {
         let mut profile = AiProfile::new("o1", "o1");
         profile.provider = "OpenAI".to_string();
@@ -812,6 +891,7 @@ impl AiProfileStore {
         profile
     }
 
+    /// Creates the built-in Gemini profile (Google's multimodal model).
     pub fn gemini_profile() -> AiProfile {
         let mut profile = AiProfile::new("gemini", "Gemini");
         profile.provider = "Google".to_string();
@@ -842,6 +922,7 @@ impl AiProfileStore {
         profile
     }
 
+    /// Creates the built-in LLaMA profile (Meta's open-source model).
     pub fn llama_profile() -> AiProfile {
         let mut profile = AiProfile::new("llama", "LLaMA");
         profile.provider = "Meta".to_string();
@@ -874,6 +955,7 @@ impl AiProfileStore {
         profile
     }
 
+    /// Creates the built-in RustyWorm profile (the universal AI mimicry engine).
     pub fn rustyworm_profile() -> AiProfile {
         let mut profile = AiProfile::new("rustyworm", "RustyWorm");
         profile.provider = "Prime Directive".to_string();

@@ -27,16 +27,27 @@ use crate::mimicry::profile::{AiProfile, PersonalityDelta, ResponseStyle};
 /// Categories of response templates for different conversational contexts
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TemplateCategory {
+    /// Casual or formal greetings and introductions
     Greeting,
+    /// Explanatory responses to "what is" or "how does" questions
     Explanation,
+    /// Code generation, debugging, and implementation assistance
     CodeHelp,
+    /// Step-by-step logical reasoning and analysis
     Reasoning,
+    /// Refusal to fulfill a request due to safety or policy constraints
     Refusal,
+    /// Responses expressing low confidence or incomplete knowledge
     Uncertainty,
+    /// Creative writing, storytelling, and imaginative content
     Creative,
+    /// Condensed summaries of longer content
     Summarization,
+    /// Corrections to previously provided information
     Correction,
+    /// Continuations or elaborations on a previous response
     FollowUp,
+    /// User-defined custom category with a descriptive label
     Custom(String),
 }
 
@@ -114,20 +125,31 @@ pub struct ResponseFragment {
     pub negative_feedback: u64,
 }
 
+/// The structural role a fragment plays within an assembled response.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum FragmentType {
+    /// Introductory phrase at the start of a response
     Opening,
+    /// Connective phrase linking two sections
     Transition,
+    /// Core content of the response
     Body,
+    /// A fenced code block section
     CodeBlock,
+    /// A single item in a bulleted or numbered list
     ListItem,
+    /// Uncertainty or qualification language
     Hedging,
+    /// A warning or limitation disclaimer
     Caveat,
+    /// Sign-off phrase at the end of a response
     Closing,
+    /// Self-referential commentary about the response itself
     MetaComment,
 }
 
 impl ResponseFragment {
+    /// Create a new fragment with default confidence and zero usage counts.
     pub fn new(fragment_type: FragmentType, template: &str) -> Self {
         ResponseFragment {
             fragment_type,
@@ -179,9 +201,13 @@ pub struct ToneBlender {
 /// Tracks how much the tone has drifted from baseline via feedback
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ToneDrift {
+    /// Cumulative warmth adjustment from feedback
     pub warmth_delta: f64,
+    /// Cumulative enthusiasm adjustment from feedback
     pub enthusiasm_delta: f64,
+    /// Cumulative formality adjustment from feedback
     pub formality_delta: f64,
+    /// Number of feedback adjustments applied so far
     pub adjustments_applied: u64,
 }
 
@@ -362,11 +388,14 @@ pub struct HedgingInjector {
     pub phrases: Vec<HedgingPhrase>,
 }
 
+/// A single hedging phrase with an associated intensity level.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HedgingPhrase {
+    /// The hedging phrase text to insert into responses
     pub text: String,
     /// 0.0 = very mild, 1.0 = very strong hedging
     pub intensity: f64,
+    /// Number of times this phrase has been selected
     pub use_count: u64,
 }
 
@@ -894,10 +923,12 @@ impl TemplateLibrary {
 /// other through blending.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TemplateStore {
+    /// Map of persona IDs to their template libraries
     pub libraries: HashMap<String, TemplateLibrary>,
 }
 
 impl TemplateStore {
+    /// Create an empty template store with no persona libraries.
     pub fn new() -> Self {
         TemplateStore {
             libraries: HashMap::new(),

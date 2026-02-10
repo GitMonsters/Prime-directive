@@ -19,14 +19,23 @@ use crate::mimicry::profile::AiProfile;
 /// Input/output modalities
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Modality {
+    /// Natural language text processing.
     Text,
+    /// Image and visual content understanding.
     Vision,
+    /// Audio and speech processing.
     Audio,
+    /// Video comprehension and analysis.
     Video,
+    /// Source code generation, analysis, and debugging.
     Code,
+    /// Logical reasoning and chain-of-thought inference.
     Reasoning,
+    /// Structured function/tool calling.
     FunctionCall,
+    /// Vector embedding generation.
     Embedding,
+    /// User-defined modality with a custom name.
     Custom(String),
 }
 
@@ -65,12 +74,16 @@ impl From<&str> for Modality {
 /// A unit of input to process
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModalInput {
+    /// The modality type of this input.
     pub modality: Modality,
+    /// The raw content payload to process.
     pub content: String,
+    /// Optional key-value metadata associated with the input.
     pub metadata: HashMap<String, String>,
 }
 
 impl ModalInput {
+    /// Creates a plain text input with no metadata.
     pub fn text(content: &str) -> Self {
         ModalInput {
             modality: Modality::Text,
@@ -79,6 +92,7 @@ impl ModalInput {
         }
     }
 
+    /// Creates a code input with the specified programming language in metadata.
     pub fn code(content: &str, language: &str) -> Self {
         let mut meta = HashMap::new();
         meta.insert("language".to_string(), language.to_string());
@@ -89,6 +103,7 @@ impl ModalInput {
         }
     }
 
+    /// Creates a vision input with a description and image source path.
     pub fn vision(description: &str, source: &str) -> Self {
         let mut meta = HashMap::new();
         meta.insert("source".to_string(), source.to_string());
@@ -103,24 +118,35 @@ impl ModalInput {
 /// A processed output
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModalOutput {
+    /// The modality type of this output.
     pub modality: Modality,
+    /// The generated output content.
     pub content: String,
+    /// Confidence score for the output, ranging from 0.0 to 1.0.
     pub confidence: f64,
+    /// Optional key-value metadata associated with the output.
     pub metadata: HashMap<String, String>,
 }
 
 /// Capability levels
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CapabilityLevel {
+    /// No capability in this modality.
     None,
+    /// Minimal, limited capability.
     Basic,
+    /// Moderate competence in this modality.
     Intermediate,
+    /// High proficiency with broad coverage.
     Advanced,
+    /// Near-peak human-level performance.
     Expert,
+    /// Exceeds typical human-level performance.
     Superhuman,
 }
 
 impl CapabilityLevel {
+    /// Returns the capability level as a normalized float between 0.0 and 1.0.
     pub fn as_f64(&self) -> f64 {
         match self {
             CapabilityLevel::None => 0.0,
@@ -136,14 +162,20 @@ impl CapabilityLevel {
 /// A single capability (e.g., "code generation", "image understanding")
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Capability {
+    /// Human-readable name of this capability (e.g., "code-generation").
     pub name: String,
+    /// The modality this capability operates on.
     pub modality: Modality,
+    /// Proficiency level for this capability.
     pub level: CapabilityLevel,
+    /// Free-text description of what this capability does.
     pub description: String,
+    /// Names of finer-grained sub-capabilities (e.g., "debugging", "refactoring").
     pub sub_capabilities: Vec<String>,
 }
 
 impl Capability {
+    /// Creates a new capability with the given name, modality, and level.
     pub fn new(name: &str, modality: Modality, level: CapabilityLevel) -> Self {
         Capability {
             name: name.to_string(),
@@ -154,11 +186,13 @@ impl Capability {
         }
     }
 
+    /// Sets the description and returns `self` for builder chaining.
     pub fn with_description(mut self, desc: &str) -> Self {
         self.description = desc.to_string();
         self
     }
 
+    /// Appends a sub-capability name and returns `self` for builder chaining.
     pub fn with_sub(mut self, sub: &str) -> Self {
         self.sub_capabilities.push(sub.to_string());
         self
@@ -168,13 +202,18 @@ impl Capability {
 /// A loadable module that provides capabilities
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapabilityModule {
+    /// Name identifier for this module.
     pub name: String,
+    /// Version string of this module.
     pub version: String,
+    /// The set of capabilities provided by this module.
     pub capabilities: Vec<Capability>,
+    /// Whether this module has been loaded into a router.
     pub is_loaded: bool,
 }
 
 impl CapabilityModule {
+    /// Creates a new empty capability module with the given name and version.
     pub fn new(name: &str, version: &str) -> Self {
         CapabilityModule {
             name: name.to_string(),
@@ -184,15 +223,18 @@ impl CapabilityModule {
         }
     }
 
+    /// Adds a capability to this module and returns `self` for builder chaining.
     pub fn add_capability(mut self, cap: Capability) -> Self {
         self.capabilities.push(cap);
         self
     }
 
+    /// Returns `true` if any capability in this module handles the given modality.
     pub fn supports(&self, modality: &Modality) -> bool {
         self.capabilities.iter().any(|c| &c.modality == modality)
     }
 
+    /// Returns the highest capability level for the given modality, or `None` if unsupported.
     pub fn capability_level(&self, modality: &Modality) -> CapabilityLevel {
         self.capabilities
             .iter()
@@ -422,6 +464,7 @@ pub struct ModalityRouter {
 }
 
 impl ModalityRouter {
+    /// Creates an empty router with no loaded modules.
     pub fn new() -> Self {
         ModalityRouter {
             modules: Vec::new(),

@@ -71,6 +71,7 @@ pub struct DriftDetector {
 }
 
 impl DriftDetector {
+    /// Creates a new `DriftDetector` with default sensitivity settings.
     pub fn new() -> Self {
         DriftDetector {
             window_size: 5,
@@ -206,10 +207,15 @@ impl Default for DriftDetector {
 /// Result of drift analysis
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DriftAnalysis {
+    /// Whether the persona is currently drifting away from the target
     pub is_drifting: bool,
+    /// Linear regression slope of the convergence trend window
     pub trend_slope: f64,
+    /// Current evolution phase determined by drift analysis
     pub phase: EvolutionPhase,
+    /// Most recent convergence score
     pub current_convergence: f64,
+    /// Human-readable recommendation based on the analysis
     pub recommendation: String,
 }
 
@@ -231,14 +237,20 @@ pub struct MilestoneTracker {
     pub total_iterations: u64,
 }
 
+/// A recorded milestone event during evolution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MilestoneEvent {
+    /// The type of milestone that was reached
     pub milestone_type: MilestoneType,
+    /// Convergence score when the milestone occurred
     pub convergence: f64,
+    /// Evolution iteration at which the milestone occurred
     pub iteration: u64,
+    /// Human-readable description of the milestone
     pub description: String,
 }
 
+/// Categorizes the type of milestone event that occurred.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MilestoneType {
     /// Crossed a convergence threshold
@@ -254,6 +266,7 @@ pub enum MilestoneType {
 }
 
 impl MilestoneTracker {
+    /// Creates a new `MilestoneTracker` with default convergence thresholds.
     pub fn new() -> Self {
         MilestoneTracker {
             thresholds: vec![0.25, 0.50, 0.75, 0.90, 0.95],
@@ -410,6 +423,7 @@ pub struct ConvergenceVisualizer {
 }
 
 impl ConvergenceVisualizer {
+    /// Creates a new `ConvergenceVisualizer` with the given graph dimensions.
     pub fn new(width: usize, height: usize) -> Self {
         ConvergenceVisualizer { width, height }
     }
@@ -557,16 +571,21 @@ pub struct TrainingDataManager {
     pub max_per_model: usize,
 }
 
+/// A single observed model response used as training data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrainingObservation {
+    /// The prompt that was sent to the model
     pub input_prompt: String,
+    /// The model's response to the prompt
     pub model_response: String,
+    /// Evolution iteration when this observation was recorded
     pub iteration_observed: u64,
     /// Quality score assigned during or after observation
     pub quality_score: f64,
 }
 
 impl TrainingDataManager {
+    /// Creates a new `TrainingDataManager` with default capacity limits.
     pub fn new() -> Self {
         TrainingDataManager {
             observations: std::collections::HashMap::new(),
@@ -674,9 +693,11 @@ pub struct EvolutionTracker {
     pub current_phase: EvolutionPhase,
     /// Previous phase (for detecting transitions)
     pub previous_phase: Option<EvolutionPhase>,
-    /// All-time stats
+    /// Total number of evolution steps executed
     pub total_evolutions: u64,
+    /// Total number of drift corrections applied
     pub total_corrections: u64,
+    /// Total number of drift events detected
     pub total_drift_events: u64,
     /// Best convergence ever achieved
     pub best_convergence: f64,
@@ -685,6 +706,7 @@ pub struct EvolutionTracker {
 }
 
 impl EvolutionTracker {
+    /// Creates a new `EvolutionTracker` in the initial observation phase.
     pub fn new() -> Self {
         EvolutionTracker {
             drift_detector: DriftDetector::new(),
@@ -856,20 +878,30 @@ impl Default for EvolutionTracker {
 /// Result of a single evolution step
 #[derive(Debug, Clone)]
 pub struct EvolutionStepResult {
+    /// Drift analysis results for this step
     pub drift_analysis: DriftAnalysis,
+    /// Any milestones triggered during this step
     pub new_milestones: Vec<MilestoneEvent>,
+    /// Whether the evolution phase changed during this step
     pub phase_changed: bool,
+    /// Whether an auto-save should be triggered
     pub should_auto_save: bool,
+    /// The iteration number of this step
     pub iteration: u64,
 }
 
 /// Result of a training loop
 #[derive(Debug, Clone)]
 pub struct TrainingLoopResult {
+    /// Number of iterations actually executed
     pub iterations_run: u64,
+    /// Personality deltas produced during training
     pub deltas: Vec<PersonalityDelta>,
+    /// Convergence score recorded at each iteration
     pub convergence_history: Vec<f64>,
+    /// Number of drift events detected during training
     pub drift_events: u64,
+    /// Evolution phase at the end of training
     pub final_phase: EvolutionPhase,
 }
 

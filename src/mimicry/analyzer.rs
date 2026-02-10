@@ -19,12 +19,17 @@ use crate::mimicry::profile::{AiProfile, DeltaSource, PersonalityDelta};
 /// A pattern detected in an AI's responses
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResponsePattern {
+    /// The category of behavioral pattern observed.
     pub pattern_type: PatternType,
-    pub frequency: f64, // 0.0 to 1.0 - how often this appears
+    /// How often this pattern appears, normalized from 0.0 (never) to 1.0 (always).
+    pub frequency: f64,
+    /// Concrete examples of this pattern extracted from responses.
     pub examples: Vec<String>,
+    /// Human-readable description of what was detected.
     pub description: String,
 }
 
+/// Categories of behavioral patterns that can be detected in AI responses.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum PatternType {
     /// Opening patterns ("Certainly!", "I'd be happy to", etc.)
@@ -50,17 +55,26 @@ pub enum PatternType {
 /// Complete behavioral signature of an AI system
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BehaviorSignature {
+    /// Identifier for the AI model this signature describes.
     pub model_id: String,
+    /// Collected behavioral patterns observed across sampled responses.
     pub patterns: Vec<ResponsePattern>,
+    /// Mean character length of responses.
     pub avg_response_length: f64,
-    pub vocabulary_complexity: f64, // 0.0 simple, 1.0 complex
-    pub sentence_complexity: f64,   // avg words per sentence
-    pub question_asking_rate: f64,  // how often it asks questions back
-    pub code_to_text_ratio: f64,    // in code-related responses
+    /// Vocabulary sophistication from 0.0 (simple) to 1.0 (complex).
+    pub vocabulary_complexity: f64,
+    /// Average number of words per sentence.
+    pub sentence_complexity: f64,
+    /// Rate at which the model asks questions back to the user.
+    pub question_asking_rate: f64,
+    /// Ratio of code content to prose in code-related responses.
+    pub code_to_text_ratio: f64,
+    /// Number of response samples used to build this signature.
     pub samples_analyzed: usize,
 }
 
 impl BehaviorSignature {
+    /// Creates a new empty signature for the given model with default baseline values.
     pub fn new(model_id: &str) -> Self {
         BehaviorSignature {
             model_id: model_id.to_string(),
@@ -141,6 +155,7 @@ pub struct BehaviorAnalyzer {
 }
 
 impl BehaviorAnalyzer {
+    /// Creates a new analyzer pre-loaded with common AI opening phrase heuristics.
     pub fn new() -> Self {
         BehaviorAnalyzer {
             signatures: HashMap::new(),

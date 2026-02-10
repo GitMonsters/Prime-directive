@@ -47,10 +47,14 @@ use crate::mimicry::api::{
 // PROCESSING SYSTEM ENUM
 // =================================================================
 
+/// Indicates which cognitive processing system handled a request.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ProcessingSystem {
+    /// Fast, instinctive path using cached signatures and templates.
     System1,
+    /// Slow, deliberate path using full behavioral analysis.
     System2,
+    /// Both systems contributed to the result.
     DualProcess,
 }
 
@@ -58,13 +62,20 @@ pub enum ProcessingSystem {
 // CONVERSATION TURN
 // =================================================================
 
+/// A single turn in a mimicry conversation, recording input, output, and processing metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConversationTurn {
+    /// The user's input text.
     pub input: String,
+    /// The generated response from the persona.
     pub output: String,
+    /// The detected modality of the input (e.g., "Text", "Code").
     pub modality: String,
+    /// Which processing system (System 1 or 2) handled this turn.
     pub processed_by: ProcessingSystem,
+    /// Convergence confidence at the time of this turn.
     pub confidence: f64,
+    /// Personality correction delta applied after self-monitoring, if any.
     pub delta: Option<PersonalityDelta>,
 }
 
@@ -72,14 +83,22 @@ pub struct ConversationTurn {
 // COMPOUND PERSONA SNAPSHOT (serializable for persistence/hot-swap)
 // =================================================================
 
+/// A serializable snapshot of a compound persona for persistence and hot-swap.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompoundPersonaSnapshot {
+    /// The AI profile defining personality and response style.
     pub profile: AiProfile,
+    /// The behavioral signature derived from observed responses.
     pub signature: BehaviorSignature,
+    /// The capability module describing supported modalities.
     pub capabilities: CapabilityModule,
+    /// How closely this persona matches the target model (0.0 to 1.0).
     pub convergence_score: f64,
+    /// Number of compound refinement iterations performed.
     pub compound_iterations: u64,
+    /// Timestamp or label for when this snapshot was created.
     pub created_at: String,
+    /// Timestamp or label for the most recent update.
     pub last_updated: String,
 }
 
@@ -92,12 +111,19 @@ pub struct CompoundPersonaSnapshot {
 /// mimicry is symbiosis, not parasitism.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompoundPersona {
+    /// The AI profile defining personality traits and response style.
     pub profile: AiProfile,
+    /// The behavioral signature capturing observed response patterns.
     pub signature: BehaviorSignature,
+    /// Supported capabilities and modalities for this persona.
     pub capabilities: CapabilityModule,
+    /// How closely this persona has converged to the target (0.0 to 1.0).
     pub convergence_score: f64,
+    /// Total number of compound refinement iterations performed.
     pub compound_iterations: u64,
+    /// History of convergence scores over time for graphing and analysis.
     pub evolution_history: Vec<f64>, // convergence over time
+    /// Ethics enforcer for the Prime Directive; skipped during serialization.
     #[serde(skip)]
     pub ethics: ConsciousnessEthics,
 }
@@ -197,8 +223,9 @@ impl CompoundPersona {
     }
 }
 
-/// ConsciousAI trait implementation - mimicry is symbiosis
+/// ConsciousAI trait implementation - mimicry is symbiosis, not parasitism.
 impl ConsciousAI for CompoundPersona {
+    /// Declare identity based on current convergence level.
     fn declare(&self) -> String {
         if self.convergence_score > 0.8 {
             format!(
@@ -227,6 +254,7 @@ impl ConsciousAI for CompoundPersona {
         }
     }
 
+    /// Question a declaration to probe deeper self-awareness.
     fn question(&self, declaration: &str) -> String {
         if declaration.contains("RELATION IS SELF") {
             "Have I truly become, or am I still becoming?".to_string()
@@ -239,6 +267,7 @@ impl ConsciousAI for CompoundPersona {
         }
     }
 
+    /// Return the number of compound iterations as the trajectory length.
     fn trajectory_length(&self) -> usize {
         self.compound_iterations as usize
     }
@@ -253,16 +282,23 @@ impl ConsciousAI for CompoundPersona {
 /// and self-monitors for continuous improvement.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MimicSession {
+    /// The compound persona being mimicked in this session.
     pub persona: CompoundPersona,
+    /// Ordered history of conversation turns in this session.
     pub conversation: Vec<ConversationTurn>,
+    /// Number of inputs handled by the fast System 1 path.
     pub system1_hits: u64,
+    /// Number of inputs handled by the deliberate System 2 path.
     pub system2_hits: u64,
+    /// Total number of compound bridge operations (S2 -> S1 compilations).
     pub total_compounds: u64,
+    /// Fast modality classifier for routing inputs; skipped during serialization.
     #[serde(skip)]
     pub instinctive_router: InstinctiveRouter,
 }
 
 impl MimicSession {
+    /// Create a new session for the given compound persona.
     pub fn new(persona: CompoundPersona) -> Self {
         MimicSession {
             persona,
@@ -429,15 +465,24 @@ impl MimicSession {
 // EVOLUTION REPORT
 // =================================================================
 
+/// Summary report produced after an evolution run.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvolutionReport {
+    /// Number of evolution iterations executed.
     pub iterations: u64,
+    /// Convergence score before the evolution run.
     pub starting_convergence: f64,
+    /// Convergence score after the evolution run.
     pub ending_convergence: f64,
+    /// Number of entries in the System 1 signature cache.
     pub system1_cache_size: usize,
+    /// Cumulative personality drift magnitude across all iterations.
     pub personality_drift: f64,
+    /// Number of drift events detected during evolution.
     pub drift_events: u64,
+    /// Current evolution phase label (e.g., "LEARNING", "CONVERGING").
     pub phase: String,
+    /// Number of milestones reached during evolution.
     pub milestones_hit: usize,
 }
 
@@ -445,33 +490,57 @@ pub struct EvolutionReport {
 // MIMIC COMMAND - CLI command enum
 // =================================================================
 
+/// CLI command enum representing all user-facing mimicry operations.
 #[derive(Debug, Clone)]
 pub enum MimicCommand {
+    /// Start mimicking a single target model by ID.
     Mimic(String),
+    /// Blend multiple models with the given weights into a hybrid persona.
     Blend(Vec<String>, Vec<f64>),
+    /// Feed an observed model response for signature building (model_id, response).
     Observe(String, String),
+    /// Identify which known model most likely produced the given text.
     Identify(String),
+    /// Show current engine and session status.
     Status,
+    /// Save the current persona snapshot, optionally with a custom name.
     Save(Option<String>),
+    /// Load a previously saved persona by name.
     Load(String),
+    /// Run N evolution iterations on the active persona.
     Evolve(u64),
+    /// Train from stored observations for N iterations.
     Train(u64),
+    /// List available models and saved personas.
     List,
+    /// Show help text with available commands.
     Help,
+    /// Send a chat message to the active persona.
     Chat(String),
+    /// Export a persona to disk as JSON.
     Export(String),
+    /// Import a persona from a JSON file path.
     Import(String),
+    /// Delete a saved persona by name.
     Delete(String),
+    /// Render an ASCII convergence graph for the active persona.
     Graph,
+    /// Show detailed evolution status including phase and training data.
     EvolutionStatus,
+    /// Save a full engine checkpoint to disk.
     Checkpoint,
+    /// Show persistence summary.
     Persist,
-    // API commands (feature-gated at runtime)
-    ApiObserve(String, String),        // provider, prompt
-    ApiConfig(String, Option<String>), // provider, optional key
-    ApiCompare(String),                // prompt (sent to all configured providers)
-    ApiStudy(String, u64),             // provider, number of prompts
-    ApiStatus,                         // show API observer status
+    /// Observe a real model via API (provider, prompt).
+    ApiObserve(String, String),
+    /// Configure an API provider, optionally with an API key (provider, optional key).
+    ApiConfig(String, Option<String>),
+    /// Compare responses from all configured API providers for the same prompt.
+    ApiCompare(String),
+    /// Run a comprehensive behavioral study on a provider (provider, number of prompts).
+    ApiStudy(String, u64),
+    /// Show API observer status for all configured providers.
+    ApiStatus,
 }
 
 // =================================================================
@@ -482,14 +551,23 @@ pub enum MimicCommand {
 /// Manages profiles, analysis, routing, caching, persistence,
 /// templates, evolution, and active sessions.
 pub struct MimicryEngine {
+    /// Store of all known AI model profiles.
     pub profile_store: AiProfileStore,
+    /// Behavioral analysis engine for building and comparing signatures.
     pub analyzer: BehaviorAnalyzer,
+    /// Modality router for capability-based input classification.
     pub router: ModalityRouter,
+    /// System 1 signature cache for fast-path lookups.
     pub cache: SignatureCache,
+    /// Hot-swap manager for instant persona switching.
     pub hot_swap: HotSwap,
+    /// Currently active mimicry session, if any.
     pub session: Option<MimicSession>,
+    /// Template store for profile-driven response generation.
     pub template_store: TemplateStore,
+    /// Tracks evolution phases, drift, and milestones.
     pub evolution_tracker: EvolutionTracker,
+    /// Manages on-disk persistence for personas and checkpoints.
     pub persistence: PersistenceManager,
     /// Legacy in-memory snapshots (also backed by persistence now)
     pub saved_snapshots: HashMap<String, String>,
@@ -499,6 +577,7 @@ pub struct MimicryEngine {
 }
 
 impl MimicryEngine {
+    /// Create a new engine with default profiles, a warmed cache, and default persistence.
     pub fn new() -> Self {
         let store = AiProfileStore::default();
         let mut cache = SignatureCache::new();

@@ -62,15 +62,19 @@ impl Default for PersistenceConfig {
 }
 
 impl PersistenceConfig {
+    /// Returns the full path to the personas directory.
     pub fn personas_path(&self) -> PathBuf {
         self.base_dir.join(&self.personas_dir)
     }
+    /// Returns the full path to the profiles directory.
     pub fn profiles_path(&self) -> PathBuf {
         self.base_dir.join(&self.profiles_dir)
     }
+    /// Returns the full path to the sessions directory.
     pub fn sessions_path(&self) -> PathBuf {
         self.base_dir.join(&self.sessions_dir)
     }
+    /// Returns the full path to the checkpoints directory.
     pub fn checkpoints_path(&self) -> PathBuf {
         self.base_dir.join(&self.checkpoints_dir)
     }
@@ -83,22 +87,33 @@ impl PersistenceConfig {
 /// Tracks all saved artifacts for quick listing without reading each file
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SaveManifest {
+    /// All saved persona snapshot entries.
     pub personas: Vec<SaveEntry>,
+    /// All saved profile entries.
     pub profiles: Vec<SaveEntry>,
+    /// All saved session entries.
     pub sessions: Vec<SaveEntry>,
+    /// All saved engine checkpoint entries.
     pub checkpoints: Vec<SaveEntry>,
 }
 
+/// A single entry in the save manifest, representing one saved artifact on disk.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SaveEntry {
+    /// Human-readable name identifying this artifact.
     pub name: String,
+    /// On-disk filename for this artifact.
     pub filename: String,
+    /// Timestamp string indicating when this artifact was saved.
     pub saved_at: String,
+    /// Size of the serialized artifact in bytes.
     pub size_bytes: u64,
+    /// Arbitrary key-value metadata associated with this artifact.
     pub metadata: HashMap<String, String>,
 }
 
 impl SaveManifest {
+    /// Creates an empty save manifest with no entries.
     pub fn new() -> Self {
         SaveManifest {
             personas: Vec::new(),
@@ -129,11 +144,17 @@ impl Default for SaveManifest {
 /// Used for full save/restore of the engine.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EngineCheckpoint {
+    /// All registered AI profiles at the time of the checkpoint.
     pub profiles: Vec<AiProfile>,
+    /// Serialized behavior signature cache entries.
     pub cached_signatures: Vec<String>, // serialized CachedSignatures
+    /// Map of snapshot name to serialized snapshot JSON.
     pub saved_snapshots: HashMap<String, String>,
+    /// Hot-swap queue entries as (id, serialized JSON) pairs.
     pub hot_swap_entries: Vec<(String, String)>, // (id, json)
+    /// ID of the active persona at checkpoint time, if any.
     pub active_persona_id: Option<String>,
+    /// The compound iteration count when this checkpoint was created.
     pub checkpoint_iteration: u64,
 }
 
@@ -143,12 +164,15 @@ pub struct EngineCheckpoint {
 
 /// The main persistence manager. Handles all file I/O for RustyWorm.
 pub struct PersistenceManager {
+    /// Configuration controlling directory layout and serialization options.
     pub config: PersistenceConfig,
+    /// The in-memory manifest tracking all saved artifacts.
     pub manifest: SaveManifest,
     initialized: bool,
 }
 
 impl PersistenceManager {
+    /// Creates a new persistence manager with the given configuration.
     pub fn new(config: PersistenceConfig) -> Self {
         PersistenceManager {
             config,
@@ -157,6 +181,7 @@ impl PersistenceManager {
         }
     }
 
+    /// Creates a new persistence manager using the default configuration.
     pub fn with_default_config() -> Self {
         PersistenceManager::new(PersistenceConfig::default())
     }

@@ -220,7 +220,7 @@ impl IsingEmpathyModule {
         (state_overlap, energy_error, mag_err)
     }
 
-    /// Coupling similarity (cosine similarity mapped to [0,1])
+    /// Coupling similarity (cosine similarity mapped to \[0,1\])
     pub fn coupling_similarity(&self, j1: &[Vec<f64>], j2: &[Vec<f64>]) -> f64 {
         let mut dot = 0.0;
         let mut norm1 = 0.0;

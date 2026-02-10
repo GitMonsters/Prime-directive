@@ -40,6 +40,7 @@ pub struct ResponseTemplate {
 }
 
 impl ResponseTemplate {
+    /// Creates a new response template for the given persona with trigger patterns and a skeleton.
     pub fn new(persona_id: &str, triggers: Vec<String>, skeleton: &str) -> Self {
         ResponseTemplate {
             trigger_patterns: triggers,
@@ -73,9 +74,12 @@ impl ResponseTemplate {
 /// Pre-computed tone parameters for instant style application
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToneProfile {
-    pub warmth: f64,     // 0.0 cold, 1.0 warm
-    pub enthusiasm: f64, // 0.0 flat, 1.0 enthusiastic
-    pub formality: f64,  // 0.0 casual, 1.0 formal
+    /// Warmth level from cold (0.0) to warm (1.0)
+    pub warmth: f64,
+    /// Enthusiasm level from flat (0.0) to enthusiastic (1.0)
+    pub enthusiasm: f64,
+    /// Formality level from casual (0.0) to formal (1.0)
+    pub formality: f64,
 }
 
 impl Default for ToneProfile {
@@ -95,10 +99,15 @@ impl Default for ToneProfile {
 /// Pre-computed structural preferences for instant formatting
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructurePrefs {
+    /// Whether the persona tends to use bullet/numbered lists
     pub uses_lists: bool,
+    /// Whether the persona tends to include fenced code blocks
     pub uses_code_blocks: bool,
+    /// Whether the persona tends to use markdown headers
     pub uses_headers: bool,
-    pub preferred_list_marker: String, // "- ", "* ", "1. "
+    /// Preferred list marker style (e.g. `"- "`, `"* "`, `"1. "`)
+    pub preferred_list_marker: String,
+    /// Average number of sentences per paragraph
     pub avg_paragraph_sentences: usize,
 }
 
@@ -122,6 +131,7 @@ impl Default for StructurePrefs {
 /// Pre-computes commonly needed values to avoid recalculation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedSignature {
+    /// The model identifier this signature was compiled from
     pub model_id: String,
     /// Pre-computed opening phrases with probabilities
     pub opening_phrases: Vec<(String, f64)>,
@@ -234,6 +244,7 @@ pub struct SignatureCache {
 }
 
 impl SignatureCache {
+    /// Creates a new empty `SignatureCache` with zeroed statistics.
     pub fn new() -> Self {
         SignatureCache {
             cache: HashMap::new(),
@@ -331,8 +342,10 @@ pub struct HotSwap {
     current_id: Option<String>,
 }
 
+/// A pre-loaded persona snapshot entry ready for instant switching.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HotSwapEntry {
+    /// Identifier of the persona this snapshot represents
     pub persona_id: String,
     /// Serialized snapshot data (JSON) for the CompoundPersona
     pub snapshot_json: String,
@@ -343,6 +356,7 @@ pub struct HotSwapEntry {
 }
 
 impl HotSwap {
+    /// Creates a new `HotSwap` with no preloaded personas.
     pub fn new() -> Self {
         HotSwap {
             preloaded: HashMap::new(),
@@ -411,6 +425,7 @@ pub struct InstinctiveRouter {
 }
 
 impl InstinctiveRouter {
+    /// Creates a new router pre-populated with default keyword-to-modality mappings.
     pub fn new() -> Self {
         InstinctiveRouter {
             keyword_map: vec![

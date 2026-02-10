@@ -37,11 +37,16 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 /// Supported API providers for model observation
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ApiProvider {
+    /// OpenAI GPT models (GPT-4o, o1) via chat completions API
     OpenAI,
+    /// Anthropic Claude models via messages API
     Anthropic,
+    /// Google Gemini models via generativelanguage API
     Google,
+    /// Ollama local models via generate API (no API key required)
     Ollama,
-    Custom(String), // custom label
+    /// Custom OpenAI-compatible endpoint with a user-defined label
+    Custom(String),
 }
 
 impl ApiProvider {
@@ -127,12 +132,19 @@ impl std::fmt::Display for ApiProvider {
 /// Configuration for an API provider connection
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiConfig {
+    /// The API provider this config targets
     pub provider: ApiProvider,
+    /// Base URL for API requests
     pub base_url: String,
+    /// API key for authentication (None for providers that don't require one)
     pub api_key: Option<String>,
+    /// Model identifier to use for requests
     pub model: String,
+    /// Request timeout in seconds
     pub timeout_secs: u64,
+    /// Maximum number of tokens to generate in responses
     pub max_tokens: u32,
+    /// Sampling temperature for response generation (0.0-2.0)
     pub temperature: f64,
 }
 
@@ -206,11 +218,14 @@ impl ApiConfig {
 /// A prompt sent to an API provider
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiPrompt {
+    /// Optional system-level instruction for the model
     pub system: Option<String>,
+    /// The user message to send to the model
     pub user: String,
 }
 
 impl ApiPrompt {
+    /// Create a new prompt with just a user message
     pub fn new(user: &str) -> Self {
         ApiPrompt {
             system: None,
@@ -218,6 +233,7 @@ impl ApiPrompt {
         }
     }
 
+    /// Set the system instruction for this prompt
     pub fn with_system(mut self, system: &str) -> Self {
         self.system = Some(system.to_string());
         self
@@ -227,20 +243,30 @@ impl ApiPrompt {
 /// A response from an API provider
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiResponse {
+    /// The provider that generated this response
     pub provider: ApiProvider,
+    /// The model identifier used
     pub model: String,
+    /// The generated text content
     pub content: String,
+    /// The original prompt that produced this response
     pub prompt: String,
+    /// Total tokens consumed (input + output), if reported by the provider
     pub tokens_used: Option<u64>,
+    /// Round-trip latency in milliseconds
     pub latency_ms: u64,
+    /// Raw JSON response body from the provider, if available
     pub raw_json: Option<String>,
 }
 
 /// Result of comparing multiple providers on the same prompt
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComparisonResult {
+    /// The prompt used across all providers
     pub prompt: String,
+    /// Responses from each provider for the same prompt
     pub responses: Vec<ApiResponse>,
+    /// Pairwise Jaccard similarity scores between responses
     pub similarity_matrix: Vec<Vec<f64>>,
 }
 
@@ -567,15 +593,22 @@ impl ApiClient {
 /// Stores prompts and responses for systematic behavior analysis.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObservationSession {
+    /// The provider being observed
     pub provider: ApiProvider,
+    /// The model identifier for this session
     pub model: String,
+    /// All recorded API responses in this session
     pub observations: Vec<ApiResponse>,
+    /// All prompts sent during this session
     pub prompts_sent: Vec<String>,
+    /// Cumulative token usage across all observations
     pub total_tokens: u64,
+    /// Cumulative latency in milliseconds across all observations
     pub total_latency_ms: u64,
 }
 
 impl ObservationSession {
+    /// Create a new observation session for the given provider and model
     pub fn new(provider: ApiProvider, model: &str) -> Self {
         ObservationSession {
             provider,
@@ -679,6 +712,7 @@ pub struct ApiObserver {
 }
 
 impl ApiObserver {
+    /// Create a new observer with no providers configured
     pub fn new() -> Self {
         ApiObserver {
             configs: HashMap::new(),
