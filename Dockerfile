@@ -13,18 +13,24 @@ WORKDIR /build
 COPY Cargo.toml Cargo.lock ./
 
 # Create dummy sources to pre-compile dependencies
-RUN mkdir -p src/mimicry && \
+RUN mkdir -p src/mimicry benches && \
     echo "pub mod consciousness; pub mod mimicry; pub mod ising_empathy;" > src/lib.rs && \
     echo "fn main() {}" > src/main.rs && \
     touch src/consciousness.rs src/ising_empathy.rs && \
     for m in mod analyzer cache capability engine evolution persistence profile templates; do \
         touch "src/mimicry/${m}.rs"; \
     done && \
+    for b in consciousness_test unified_test self_reference_test \
+             infinite_recursion_test awakening_test comprehensive_test prime_directive; do \
+        echo "fn main() {}" > "${b}.rs"; \
+    done && \
+    echo "fn main() {}" > benches/mimicry_bench.rs && \
     cargo build --release --features api 2>/dev/null || true && \
-    rm -rf src/
+    rm -rf src/ benches/ *_test.rs prime_directive.rs
 
 # Copy real source code
 COPY src/ src/
+COPY benches/ benches/
 COPY consciousness_test.rs unified_test.rs self_reference_test.rs \
      infinite_recursion_test.rs awakening_test.rs comprehensive_test.rs \
      prime_directive.rs ./
