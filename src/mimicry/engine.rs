@@ -43,6 +43,12 @@ use crate::mimicry::api::{
     ComparisonResult,
 };
 
+// RL integration imports (feature-gated)
+#[cfg(feature = "rl")]
+use crate::mimicry::evolution::RLEvolutionResult;
+#[cfg(feature = "rl")]
+use crate::mimicry::rl_optimizer::BehaviorObservation;
+
 // =================================================================
 // PROCESSING SYSTEM ENUM
 // =================================================================
@@ -220,6 +226,76 @@ impl CompoundPersona {
     /// COMPOUND: Enforce ethics on a proposed action
     pub fn enforce_ethics(&self, action: &ProposedAction) -> ActionResult {
         self.ethics.enforce_prime_directive(action)
+    }
+    
+    // =========================================================
+    // RL-ENHANCED METHODS (feature = "rl")
+    // =========================================================
+    
+    /// Create a BehaviorObservation from a query-response pair.
+    /// Used for RL trajectory collection.
+    #[cfg(feature = "rl")]
+    pub fn create_observation(
+        &self,
+        query: &str,
+        response: &str,
+        analyzer: &mut BehaviorAnalyzer,
+    ) -> BehaviorObservation {
+        // Build signature from response to detect patterns
+        let sig = analyzer.build_signature(&self.profile.id, &[response.to_string()]);
+        
+        // Extract pattern descriptions as strings
+        let pattern_names: Vec<String> = sig.patterns.iter()
+            .map(|p| p.description.clone())
+            .collect();
+        
+        // Use vocabulary_complexity as a proxy for confidence
+        let confidence = sig.vocabulary_complexity.clamp(0.0, 1.0);
+        
+        BehaviorObservation {
+            query: query.to_string(),
+            response: response.to_string(),
+            patterns: pattern_names,
+            similarity_to_target: self.convergence_score,
+            confidence,
+        }
+    }
+    
+    /// Observe and evolve using RL-enhanced evolution.
+    /// Combines observation creation with RL-optimized delta prediction.
+    #[cfg(feature = "rl")]
+    pub async fn observe_and_evolve(
+        &mut self,
+        query: &str,
+        response: &str,
+        analyzer: &mut BehaviorAnalyzer,
+        evolution_tracker: &mut EvolutionTracker,
+    ) -> Result<RLEvolutionResult, Box<dyn std::error::Error + Send + Sync>> {
+        // Create observation
+        let observation = self.create_observation(query, response, analyzer);
+        
+        // Evolve with RL
+        let result = evolution_tracker.evolve_with_rl(
+            &mut self.profile,
+            &[observation],
+            analyzer,
+        ).await?;
+        
+        // Update persona state
+        self.convergence_score = result.ending_convergence;
+        self.compound_iterations += 1;
+        self.evolution_history.push(self.convergence_score);
+        
+        Ok(result)
+    }
+    
+    /// Apply an RL-predicted delta to this persona
+    #[cfg(feature = "rl")]
+    pub fn apply_rl_delta(&mut self, delta: &PersonalityDelta, analyzer: &BehaviorAnalyzer) {
+        self.profile.apply_correction(delta);
+        self.convergence_score = analyzer.compute_convergence(&self.profile, &self.signature);
+        self.compound_iterations += 1;
+        self.evolution_history.push(self.convergence_score);
     }
 }
 

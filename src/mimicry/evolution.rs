@@ -12,12 +12,27 @@
 // - MilestoneTracker triggers auto-save via persistence compound
 // - ConvergenceVisualizer renders ASCII convergence graphs
 // - All feedback flows back into templates and cache
+//
+// RL INTEGRATION (feature = "rl"):
+// - ReinforcementLearningOptimizer for advanced delta prediction
+// - Trajectory collection for learning from evolution history
+// - Async training with AgentRL service
+// - Importance-weighted trajectory sampling
 // =================================================================
 
 use serde::{Deserialize, Serialize};
 
 use crate::mimicry::analyzer::BehaviorAnalyzer;
 use crate::mimicry::profile::{AiProfile, PersonalityDelta};
+
+// RL integration imports (feature-gated)
+#[cfg(feature = "rl")]
+use crate::mimicry::rl_config::{RLConfig, RLStatistics};
+#[cfg(feature = "rl")]
+use crate::mimicry::rl_optimizer::{
+    BehaviorObservation, EvolutionTrajectory, RLOptimizerConfig,
+    ReinforcementLearningOptimizer,
+};
 
 // =================================================================
 // EVOLUTION PHASE
@@ -674,6 +689,9 @@ impl Default for TrainingDataManager {
 
 /// Central coordinator for evolution. Ties together drift detection,
 /// milestone tracking, convergence visualization, and training data.
+///
+/// With the `rl` feature enabled, also integrates with the AgentCPM
+/// reinforcement learning optimizer for advanced delta prediction.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvolutionTracker {
     /// Drift detector for trend analysis
@@ -696,6 +714,34 @@ pub struct EvolutionTracker {
     pub best_convergence: f64,
     /// Iteration at which best convergence was achieved
     pub best_convergence_iteration: u64,
+
+    // =========================================================
+    // RL INTEGRATION FIELDS (feature = "rl")
+    // =========================================================
+    /// RL configuration (always present for serialization)
+    #[cfg(feature = "rl")]
+    #[serde(default)]
+    pub rl_config: Option<RLConfig>,
+
+    /// RL statistics for tracking performance
+    #[cfg(feature = "rl")]
+    #[serde(default)]
+    pub rl_stats: RLStatistics,
+
+    /// Trajectory buffer for RL learning
+    #[cfg(feature = "rl")]
+    #[serde(skip)]
+    pub trajectory_buffer: Vec<EvolutionTrajectory>,
+
+    /// Whether RL optimizer is available and initialized
+    #[cfg(feature = "rl")]
+    #[serde(skip)]
+    pub rl_available: bool,
+
+    /// Convergence before RL was enabled (for measuring improvement)
+    #[cfg(feature = "rl")]
+    #[serde(default)]
+    pub pre_rl_convergence: Option<f64>,
 }
 
 impl EvolutionTracker {
@@ -712,7 +758,67 @@ impl EvolutionTracker {
             total_drift_events: 0,
             best_convergence: 0.0,
             best_convergence_iteration: 0,
+            #[cfg(feature = "rl")]
+            rl_config: None,
+            #[cfg(feature = "rl")]
+            rl_stats: RLStatistics::new(),
+            #[cfg(feature = "rl")]
+            trajectory_buffer: Vec::new(),
+            #[cfg(feature = "rl")]
+            rl_available: false,
+            #[cfg(feature = "rl")]
+            pre_rl_convergence: None,
         }
+    }
+
+    /// Creates a new `EvolutionTracker` with RL optimizer configuration.
+    /// The RL optimizer will be initialized on first use.
+    #[cfg(feature = "rl")]
+    pub fn with_rl_config(config: RLConfig) -> Self {
+        let mut tracker = Self::new();
+        tracker.rl_config = Some(config);
+        tracker.rl_available = true;
+        tracker
+    }
+
+    /// Enable RL optimization with the given configuration.
+    #[cfg(feature = "rl")]
+    pub fn enable_rl(&mut self, config: RLConfig) {
+        self.rl_config = Some(config);
+        self.rl_available = true;
+        // Record current convergence as baseline
+        if self.pre_rl_convergence.is_none() {
+            self.pre_rl_convergence = Some(self.best_convergence);
+        }
+    }
+
+    /// Disable RL optimization (fallback to traditional evolution).
+    #[cfg(feature = "rl")]
+    pub fn disable_rl(&mut self) {
+        self.rl_available = false;
+    }
+
+    /// Check if RL optimization is enabled and available.
+    #[cfg(feature = "rl")]
+    pub fn is_rl_enabled(&self) -> bool {
+        self.rl_available
+            && self
+                .rl_config
+                .as_ref()
+                .map(|c| c.rl_enabled)
+                .unwrap_or(false)
+    }
+
+    /// Get RL configuration, if set.
+    #[cfg(feature = "rl")]
+    pub fn rl_config(&self) -> Option<&RLConfig> {
+        self.rl_config.as_ref()
+    }
+
+    /// Get RL statistics.
+    #[cfg(feature = "rl")]
+    pub fn rl_statistics(&self) -> &RLStatistics {
+        &self.rl_stats
     }
 
     /// Run one evolution step: analyze history, check milestones,
@@ -860,6 +966,412 @@ impl EvolutionTracker {
         let viz = ConvergenceVisualizer::default();
         viz.render(history, label)
     }
+    
+    // =========================================================
+    // RL-ENHANCED EVOLUTION METHODS (feature = "rl")
+    // =========================================================
+    
+    /// Evolve using RL-optimized deltas.
+    /// 
+    /// This method implements the RL-enhanced evolution flow:
+    /// 1. Collect observations and build behavior state
+    /// 2. Call RL optimizer for delta prediction
+    /// 3. Apply delta to profile
+    /// 4. Measure convergence improvement (reward)
+    /// 5. Store trajectory for learning
+    /// 6. Trigger training when buffer is full
+    /// 
+    /// Falls back to traditional evolution if RL is unavailable.
+    #[cfg(feature = "rl")]
+    pub async fn evolve_with_rl(
+        &mut self,
+        profile: &mut AiProfile,
+        observations: &[BehaviorObservation],
+        analyzer: &mut BehaviorAnalyzer,
+    ) -> Result<RLEvolutionResult, Box<dyn std::error::Error + Send + Sync>> {
+        // Check if RL is enabled and we have enough observations
+        let config = match &self.rl_config {
+            Some(c) if c.rl_enabled => c.clone(),
+            _ => {
+                // Fallback to traditional evolution
+                self.rl_stats.record_fallback();
+                return self.evolve_traditional(profile, observations, analyzer);
+            }
+        };
+        
+        if observations.len() < config.min_observations {
+            // Not enough observations, use traditional
+            self.rl_stats.record_fallback();
+            return self.evolve_traditional(profile, observations, analyzer);
+        }
+        
+        // Record starting convergence
+        let starting_convergence = self.best_convergence;
+        let profile_before = profile.clone();
+        
+        // Try to get RL-optimized delta
+        let delta = match self.predict_rl_delta(profile, observations, &config).await {
+            Ok(d) => {
+                self.rl_stats.record_prediction();
+                d
+            }
+            Err(e) => {
+                // RL service unavailable, fallback
+                if config.fallback_to_traditional {
+                    self.rl_stats.record_fallback();
+                    self.rl_stats.record_error();
+                    if config.debug_logging {
+                        eprintln!("[RL] Service error, falling back: {}", e);
+                    }
+                    return self.evolve_traditional(profile, observations, analyzer);
+                } else {
+                    return Err(e);
+                }
+            }
+        };
+        
+        // Apply delta to profile
+        profile.apply_correction(&delta);
+        
+        // Measure convergence improvement
+        let new_convergence = self.measure_convergence(profile, observations, analyzer);
+        let reward = self.compute_reward(starting_convergence, new_convergence, &config);
+        
+        // Create trajectory for learning
+        let observation = if !observations.is_empty() {
+            observations[0].clone()
+        } else {
+            BehaviorObservation::default()
+        };
+        
+        let trajectory = EvolutionTrajectory::new(
+            profile_before,
+            delta.clone(),
+            observation,
+            reward,
+            profile.clone(),
+        );
+        
+        // Collect trajectory
+        self.trajectory_buffer.push(trajectory);
+        self.rl_stats.record_trajectory(reward);
+        
+        // Update convergence tracking
+        if new_convergence > self.best_convergence {
+            self.best_convergence = new_convergence;
+            self.best_convergence_iteration = self.total_evolutions;
+        }
+        
+        // Run evolution step for drift detection
+        let convergence_history: Vec<f64> = vec![starting_convergence, new_convergence];
+        let step_result = self.step(&convergence_history, self.total_evolutions);
+        
+        // Check if we should train
+        let trained = if config.auto_train_on_buffer_full 
+            && self.trajectory_buffer.len() >= config.min_trajectories_for_training 
+        {
+            match self.train_rl_model_internal(&config).await {
+                Ok(train_result) => {
+                    if config.debug_logging {
+                        eprintln!("[RL] Training completed: {:?}", train_result);
+                    }
+                    true
+                }
+                Err(e) => {
+                    self.rl_stats.record_error();
+                    if config.debug_logging {
+                        eprintln!("[RL] Training error: {}", e);
+                    }
+                    false
+                }
+            }
+        } else {
+            false
+        };
+        
+        // Update RL statistics
+        self.rl_stats.convergence_improvement = new_convergence - self.pre_rl_convergence.unwrap_or(0.0);
+        
+        Ok(RLEvolutionResult {
+            delta,
+            starting_convergence,
+            ending_convergence: new_convergence,
+            reward,
+            phase: self.current_phase.clone(),
+            used_rl: true,
+            trained_this_step: trained,
+            trajectory_buffer_size: self.trajectory_buffer.len(),
+            step_result,
+        })
+    }
+    
+    /// Predict personality delta using RL optimizer.
+    #[cfg(feature = "rl")]
+    async fn predict_rl_delta(
+        &self,
+        profile: &AiProfile,
+        observations: &[BehaviorObservation],
+        config: &RLConfig,
+    ) -> Result<PersonalityDelta, Box<dyn std::error::Error + Send + Sync>> {
+        // Create RL optimizer config
+        let optimizer_config = RLOptimizerConfig {
+            service_url: config.service_url.clone(),
+            mongodb_url: config.mongodb_url.clone(),
+            database_name: config.database_name.clone(),
+            collection_name: config.collection_name.clone(),
+            batch_size: config.batch_size,
+            min_trajectories_for_training: config.min_trajectories_for_training,
+            importance_threshold: config.importance_threshold,
+            request_timeout_ms: config.request_timeout_ms,
+        };
+        
+        // Initialize optimizer
+        let optimizer = ReinforcementLearningOptimizer::new(optimizer_config)?;
+        
+        // Use first observation for prediction
+        let observation = observations.first()
+            .ok_or("No observations provided")?;
+        
+        // Predict delta
+        let delta = optimizer.predict_delta(profile, observation).await?;
+        
+        Ok(delta)
+    }
+    
+    /// Fallback to traditional evolution when RL is unavailable.
+    #[cfg(feature = "rl")]
+    fn evolve_traditional(
+        &mut self,
+        profile: &mut AiProfile,
+        observations: &[BehaviorObservation],
+        analyzer: &mut BehaviorAnalyzer,
+    ) -> Result<RLEvolutionResult, Box<dyn std::error::Error + Send + Sync>> {
+        use crate::mimicry::profile::DeltaSource;
+        
+        let starting_convergence = self.best_convergence;
+        
+        // Build signature from observations
+        let responses: Vec<String> = observations.iter()
+            .map(|o| o.response.clone())
+            .collect();
+        
+        if responses.is_empty() {
+            return Ok(RLEvolutionResult {
+                delta: PersonalityDelta::new(DeltaSource::Observation),
+                starting_convergence,
+                ending_convergence: starting_convergence,
+                reward: 0.0,
+                phase: self.current_phase.clone(),
+                used_rl: false,
+                trained_this_step: false,
+                trajectory_buffer_size: self.trajectory_buffer.len(),
+                step_result: EvolutionStepResult {
+                    drift_analysis: self.drift_detector.analyze(&[starting_convergence]),
+                    new_milestones: vec![],
+                    phase_changed: false,
+                    should_auto_save: false,
+                    iteration: self.total_evolutions,
+                },
+            });
+        }
+        
+        let sig = analyzer.build_signature("target", &responses);
+        
+        // Refine profile
+        analyzer.refine_profile(profile, &sig);
+        
+        // Self-monitor to produce delta
+        let delta = analyzer.self_monitor_output(&responses[0], &sig);
+        profile.apply_correction(&delta);
+        
+        // Measure convergence
+        let new_convergence = analyzer.compute_convergence(profile, &sig);
+        
+        if new_convergence > self.best_convergence {
+            self.best_convergence = new_convergence;
+            self.best_convergence_iteration = self.total_evolutions;
+        }
+        
+        let convergence_history = vec![starting_convergence, new_convergence];
+        let step_result = self.step(&convergence_history, self.total_evolutions);
+        
+        Ok(RLEvolutionResult {
+            delta,
+            starting_convergence,
+            ending_convergence: new_convergence,
+            reward: new_convergence - starting_convergence,
+            phase: self.current_phase.clone(),
+            used_rl: false,
+            trained_this_step: false,
+            trajectory_buffer_size: self.trajectory_buffer.len(),
+            step_result,
+        })
+    }
+    
+    /// Measure convergence using observations.
+    #[cfg(feature = "rl")]
+    fn measure_convergence(
+        &self,
+        profile: &AiProfile,
+        observations: &[BehaviorObservation],
+        analyzer: &mut BehaviorAnalyzer,
+    ) -> f64 {
+        if observations.is_empty() {
+            return self.best_convergence;
+        }
+        
+        let responses: Vec<String> = observations.iter()
+            .map(|o| o.response.clone())
+            .collect();
+        
+        let sig = analyzer.build_signature("target", &responses);
+        analyzer.compute_convergence(profile, &sig)
+    }
+    
+    /// Compute reward based on convergence improvement.
+    #[cfg(feature = "rl")]
+    fn compute_reward(&self, before: f64, after: f64, config: &RLConfig) -> f64 {
+        let base_reward = after - before;
+        
+        if config.reward_shaping {
+            // Apply reward shaping:
+            // - Bonus for reaching exploitation threshold
+            // - Penalty for regression
+            // - Scale by convergence level
+            let mut shaped = base_reward;
+            
+            if after >= config.exploitation_threshold && before < config.exploitation_threshold {
+                shaped += 0.1;  // Bonus for crossing exploitation threshold
+            }
+            
+            if after >= config.target_convergence {
+                shaped += 0.2;  // Bonus for reaching target
+            }
+            
+            if base_reward < 0.0 {
+                shaped *= 1.5;  // Penalty multiplier for regression
+            }
+            
+            // Scale by current convergence level (harder improvements are worth more)
+            let difficulty_multiplier = 1.0 + after;
+            shaped *= difficulty_multiplier;
+            
+            shaped.clamp(-1.0, 1.0)
+        } else {
+            base_reward.clamp(-1.0, 1.0)
+        }
+    }
+    
+    /// Train the RL model on collected trajectories.
+    #[cfg(feature = "rl")]
+    pub async fn train_rl_model(&mut self) -> Result<RLTrainingResult, Box<dyn std::error::Error + Send + Sync>> {
+        let config = self.rl_config.clone()
+            .ok_or("RL not configured")?;
+        
+        self.train_rl_model_internal(&config).await
+    }
+    
+    /// Internal training implementation.
+    #[cfg(feature = "rl")]
+    async fn train_rl_model_internal(
+        &mut self,
+        config: &RLConfig,
+    ) -> Result<RLTrainingResult, Box<dyn std::error::Error + Send + Sync>> {
+        if self.trajectory_buffer.len() < config.min_trajectories_for_training {
+            return Err(format!(
+                "Not enough trajectories: {} < {}",
+                self.trajectory_buffer.len(),
+                config.min_trajectories_for_training
+            ).into());
+        }
+        
+        let start_time = std::time::Instant::now();
+        
+        // Create optimizer config
+        let optimizer_config = RLOptimizerConfig {
+            service_url: config.service_url.clone(),
+            mongodb_url: config.mongodb_url.clone(),
+            database_name: config.database_name.clone(),
+            collection_name: config.collection_name.clone(),
+            batch_size: config.batch_size,
+            min_trajectories_for_training: config.min_trajectories_for_training,
+            importance_threshold: config.importance_threshold,
+            request_timeout_ms: config.request_timeout_ms,
+        };
+        
+        // Initialize optimizer and load trajectories
+        let mut optimizer = ReinforcementLearningOptimizer::new(optimizer_config)?;
+        
+        for trajectory in &self.trajectory_buffer {
+            optimizer.collect_trajectory(trajectory.clone());
+        }
+        
+        // Train
+        let loss_type = match config.loss_type {
+            crate::mimicry::rl_config::RLLossType::MINIRL => "MINIRL",
+            crate::mimicry::rl_config::RLLossType::GRPO => "GRPO",
+            crate::mimicry::rl_config::RLLossType::Hybrid => {
+                if self.best_convergence < config.exploitation_threshold {
+                    "GRPO"
+                } else {
+                    "MINIRL"
+                }
+            }
+        };
+        
+        optimizer.train_on_trajectories(loss_type).await?;
+        
+        let training_time_ms = start_time.elapsed().as_millis() as u64;
+        let trajectories_used = self.trajectory_buffer.len();
+        
+        // Record training stats
+        self.rl_stats.record_training(trajectories_used, training_time_ms);
+        
+        // Clear buffer after training
+        self.trajectory_buffer.clear();
+        
+        Ok(RLTrainingResult {
+            trajectories_used,
+            training_time_ms,
+            loss_type: loss_type.to_string(),
+        })
+    }
+    
+    /// Get the current trajectory buffer size.
+    #[cfg(feature = "rl")]
+    pub fn trajectory_buffer_size(&self) -> usize {
+        self.trajectory_buffer.len()
+    }
+    
+    /// Clear the trajectory buffer.
+    #[cfg(feature = "rl")]
+    pub fn clear_trajectories(&mut self) {
+        self.trajectory_buffer.clear();
+    }
+    
+    /// Get convergence improvement from RL.
+    #[cfg(feature = "rl")]
+    pub fn rl_convergence_improvement(&self) -> f64 {
+        self.best_convergence - self.pre_rl_convergence.unwrap_or(0.0)
+    }
+    
+    /// Get extended status including RL information.
+    #[cfg(feature = "rl")]
+    pub fn rl_status(&self) -> String {
+        let mut lines = vec![self.status()];
+        
+        if self.rl_config.is_some() {
+            lines.push(String::new());
+            lines.push("=== RL INTEGRATION ===".to_string());
+            lines.push(format!("RL Available: {}", self.rl_available));
+            lines.push(format!("Trajectory Buffer: {}", self.trajectory_buffer.len()));
+            lines.push(format!("RL Improvement: {:.2}%", self.rl_convergence_improvement() * 100.0));
+            lines.push(String::new());
+            lines.push(self.rl_stats.summary());
+        }
+        
+        lines.join("\n")
+    }
 }
 
 impl Default for EvolutionTracker {
@@ -896,6 +1408,85 @@ pub struct TrainingLoopResult {
     pub drift_events: u64,
     /// Evolution phase at the end of training
     pub final_phase: EvolutionPhase,
+}
+
+// =================================================================
+// RL EVOLUTION RESULT TYPES (feature = "rl")
+// =================================================================
+
+/// Result of RL-enhanced evolution step
+#[cfg(feature = "rl")]
+#[derive(Debug, Clone)]
+pub struct RLEvolutionResult {
+    /// The personality delta that was applied
+    pub delta: PersonalityDelta,
+    /// Convergence score before evolution
+    pub starting_convergence: f64,
+    /// Convergence score after evolution
+    pub ending_convergence: f64,
+    /// Reward signal computed from convergence change
+    pub reward: f64,
+    /// Current evolution phase
+    pub phase: EvolutionPhase,
+    /// Whether RL was used (vs traditional fallback)
+    pub used_rl: bool,
+    /// Whether RL training was triggered this step
+    pub trained_this_step: bool,
+    /// Current size of trajectory buffer
+    pub trajectory_buffer_size: usize,
+    /// Evolution step result with drift/milestone info
+    pub step_result: EvolutionStepResult,
+}
+
+#[cfg(feature = "rl")]
+impl RLEvolutionResult {
+    /// Get the convergence improvement
+    pub fn improvement(&self) -> f64 {
+        self.ending_convergence - self.starting_convergence
+    }
+    
+    /// Check if convergence improved
+    pub fn improved(&self) -> bool {
+        self.ending_convergence > self.starting_convergence
+    }
+    
+    /// Get a summary string
+    pub fn summary(&self) -> String {
+        format!(
+            "RL Evolution: {:.1}% -> {:.1}% ({}{:.2}%) [{}] reward={:.4}",
+            self.starting_convergence * 100.0,
+            self.ending_convergence * 100.0,
+            if self.improvement() >= 0.0 { "+" } else { "" },
+            self.improvement() * 100.0,
+            if self.used_rl { "RL" } else { "traditional" },
+            self.reward,
+        )
+    }
+}
+
+/// Result of RL model training
+#[cfg(feature = "rl")]
+#[derive(Debug, Clone)]
+pub struct RLTrainingResult {
+    /// Number of trajectories used in training
+    pub trajectories_used: usize,
+    /// Time taken for training in milliseconds
+    pub training_time_ms: u64,
+    /// Type of loss function used
+    pub loss_type: String,
+}
+
+#[cfg(feature = "rl")]
+impl RLTrainingResult {
+    /// Get a summary string
+    pub fn summary(&self) -> String {
+        format!(
+            "RL Training: {} trajectories, {}ms, loss={}",
+            self.trajectories_used,
+            self.training_time_ms,
+            self.loss_type,
+        )
+    }
 }
 
 // =================================================================
@@ -1194,5 +1785,212 @@ mod tests {
         assert_eq!(format!("{}", EvolutionPhase::Observation), "OBSERVATION");
         assert_eq!(format!("{}", EvolutionPhase::Drifting), "DRIFTING");
         assert_eq!(format!("{}", EvolutionPhase::Converged), "CONVERGED");
+    }
+    
+    // =========================================================
+    // RL INTEGRATION TESTS (feature = "rl")
+    // =========================================================
+    
+    #[cfg(feature = "rl")]
+    mod rl_tests {
+        use super::*;
+        use crate::mimicry::rl_config::{RLConfig, RLLossType};
+        use crate::mimicry::rl_optimizer::BehaviorObservation;
+        
+        #[test]
+        fn test_evolution_tracker_with_rl_config() {
+            let config = RLConfig::development();
+            let tracker = EvolutionTracker::with_rl_config(config);
+            
+            assert!(tracker.rl_config.is_some());
+            assert!(tracker.rl_available);
+            assert!(tracker.is_rl_enabled());
+        }
+        
+        #[test]
+        fn test_enable_disable_rl() {
+            let mut tracker = EvolutionTracker::new();
+            assert!(!tracker.is_rl_enabled());
+            
+            tracker.enable_rl(RLConfig::development());
+            assert!(tracker.is_rl_enabled());
+            assert!(tracker.pre_rl_convergence.is_some());
+            
+            tracker.disable_rl();
+            assert!(!tracker.is_rl_enabled());
+        }
+        
+        #[test]
+        fn test_trajectory_buffer_management() {
+            let mut tracker = EvolutionTracker::with_rl_config(RLConfig::development());
+            
+            assert_eq!(tracker.trajectory_buffer_size(), 0);
+            
+            // Create a test trajectory
+            let profile = AiProfile::new("test", "Test");
+            let delta = PersonalityDelta::new(crate::mimicry::profile::DeltaSource::Observation);
+            let observation = BehaviorObservation::default();
+            
+            let trajectory = crate::mimicry::rl_optimizer::EvolutionTrajectory::new(
+                profile.clone(),
+                delta,
+                observation,
+                0.5,
+                profile,
+            );
+            
+            tracker.trajectory_buffer.push(trajectory);
+            assert_eq!(tracker.trajectory_buffer_size(), 1);
+            
+            tracker.clear_trajectories();
+            assert_eq!(tracker.trajectory_buffer_size(), 0);
+        }
+        
+        #[test]
+        fn test_rl_convergence_improvement() {
+            let mut tracker = EvolutionTracker::with_rl_config(RLConfig::development());
+            tracker.pre_rl_convergence = Some(0.5);
+            tracker.best_convergence = 0.75;
+            
+            let improvement = tracker.rl_convergence_improvement();
+            assert!((improvement - 0.25).abs() < 0.001);
+        }
+        
+        #[test]
+        fn test_rl_status_output() {
+            let mut tracker = EvolutionTracker::with_rl_config(RLConfig::development());
+            tracker.best_convergence = 0.7;
+            tracker.pre_rl_convergence = Some(0.5);
+            
+            let status = tracker.rl_status();
+            assert!(status.contains("RL INTEGRATION"));
+            assert!(status.contains("RL Available: true"));
+        }
+        
+        #[test]
+        fn test_rl_statistics_tracking() {
+            let mut tracker = EvolutionTracker::with_rl_config(RLConfig::development());
+            
+            // Simulate some RL operations
+            tracker.rl_stats.record_trajectory(0.6);
+            tracker.rl_stats.record_trajectory(0.8);
+            tracker.rl_stats.record_prediction();
+            tracker.rl_stats.record_fallback();
+            
+            assert_eq!(tracker.rl_stats.total_trajectories, 2);
+            assert_eq!(tracker.rl_stats.predictions_made, 1);
+            assert_eq!(tracker.rl_stats.fallback_count, 1);
+            assert!((tracker.rl_stats.avg_reward - 0.7).abs() < 0.001);
+        }
+        
+        #[test]
+        fn test_reward_shaping() {
+            let tracker = EvolutionTracker::with_rl_config(RLConfig::development());
+            let config = tracker.rl_config().unwrap();
+            
+            // Test positive improvement reward
+            let reward = tracker.compute_reward(0.5, 0.6, config);
+            assert!(reward > 0.0);
+            
+            // Test regression penalty
+            let regression_reward = tracker.compute_reward(0.6, 0.5, config);
+            assert!(regression_reward < 0.0);
+            
+            // Regression should be penalized more than improvement is rewarded
+            assert!(regression_reward.abs() > reward.abs());
+        }
+        
+        #[test]
+        fn test_rl_config_in_tracker() {
+            let config = RLConfig::new()
+                .with_batch_size(32)
+                .with_target_convergence(0.85)
+                .with_loss_type(RLLossType::GRPO);
+            
+            let tracker = EvolutionTracker::with_rl_config(config);
+            
+            let stored_config = tracker.rl_config().unwrap();
+            assert_eq!(stored_config.batch_size, 32);
+            assert_eq!(stored_config.target_convergence, 0.85);
+            assert_eq!(stored_config.loss_type, RLLossType::GRPO);
+        }
+        
+        #[test]
+        fn test_rl_evolution_result() {
+            let result = RLEvolutionResult {
+                delta: PersonalityDelta::new(crate::mimicry::profile::DeltaSource::Observation),
+                starting_convergence: 0.5,
+                ending_convergence: 0.7,
+                reward: 0.2,
+                phase: EvolutionPhase::Learning,
+                used_rl: true,
+                trained_this_step: false,
+                trajectory_buffer_size: 10,
+                step_result: EvolutionStepResult {
+                    drift_analysis: DriftAnalysis {
+                        is_drifting: false,
+                        trend_slope: 0.1,
+                        phase: EvolutionPhase::Learning,
+                        current_convergence: 0.7,
+                        recommendation: "Continue learning".to_string(),
+                    },
+                    new_milestones: vec![],
+                    phase_changed: false,
+                    should_auto_save: false,
+                    iteration: 1,
+                },
+            };
+            
+            assert!(result.improved());
+            assert!((result.improvement() - 0.2).abs() < 0.001);
+            
+            let summary = result.summary();
+            assert!(summary.contains("RL"));
+            assert!(summary.contains("50.0%"));
+            assert!(summary.contains("70.0%"));
+        }
+        
+        #[test]
+        fn test_rl_training_result() {
+            let result = RLTrainingResult {
+                trajectories_used: 100,
+                training_time_ms: 5000,
+                loss_type: "MINIRL".to_string(),
+            };
+            
+            let summary = result.summary();
+            assert!(summary.contains("100 trajectories"));
+            assert!(summary.contains("5000ms"));
+            assert!(summary.contains("MINIRL"));
+        }
+        
+        #[test]
+        fn test_traditional_fallback_flag() {
+            let config = RLConfig::new()
+                .with_rl_enabled(false);
+            
+            let tracker = EvolutionTracker::with_rl_config(config);
+            
+            // RL is configured but disabled
+            assert!(tracker.rl_config.is_some());
+            assert!(!tracker.is_rl_enabled());
+        }
+        
+        #[test]
+        fn test_rl_tracker_serialization() {
+            let mut tracker = EvolutionTracker::with_rl_config(RLConfig::development());
+            tracker.best_convergence = 0.8;
+            tracker.pre_rl_convergence = Some(0.5);
+            tracker.rl_stats.record_trajectory(0.7);
+            
+            let json = serde_json::to_string(&tracker).unwrap();
+            let restored: EvolutionTracker = serde_json::from_str(&json).unwrap();
+            
+            assert_eq!(restored.best_convergence, 0.8);
+            assert!(restored.rl_config.is_some());
+            assert_eq!(restored.pre_rl_convergence, Some(0.5));
+            // Note: trajectory_buffer is skipped in serialization
+            assert_eq!(restored.trajectory_buffer_size(), 0);
+        }
     }
 }

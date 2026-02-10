@@ -13,6 +13,9 @@
 //! - [`templates`] — System-1 response generation: tone blending, hedging, formatting.
 //! - [`api`] — Live model observation over HTTP (feature-gated).
 //! - [`rl_optimizer`] — AgentCPM integration: reinforcement learning persona optimization (feature-gated).
+//! - [`rl_config`] — Configuration for RL integration (feature-gated).
+//! - [`agentdock_bridge`] — AgentDock MCP container orchestration (feature-gated).
+//! - [`multi_model`] — Multi-model parallel observation and consensus building (feature-gated).
 
 pub mod analyzer;
 #[cfg(feature = "api")]
@@ -26,3 +29,9 @@ pub mod profile;
 pub mod templates;
 #[cfg(feature = "rl")]
 pub mod rl_optimizer;
+#[cfg(feature = "rl")]
+pub mod rl_config;
+#[cfg(feature = "agentdock")]
+pub mod agentdock_bridge;
+#[cfg(feature = "agentdock")]
+pub mod multi_model;

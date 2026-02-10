@@ -38,7 +38,8 @@ mongodb = { version = "2.0", optional = true }
 default = []
 api = ["reqwest"]
 rl = ["uuid", "mongodb", "reqwest", "chrono"]
-full = ["api", "rl"]
+agentdock = ["uuid", "reqwest", "chrono"]
+full = ["api", "rl", "agentdock"]
 
 [[bin]]
 name = "rustyworm"

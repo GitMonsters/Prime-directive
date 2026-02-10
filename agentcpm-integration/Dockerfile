@@ -16,6 +16,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY agentrl_service.py .
 COPY agentrl_wrapper.py .
+COPY mongodb_client.py .
+COPY __init__.py .
+
+# Copy migrations
+COPY migrations/ ./migrations/
 
 # Create directories for logs and models
 RUN mkdir -p /workspace/logs /workspace/models
@@ -24,7 +29,7 @@ RUN mkdir -p /workspace/logs /workspace/models
 EXPOSE 8888
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8888/health || exit 1
 
 # Environment variables
@@ -34,6 +39,8 @@ ENV SERVICE_PORT=8888
 ENV BATCH_SIZE=32
 ENV MAX_TRAJECTORY_BUFFER=1000
 ENV LEARNING_RATE=0.0001
+ENV MONGODB_ENABLED=true
+ENV MODEL_NAME=rl-agent
 
 # Run service
 CMD ["python", "agentrl_service.py"]

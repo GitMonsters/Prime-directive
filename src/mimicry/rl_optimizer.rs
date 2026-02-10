@@ -238,7 +238,7 @@ impl Default for OptimzerStatistics {
 
 impl ReinforcementLearningOptimizer {
     /// Creates a new RL optimizer with default config
-    pub fn new(config: RLOptimizerConfig) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new(config: RLOptimizerConfig) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let http_client = reqwest::Client::new();
         
         // Store MongoDB URL for future async connections
@@ -255,7 +255,7 @@ impl ReinforcementLearningOptimizer {
     }
     
     /// Health check - verify AgentRL service is accessible
-    pub async fn health_check(&self) -> Result<bool, Box<dyn std::error::Error>> {
+    pub async fn health_check(&self) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
         let url = format!("{}/health", self.config.service_url);
         let response = self.http_client
             .get(&url)
@@ -271,7 +271,7 @@ impl ReinforcementLearningOptimizer {
         &self,
         profile: &AiProfile,
         observation: &BehaviorObservation,
-    ) -> Result<PersonalityDelta, Box<dyn std::error::Error>> {
+    ) -> Result<PersonalityDelta, Box<dyn std::error::Error + Send + Sync>> {
         let request = RLPredictDeltaRequest {
             profile: profile.clone(),
             observation: observation.clone(),
@@ -372,7 +372,7 @@ impl ReinforcementLearningOptimizer {
     pub async fn train_on_trajectories(
         &mut self,
         loss_type: &str,  // "MINIRL" or "GRPO"
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if self.trajectories.len() < self.config.min_trajectories_for_training {
             return Err("Not enough trajectories for training".into());
         }
@@ -417,7 +417,7 @@ impl ReinforcementLearningOptimizer {
         &self,
         _mongodb_url: &str,
         _trajectory: EvolutionTrajectory,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // MongoDB integration would be implemented here
         // For now, trajectories are stored in memory
         Ok(())
