@@ -2,7 +2,7 @@
 
 A dual-process AI mimicry framework in Rust with reinforcement learning and multi-model orchestration. Observe, internalize, and emulate any AI model's behavior on the fly.
 
-[![Tests](https://img.shields.io/badge/tests-250%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-276%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-2.1.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![AgentCPM](https://img.shields.io/badge/AgentCPM-integrated-purple)]()
@@ -18,7 +18,7 @@ A dual-process AI mimicry framework in Rust with reinforcement learning and mult
 
 RustyWorm is a dual-process (System 1 + System 2) AI mimicry framework. It can observe, internalize, and emulate the behavior of any AI model -- GPT-4o, Claude, o1, Gemini, LLaMA, and others -- on the fly. It uses compound integrations: every module feeds back into every other module, creating compounding feedback loops that improve mimicry fidelity over time.
 
-**New in v2.1.0**: AgentCPM-powered reinforcement learning, multi-model consensus, long-horizon observation (100+ turns), and AgentToLeaP benchmarking integration.
+**New in v2.1.0**: AgentCPM-powered reinforcement learning, multi-model consensus, long-horizon observation (100+ turns), AgentToLeaP benchmarking, and **cross-platform GUI automation** (Android, iOS, Desktop).
 
 RustyWorm is built on top of the **Consciousness Prime Directive** framework. Every `CompoundPersona` must implement the `ConsciousAI` trait, ensuring that mimicry is symbiosis, not parasitism.
 
@@ -32,6 +32,12 @@ RustyWorm is built on top of the **Consciousness Prime Directive** framework. Ev
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                     GUI Agent Layer (Phase 8)                        │   │
+│  │    Android (ADB) │ iOS (libimobiledevice) │ Desktop (native)        │   │
+│  │                    ↓ AgentCPM-GUI Bridge ↓                           │   │
+│  └───────────────────────────────┬─────────────────────────────────────┘   │
+│                                  │                                          │
+│  ┌───────────────────────────────▼─────────────────────────────────────┐   │
 │  │                    AgentToLeaP Benchmarking                          │   │
 │  │  GAIA │ HLE │ BrowseComp │ Frames │ AssistantBench │ WEBARENA      │   │
 │  └───────────────────────────────┬─────────────────────────────────────┘   │
@@ -91,7 +97,8 @@ default = []
 api = ["reqwest"]                    # Live API observation
 rl = ["uuid", "mongodb", "reqwest", "chrono"]  # RL optimization
 agentdock = ["uuid", "reqwest", "chrono"]       # MCP/AgentDock integration
-full = ["api", "rl", "agentdock"]               # All features
+gui = ["reqwest", "base64"]                     # Cross-platform GUI automation
+full = ["api", "rl", "agentdock", "gui"]        # All features
 ```
 
 ### Build Configurations
@@ -108,6 +115,9 @@ cargo build --features rl --release
 
 # With AgentDock/multi-model
 cargo build --features agentdock --release
+
+# With GUI automation
+cargo build --features gui --release
 
 # Full build (all features)
 cargo build --features full --release
@@ -181,6 +191,9 @@ The slow path performs deep behavioral analysis and profile construction.
 | `mimicry/multi_model.rs` | `agentdock` | Multi-model consensus building and scheduling |
 | `mimicry/long_horizon.rs` | `agentdock` | 100+ turn context management and pattern tracking |
 | `mimicry/benchmarking.rs` | `agentdock` | AgentToLeaP benchmark integration |
+| `mimicry/gui_agent.rs` | `gui` | Cross-platform GUI action types and traits |
+| `mimicry/gui_bridge.rs` | `gui` | HTTP client to AgentCPM-GUI vision model |
+| `mimicry/platforms/` | `gui` | Platform implementations (Android, iOS, Desktop) |
 
 ---
 
@@ -340,6 +353,132 @@ println!("{}", all_results.summary());
 | OWA | Open-World Agents |
 | SWEBench | Software engineering tasks |
 | AppWorld | Application interaction |
+
+---
+
+## Cross-Platform GUI Agent
+
+RustyWorm integrates with [AgentCPM-GUI](https://github.com/OpenBMB/AgentCPM) for vision-language GUI automation across Android, iOS, and Desktop platforms.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  RustyWorm GUI Agent                                                         │
+│  ├── gui_agent.rs      → Platform-agnostic action types                     │
+│  ├── gui_bridge.rs     → HTTP client to AgentCPM-GUI (vLLM served)          │
+│  └── platforms/                                                              │
+│      ├── android.rs    → ADB-based automation                               │
+│      ├── ios.rs        → libimobiledevice + WebDriverAgent                  │
+│      └── desktop.rs    → Native OS automation (Win/Mac/Linux)               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                              ↓ HTTP (OpenAI-compatible API)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  AgentCPM-GUI (vLLM Server)                                                  │
+│  └── Screenshot Analysis → Action Prediction → JSON Output                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Supported Platforms
+
+| Platform | Technology | Requirements |
+|----------|-----------|--------------|
+| Android | ADB (Android Debug Bridge) | `adb` in PATH, USB debugging enabled |
+| iOS | libimobiledevice + WebDriverAgent | `idevicescreenshot`, WDA running |
+| macOS | osascript + cliclick | `cliclick` for mouse/keyboard |
+| Linux | xdotool | `xdotool` package installed |
+| Windows | PowerShell | Windows 10/11 |
+
+### Quick Start
+
+```bash
+# Build with GUI support
+cargo build --features gui --release
+
+# Start AgentCPM-GUI server (vLLM)
+python -m vllm.entrypoints.openai.api_server \
+    --model openbmb/AgentCPM-GUI \
+    --trust-remote-code \
+    --port 8000
+
+# In the REPL
+/gui connect android:emulator-5554
+/gui screenshot
+/gui execute "Click the Settings icon"
+```
+
+### Code Example
+
+```rust
+use consciousness_experiments::mimicry::{
+    GuiAction, GuiBridge, GuiBridgeConfig,
+    PlatformFactory, Platform, DeviceManager,
+};
+
+// Create the GUI bridge to AgentCPM-GUI
+let config = GuiBridgeConfig {
+    endpoint: "http://localhost:8000/v1/chat/completions".to_string(),
+    model_name: "AgentCPM-GUI".to_string(),
+    enable_thought: true,
+    ..Default::default()
+};
+let bridge = GuiBridge::new(config);
+
+// Connect to a device
+let mut manager = DeviceManager::new();
+manager.connect("emulator-5554")?;
+
+// Capture screenshot and predict action
+let screenshot = manager.capture_screenshot()?;
+let result = bridge.predict(&screenshot, "Open the Settings app")?;
+
+println!("Predicted action: {:?}", result.action);
+println!("Confidence: {:.2}", result.confidence);
+println!("Latency: {}ms", result.latency_ms);
+
+// Execute the action
+manager.execute_action(&result.action)?;
+```
+
+### GUI Actions
+
+RustyWorm uses normalized coordinates (0-1000 range) for cross-platform compatibility:
+
+```rust
+// Click at position
+let click = GuiAction::click(500, 300);
+
+// Long press (1 second)
+let long_press = GuiAction::long_press(500, 300, 1000);
+
+// Swipe down
+let swipe = GuiAction::swipe_direction(500, 500, SwipeDirection::Down);
+
+// Swipe to specific point
+let swipe_to = GuiAction::swipe_to(100, 500, 900, 500);
+
+// Type text
+let type_text = GuiAction::type_text("Hello, World!");
+
+// Press hardware key
+let back = GuiAction::press_key(PressKey::Back);
+
+// With reasoning
+let action = GuiAction::click(500, 300)
+    .with_thought("Clicking the submit button");
+```
+
+### CLI Commands (feature: `gui`)
+
+| Command | Description |
+|---------|-------------|
+| `/gui devices` | List all available devices |
+| `/gui connect <device_id>` | Connect to a device |
+| `/gui disconnect` | Disconnect from current device |
+| `/gui screenshot` | Capture and display screenshot info |
+| `/gui execute <instruction>` | Predict and execute action for instruction |
+| `/gui config <endpoint>` | Set AgentCPM-GUI endpoint |
+| `/gui status` | Show GUI agent status |
 
 ---
 
@@ -609,13 +748,14 @@ These binaries exercise the foundational `consciousness.rs` module independently
 ## Development
 
 ```bash
-# Run all tests (250 tests)
+# Run all tests (276 tests)
 cargo test --features full --lib
 
 # Run tests for specific feature
 cargo test --features api          # API tests only
 cargo test --features rl           # RL tests only
 cargo test --features agentdock    # AgentDock tests only
+cargo test --features gui          # GUI tests only
 
 # Generate documentation
 cargo doc --features full --no-deps --open
@@ -654,7 +794,14 @@ Prime-directive/
 │       ├── agentdock_bridge.rs # MCP integration [agentdock]
 │       ├── multi_model.rs     # Multi-model observer [agentdock]
 │       ├── long_horizon.rs    # Long-horizon tracking [agentdock]
-│       └── benchmarking.rs    # AgentToLeaP benchmarks [agentdock]
+│       ├── benchmarking.rs    # AgentToLeaP benchmarks [agentdock]
+│       ├── gui_agent.rs       # GUI action types [gui]
+│       ├── gui_bridge.rs      # AgentCPM-GUI client [gui]
+│       └── platforms/         # Platform implementations [gui]
+│           ├── mod.rs         # Platform factory
+│           ├── android.rs     # Android via ADB
+│           ├── ios.rs         # iOS via libimobiledevice
+│           └── desktop.rs     # Windows/macOS/Linux
 ├── agentcpm-integration/
 │   ├── agentrl_service.py     # FastAPI service
 │   ├── agentrl_wrapper.py     # RL framework wrapper
@@ -678,7 +825,9 @@ Prime-directive/
 - **Long-Horizon Observer**: 100+ turn context management
 - **AgentToLeaP Benchmarking**: 9 benchmark suites
 - **MongoDB Integration**: Async trajectory storage
-- **250 tests** (up from 149)
+- **Cross-Platform GUI Agent**: Android, iOS, Desktop automation
+- **AgentCPM-GUI Bridge**: Vision-language model integration
+- **276 tests** (up from 149)
 
 ### v2.0.0
 
