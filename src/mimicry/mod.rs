@@ -16,6 +16,7 @@
 //! - [`rl_config`] — Configuration for RL integration (feature-gated).
 //! - [`agentdock_bridge`] — AgentDock MCP container orchestration (feature-gated).
 //! - [`multi_model`] — Multi-model parallel observation and consensus building (feature-gated).
+//! - [`long_horizon`] — Long-horizon observation: 100+ turn context & pattern tracking (feature-gated).
 
 pub mod analyzer;
 #[cfg(feature = "api")]
@@ -35,3 +36,5 @@ pub mod rl_config;
 pub mod agentdock_bridge;
 #[cfg(feature = "agentdock")]
 pub mod multi_model;
+#[cfg(feature = "agentdock")]
+pub mod long_horizon;
