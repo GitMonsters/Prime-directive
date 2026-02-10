@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # AgentRL Training Service
+  agentrl-service:
+    build:
+      context: ./agentcpm-integration
+      dockerfile: Dockerfile
+    container_name: agentrl-service
+    ports:
+      - "8888:8888"
+    environment:
+      - MONGODB_URL=mongodb://root:password@mongodb:27017
+      - LOG_LEVEL=INFO
+      - BATCH_SIZE=64
+      - MAX_TRAJECTORY_BUFFER=1000
+      - MODEL_NAME=rl-agent
+      - LEARNING_RATE=0.0001
+    volumes:
+      - ./agentcpm-integration/models:/workspace/models
+      - ./agentcpm-integration/logs:/workspace/logs
+    depends_on:
+      - mongodb
+    networks:
+      - rustyworm-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # MongoDB for trajectory storage
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - rustyworm-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  mongodb_data:
+
+networks:
+  rustyworm-net:
+    driver: bridge
