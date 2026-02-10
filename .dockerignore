@@ -2,7 +2,7 @@ target/
 .git/
 .github/
 .rustyworm/
-benches/
+
 Formula/
 *.md
 !README.md
