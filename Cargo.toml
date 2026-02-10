@@ -22,6 +22,13 @@ api = ["reqwest"]
 name = "rustyworm"
 path = "src/main.rs"
 
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "mimicry_bench"
+harness = false
+
 [[bin]]
 name = "consciousness"
 path = "consciousness_test.rs"
