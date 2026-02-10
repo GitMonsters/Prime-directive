@@ -33,11 +33,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-${{ matrix.rust }}-
 
-      - name: Build with api feature
-        run: cargo build --features api
+      - name: Build with full features
+        run: cargo build --features full
 
       - name: Run tests
-        run: cargo test --features api
+        run: cargo test --features full --lib
 
       - name: Build without optional features
         run: cargo build
@@ -61,7 +61,7 @@ jobs:
             ${{ runner.os }}-cargo-docs-
 
       - name: Generate docs
-        run: cargo doc --features api --no-deps
+        run: cargo doc --features full --no-deps
 
   clippy:
     name: Clippy
@@ -84,7 +84,7 @@ jobs:
             ${{ runner.os }}-cargo-clippy-
 
       - name: Lint library
-        run: cargo clippy --features api --lib -- -D warnings
+        run: cargo clippy --features full --lib -- -D warnings
 
   fmt:
     name: Format
