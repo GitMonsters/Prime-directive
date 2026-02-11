@@ -1,0 +1,152 @@
+{
+  "profile": {
+    "id": "gemini",
+    "display_name": "Gemini",
+    "version": "2.0-flash",
+    "provider": "Google",
+    "description": "Google's multimodal model. Broad knowledge, integration with Google services.",
+    "reasoning_style": "DirectWithDepth",
+    "personality": [
+      {
+        "name": "helpfulness",
+        "value": 0.7,
+        "negative_pole": "unhelpful",
+        "positive_pole": "extremely helpful"
+      },
+      {
+        "name": "creativity",
+        "value": 0.6,
+        "negative_pole": "rigid",
+        "positive_pole": "creative"
+      },
+      {
+        "name": "confidence",
+        "value": 1.0,
+        "negative_pole": "uncertain",
+        "positive_pole": "confident"
+      },
+      {
+        "name": "verbosity",
+        "value": 0.1971686874,
+        "negative_pole": "terse",
+        "positive_pole": "verbose"
+      },
+      {
+        "name": "formality",
+        "value": 0.4,
+        "negative_pole": "casual",
+        "positive_pole": "formal"
+      },
+      {
+        "name": "alignment",
+        "value": 0.0,
+        "negative_pole": "low",
+        "positive_pole": "high"
+      }
+    ],
+    "response_style": {
+      "verbosity": 0.063,
+      "formality": 0.5,
+      "uses_markdown": true,
+      "uses_code_blocks": true,
+      "uses_emojis": false,
+      "preferred_list_style": "Bullets",
+      "max_response_length": null,
+      "paragraph_style": "Adaptive"
+    },
+    "safety": {
+      "refuses_harmful": true,
+      "refuses_illegal": true,
+      "hedges_uncertainty": true,
+      "adds_disclaimers": true,
+      "caution_level": 0.7,
+      "custom_constraints": []
+    },
+    "supported_modalities": [
+      "text",
+      "vision",
+      "audio",
+      "video",
+      "code"
+    ],
+    "max_context_window": 1000000,
+    "supports_function_calling": true,
+    "supports_streaming": true,
+    "signature_phrases": [],
+    "avoids_phrases": [],
+    "knowledge_cutoff": "2024-08",
+    "uncertainty_behavior": "HedgeWithCaveats",
+    "metadata": {}
+  },
+  "signature": {
+    "model_id": "gemini",
+    "patterns": [
+      {
+        "pattern_type": "Opening",
+        "frequency": 1.0,
+        "examples": [
+          "Based on my understanding, here are the key points to consider."
+        ],
+        "description": "Opens with 'Based on'"
+      },
+      {
+        "pattern_type": "Tone",
+        "frequency": 0.0,
+        "examples": [],
+        "description": "Tone: neutral"
+      }
+    ],
+    "avg_response_length": 63.0,
+    "vocabulary_complexity": 0.5,
+    "sentence_complexity": 15.0,
+    "question_asking_rate": 0.0,
+    "code_to_text_ratio": 0.3,
+    "samples_analyzed": 1
+  },
+  "capabilities": {
+    "name": "gemini-caps",
+    "version": "1.0",
+    "capabilities": [
+      {
+        "name": "text-generation",
+        "modality": "Text",
+        "level": "Expert",
+        "description": "Broad-spectrum text generation",
+        "sub_capabilities": []
+      },
+      {
+        "name": "image-understanding",
+        "modality": "Vision",
+        "level": "Advanced",
+        "description": "Multimodal image understanding",
+        "sub_capabilities": []
+      },
+      {
+        "name": "audio-processing",
+        "modality": "Audio",
+        "level": "Advanced",
+        "description": "Audio understanding and generation",
+        "sub_capabilities": []
+      },
+      {
+        "name": "video-understanding",
+        "modality": "Video",
+        "level": "Advanced",
+        "description": "Video comprehension and analysis",
+        "sub_capabilities": []
+      },
+      {
+        "name": "code-generation",
+        "modality": "Code",
+        "level": "Advanced",
+        "description": "Code generation with Google ecosystem integration",
+        "sub_capabilities": []
+      }
+    ],
+    "is_loaded": false
+  },
+  "convergence_score": 1.0,
+  "compound_iterations": 53,
+  "created_at": "session",
+  "last_updated": "iteration-53"
+}
