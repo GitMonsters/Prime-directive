@@ -25,6 +25,12 @@ pub struct LayerStackConfig {
     pub min_propagation_confidence: f32,
     /// Per-layer configuration overrides.
     pub layer_configs: HashMap<Layer, LayerConfig>,
+    /// Maximum allowed confidence value (prevents divergence).
+    pub max_confidence: f32,
+    /// Maximum allowed total amplification factor.
+    pub max_total_amplification: f32,
+    /// Damping factor applied to amplification (0.0 - 1.0).
+    pub amplification_damping: f32,
 }
 
 impl Default for LayerStackConfig {
@@ -36,6 +42,9 @@ impl Default for LayerStackConfig {
             enable_backward_propagation: true,
             min_propagation_confidence: 0.1,
             layer_configs: HashMap::new(),
+            max_confidence: 2.0,           // Cap confidence at 2.0
+            max_total_amplification: 10.0, // Cap total amplification at 10x
+            amplification_damping: 0.8,    // Dampen amplification to 80%
         }
     }
 }
@@ -68,6 +77,30 @@ impl LayerStackConfig {
     pub fn without_backward_propagation(mut self) -> Self {
         self.enable_backward_propagation = false;
         self
+    }
+
+    /// Set maximum confidence value.
+    pub fn with_max_confidence(mut self, max: f32) -> Self {
+        self.max_confidence = max;
+        self
+    }
+
+    /// Set maximum total amplification.
+    pub fn with_max_total_amplification(mut self, max: f32) -> Self {
+        self.max_total_amplification = max;
+        self
+    }
+
+    /// Set amplification damping factor.
+    pub fn with_amplification_damping(mut self, damping: f32) -> Self {
+        self.amplification_damping = damping.clamp(0.0, 1.0);
+        self
+    }
+
+    /// Clamp a confidence value to the configured maximum.
+    #[inline]
+    pub fn clamp_confidence(&self, confidence: f32) -> f32 {
+        confidence.clamp(0.0, self.max_confidence)
     }
 }
 
@@ -362,10 +395,11 @@ impl LayerStack {
                             LayerSignal::new(source_layer, target_layer, refined_state.clone());
                         result.signal_trace.push(signal);
 
-                        // Merge refined state with existing
+                        // Merge refined state with existing (clamped)
                         if let Some(existing) = result.layer_states.get_mut(&target_layer) {
-                            existing.confidence =
+                            let raw_confidence =
                                 (existing.confidence + refined_state.confidence) / 2.0;
+                            existing.confidence = self.config.clamp_confidence(raw_confidence);
                             existing.increment_amplification();
                         }
                     }
@@ -392,11 +426,14 @@ impl LayerStack {
                         if let Ok(new_state) = bridge.forward(source_state) {
                             self.stats.total_forward_propagations += 1;
 
-                            // Merge with existing state
+                            // Merge with existing state (with damping and clamping)
                             if let Some(existing) = result.layer_states.get_mut(&target_layer) {
-                                existing.confidence = (existing.confidence * 0.7
+                                let raw_confidence = (existing.confidence * 0.7
                                     + new_state.confidence * 0.3)
-                                    * self.config.global_amplification;
+                                    * (1.0
+                                        + (self.config.global_amplification - 1.0)
+                                            * self.config.amplification_damping);
+                                existing.confidence = self.config.clamp_confidence(raw_confidence);
                                 existing.increment_amplification();
                             }
                         }
@@ -439,12 +476,20 @@ impl LayerStack {
             if let Ok(amp_result) = bridge.amplify(&source_state, &target_state, max_iterations) {
                 self.stats.total_amplifications += 1;
 
-                // Update states with amplified versions
-                result.layer_states.insert(source, amp_result.up_state);
-                result.layer_states.insert(target, amp_result.down_state);
+                // Update states with amplified versions (clamped)
+                let mut up_state = amp_result.up_state;
+                let mut down_state = amp_result.down_state;
+                up_state.confidence = self.config.clamp_confidence(up_state.confidence);
+                down_state.confidence = self.config.clamp_confidence(down_state.confidence);
 
-                // Track amplification
-                result.total_amplification *= amp_result.amplification_factor;
+                result.layer_states.insert(source, up_state);
+                result.layer_states.insert(target, down_state);
+
+                // Track amplification with damping and capping
+                let damped_factor = 1.0
+                    + (amp_result.amplification_factor - 1.0) * self.config.amplification_damping;
+                result.total_amplification = (result.total_amplification * damped_factor)
+                    .min(self.config.max_total_amplification);
             }
         }
 
@@ -463,10 +508,15 @@ impl LayerStack {
             return 0.0;
         }
 
-        // Multiplicative combination (geometric mean with amplification)
+        // Multiplicative combination (geometric mean with damped amplification)
         let product: f32 = confidences.values().product();
         let n = confidences.len() as f32;
-        product.powf(1.0 / n) * self.config.global_amplification
+        let damped_amp =
+            1.0 + (self.config.global_amplification - 1.0) * self.config.amplification_damping;
+        let raw_confidence = product.powf(1.0 / n) * damped_amp;
+
+        // Clamp to prevent divergence
+        self.config.clamp_confidence(raw_confidence)
     }
 
     /// Update statistics after processing.
@@ -575,7 +625,37 @@ mod tests {
         confidences.insert(Layer::ExtendedPhysics, 0.8);
 
         let combined = stack.calculate_combined_confidence(&confidences);
-        // Geometric mean of 0.8, 0.8 = 0.8, times 1.1 amplification = 0.88
-        assert!((combined - 0.88).abs() < 0.01);
+        // Geometric mean of 0.8, 0.8 = 0.8
+        // Damped amplification: 1.0 + (1.1 - 1.0) * 0.8 = 1.08
+        // Combined: 0.8 * 1.08 = 0.864
+        assert!((combined - 0.864).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_confidence_clamping() {
+        let config = LayerStackConfig::new().with_max_confidence(1.5);
+        let stack = LayerStack::with_config(config);
+
+        // High confidence values should be clamped
+        let mut confidences = HashMap::new();
+        confidences.insert(Layer::BasePhysics, 1.8);
+        confidences.insert(Layer::ExtendedPhysics, 1.8);
+
+        let combined = stack.calculate_combined_confidence(&confidences);
+        assert!(
+            combined <= 1.5,
+            "Combined confidence {} exceeds max 1.5",
+            combined
+        );
+    }
+
+    #[test]
+    fn test_amplification_damping_config() {
+        let config = LayerStackConfig::new()
+            .with_amplification_damping(0.5)
+            .with_max_total_amplification(5.0);
+
+        assert_eq!(config.amplification_damping, 0.5);
+        assert_eq!(config.max_total_amplification, 5.0);
     }
 }

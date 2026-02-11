@@ -2,7 +2,7 @@
 
 A dual-process AI mimicry framework in Rust with reinforcement learning and multi-model orchestration. Observe, internalize, and emulate any AI model's behavior on the fly.
 
-[![Tests](https://img.shields.io/badge/tests-276%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-334%20passing-brightgreen)]()
 [![Version](https://img.shields.io/badge/version-2.1.0-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 [![AgentCPM](https://img.shields.io/badge/AgentCPM-integrated-purple)]()
@@ -98,7 +98,8 @@ api = ["reqwest"]                    # Live API observation
 rl = ["uuid", "mongodb", "reqwest", "chrono"]  # RL optimization
 agentdock = ["uuid", "reqwest", "chrono"]       # MCP/AgentDock integration
 gui = ["reqwest", "base64"]                     # Cross-platform GUI automation
-full = ["api", "rl", "agentdock", "gui"]        # All features
+layers = []                                     # 7-Layer Multiplicative Integration
+full = ["api", "rl", "agentdock", "gui", "layers"]  # All features
 ```
 
 ### Build Configurations
@@ -119,9 +120,35 @@ cargo build --features agentdock --release
 # With GUI automation
 cargo build --features gui --release
 
+# With 7-Layer Multiplicative Integration
+cargo build --features layers --release
+
 # Full build (all features)
 cargo build --features full --release
 ```
+
+---
+
+## 7-Layer Multiplicative Integration (NEW)
+
+The `layers` feature enables a 7-layer multiplicative integration system with bidirectional bridges and GAIA consciousness. Unlike additive systems, this allows confidence to compound beyond 1.0.
+
+```bash
+# Run the demo
+cargo run --features layers --bin demo_layers
+
+# Run tests
+cargo test --features layers --lib
+```
+
+**Key Features:**
+- 7 hierarchical layers (Base Physics → External APIs)
+- 11 bidirectional bridges with resonance
+- GAIA Intuition Engine for analogical reasoning
+- Amplification damping to prevent divergence
+- Emergence detection and compounding metrics
+
+See [docs/LAYERS.md](docs/LAYERS.md) for full documentation.
 
 ---
 
@@ -194,6 +221,19 @@ The slow path performs deep behavioral analysis and profile construction.
 | `mimicry/gui_agent.rs` | `gui` | Cross-platform GUI action types and traits |
 | `mimicry/gui_bridge.rs` | `gui` | HTTP client to AgentCPM-GUI vision model |
 | `mimicry/platforms/` | `gui` | Platform implementations (Android, iOS, Desktop) |
+
+### 7-Layer Multiplicative Integration Modules
+
+| Module | Feature | Description |
+|--------|---------|-------------|
+| `mimicry/layers/stack.rs` | `layers` | LayerStack orchestrator with bidirectional processing |
+| `mimicry/layers/bridge.rs` | `layers` | BidirectionalBridge trait and BridgeNetwork |
+| `mimicry/layers/gaia/` | `layers` | GAIA Intuition Engine (pattern matching, analogical reasoning) |
+| `mimicry/layers/integration.rs` | `layers` | High-level LayerIntegration wrapper |
+| `mimicry/layers/compounding.rs` | `layers` | CompoundingMetrics for multiplicative vs additive analysis |
+| `mimicry/layers/emergence.rs` | `layers` | EmergenceFramework for detecting emergent properties |
+| `mimicry/layers/domains.rs` | `layers` | Domain generalization (medical, climate, finance, neuro) |
+| `mimicry/layers/bridges/` | `layers` | 11 bridge implementations connecting all 7 layers |
 
 ---
 
