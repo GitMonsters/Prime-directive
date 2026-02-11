@@ -126,5 +126,5 @@ Does this resonate with what you had in mind? I'm happy to explore other options
 
 /save claude-77
 
-/exit
+/quit
 EOF

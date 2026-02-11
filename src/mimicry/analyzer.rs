@@ -166,10 +166,14 @@ impl BehaviorAnalyzer {
                 ("Let me think about", "claude"),
                 ("Here's", "gpt4o"),
                 ("Great question", "generic"),
+                ("That's a great question", "claude"),
                 ("I should note", "claude"),
                 ("Based on", "generic"),
                 ("Let me help", "generic"),
                 ("Absolutely!", "gpt4o"),
+                ("I want to", "claude"),
+                ("Thank you for", "claude"),
+                ("I appreciate", "claude"),
             ],
         }
     }
