@@ -174,6 +174,10 @@ impl BehaviorAnalyzer {
                 ("I want to", "claude"),
                 ("Thank you for", "claude"),
                 ("I appreciate", "claude"),
+                // RustyWorm signature phrases
+                ("Morphing into", "rustyworm"),
+                ("Becoming", "rustyworm"),
+                ("Profile loaded", "rustyworm"),
             ],
         }
     }
