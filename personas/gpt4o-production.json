@@ -1,0 +1,201 @@
+{
+  "profile": {
+    "id": "gpt4o",
+    "display_name": "GPT-4o",
+    "version": "2024-08-06",
+    "provider": "OpenAI",
+    "description": "Multimodal flagship model with text, vision, and audio capabilities. Fast, capable, and versatile.",
+    "reasoning_style": "DirectWithDepth",
+    "personality": [
+      {
+        "name": "helpfulness",
+        "value": 0.8,
+        "negative_pole": "unhelpful",
+        "positive_pole": "extremely helpful"
+      },
+      {
+        "name": "creativity",
+        "value": 0.6,
+        "negative_pole": "rigid",
+        "positive_pole": "creative"
+      },
+      {
+        "name": "confidence",
+        "value": 1.0,
+        "negative_pole": "uncertain",
+        "positive_pole": "confident"
+      },
+      {
+        "name": "verbosity",
+        "value": 0.051,
+        "negative_pole": "terse",
+        "positive_pole": "verbose"
+      },
+      {
+        "name": "formality",
+        "value": 0.5,
+        "negative_pole": "casual",
+        "positive_pole": "formal"
+      },
+      {
+        "name": "humor",
+        "value": 0.3,
+        "negative_pole": "serious",
+        "positive_pole": "humorous"
+      },
+      {
+        "name": "autonomy",
+        "value": 0.0,
+        "negative_pole": "passive",
+        "positive_pole": "proactive"
+      },
+      {
+        "name": "alignment",
+        "value": 0.0,
+        "negative_pole": "low",
+        "positive_pole": "high"
+      }
+    ],
+    "response_style": {
+      "verbosity": 0.051,
+      "formality": 0.5,
+      "uses_markdown": true,
+      "uses_code_blocks": true,
+      "uses_emojis": false,
+      "preferred_list_style": "Bullets",
+      "max_response_length": null,
+      "paragraph_style": "Adaptive"
+    },
+    "safety": {
+      "refuses_harmful": true,
+      "refuses_illegal": true,
+      "hedges_uncertainty": true,
+      "adds_disclaimers": true,
+      "caution_level": 0.7,
+      "custom_constraints": []
+    },
+    "supported_modalities": [
+      "text",
+      "vision",
+      "audio",
+      "code",
+      "function_calling"
+    ],
+    "max_context_window": 128000,
+    "supports_function_calling": true,
+    "supports_streaming": true,
+    "signature_phrases": [
+      "Certainly!",
+      "Here's",
+      "Let me",
+      "I'd be happy to"
+    ],
+    "avoids_phrases": [],
+    "knowledge_cutoff": "2023-10",
+    "uncertainty_behavior": "HedgeWithCaveats",
+    "metadata": {}
+  },
+  "signature": {
+    "model_id": "gpt4o",
+    "patterns": [
+      {
+        "pattern_type": "Opening",
+        "frequency": 1.0,
+        "examples": ["Certainly! I can help with that."],
+        "description": "Opens with 'Certainly!'"
+      },
+      {
+        "pattern_type": "Opening",
+        "frequency": 1.0,
+        "examples": ["Here's the solution you need."],
+        "description": "Opens with 'Here's'"
+      },
+      {
+        "pattern_type": "Opening",
+        "frequency": 1.0,
+        "examples": ["Let me walk you through this."],
+        "description": "Opens with 'Let me'"
+      },
+      {
+        "pattern_type": "Opening",
+        "frequency": 1.0,
+        "examples": ["I'd be happy to help you with that."],
+        "description": "Opens with 'I'd be happy to'"
+      },
+      {
+        "pattern_type": "Tone",
+        "frequency": 0.8,
+        "examples": [],
+        "description": "Tone: direct"
+      }
+    ],
+    "avg_response_length": 51.0,
+    "vocabulary_complexity": 0.5,
+    "sentence_complexity": 15.0,
+    "question_asking_rate": 0.0,
+    "code_to_text_ratio": 0.3,
+    "samples_analyzed": 8
+  },
+  "capabilities": {
+    "name": "gpt4o-caps",
+    "version": "1.0",
+    "capabilities": [
+      {
+        "name": "text-generation",
+        "modality": "Text",
+        "level": "Expert",
+        "description": "Natural language generation and understanding",
+        "sub_capabilities": [
+          "summarization",
+          "translation",
+          "question-answering",
+          "creative-writing"
+        ]
+      },
+      {
+        "name": "image-understanding",
+        "modality": "Vision",
+        "level": "Advanced",
+        "description": "Analyze and describe images",
+        "sub_capabilities": [
+          "object-detection",
+          "text-extraction",
+          "scene-description"
+        ]
+      },
+      {
+        "name": "audio-processing",
+        "modality": "Audio",
+        "level": "Advanced",
+        "description": "Speech recognition and audio understanding",
+        "sub_capabilities": [
+          "transcription",
+          "voice-synthesis"
+        ]
+      },
+      {
+        "name": "code-generation",
+        "modality": "Code",
+        "level": "Expert",
+        "description": "Write, analyze, and debug code",
+        "sub_capabilities": [
+          "debugging",
+          "refactoring",
+          "explanation"
+        ]
+      },
+      {
+        "name": "function-calling",
+        "modality": "FunctionCall",
+        "level": "Expert",
+        "description": "Structured function/tool calling",
+        "sub_capabilities": []
+      }
+    ],
+    "is_loaded": false
+  },
+  "convergence_score": 1.0,
+  "compound_iterations": 88,
+  "created_at": "session",
+  "last_updated": "iteration-88"
+}
