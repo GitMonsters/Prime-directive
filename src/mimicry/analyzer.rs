@@ -160,24 +160,44 @@ impl BehaviorAnalyzer {
         BehaviorAnalyzer {
             signatures: HashMap::new(),
             common_openings: vec![
+                // GPT-4o signatures
                 ("Certainly!", "gpt4o"),
-                ("I'd be happy to", "claude"),
                 ("Sure!", "gpt4o"),
-                ("Let me think about", "claude"),
                 ("Here's", "gpt4o"),
-                ("Great question", "generic"),
+                ("Absolutely!", "gpt4o"),
+                ("Great question", "gpt4o"),
+                ("Sure thing", "gpt4o"),
+                // Claude signatures
+                ("I'd be happy to", "claude"),
+                ("Let me think about", "claude"),
                 ("That's a great question", "claude"),
                 ("I should note", "claude"),
-                ("Based on", "generic"),
-                ("Let me help", "generic"),
-                ("Absolutely!", "gpt4o"),
-                ("I want to", "claude"),
-                ("Thank you for", "claude"),
+                ("I want to be direct", "claude"),
                 ("I appreciate", "claude"),
+                ("I'm happy to", "claude"),
+                ("Thank you for", "claude"),
+                // o1 signatures (reasoning model)
+                ("Let me reason through", "o1"),
+                ("Thinking step by step", "o1"),
+                ("Breaking this down", "o1"),
+                ("Analyzing this carefully", "o1"),
+                // Gemini signatures
+                ("Here's what I found", "gemini"),
+                ("Let me explain", "gemini"),
+                ("Great question!", "gemini"),
+                ("Based on my knowledge", "gemini"),
+                // LLaMA signatures
+                ("I can help with that", "llama"),
+                ("Here's my take", "llama"),
+                ("Let me assist", "llama"),
+                ("To answer your question", "llama"),
                 // RustyWorm signature phrases
                 ("Morphing into", "rustyworm"),
                 ("Becoming", "rustyworm"),
                 ("Profile loaded", "rustyworm"),
+                // Generic patterns
+                ("Based on", "generic"),
+                ("Let me help", "generic"),
             ],
         }
     }
@@ -343,10 +363,12 @@ impl BehaviorAnalyzer {
             total_questions as f64 / responses.len() as f64
         };
 
-        // Consolidate patterns by type
+        // Consolidate patterns by type AND description
+        // This preserves multiple Opening patterns with different signature phrases
         let mut pattern_groups: HashMap<String, Vec<ResponsePattern>> = HashMap::new();
         for pattern in all_patterns {
-            let key = format!("{:?}", pattern.pattern_type);
+            // Use both type and description as key to preserve distinct Opening patterns
+            let key = format!("{:?}|{}", pattern.pattern_type, pattern.description);
             pattern_groups.entry(key).or_default().push(pattern);
         }
 

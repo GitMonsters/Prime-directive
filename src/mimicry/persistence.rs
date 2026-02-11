@@ -676,6 +676,109 @@ impl PersistenceManager {
 
         Ok(profile)
     }
+
+    /// Rescan the personas directory and rebuild the manifest
+    /// This synchronizes the in-memory manifest with what's actually on disk.
+    pub fn rescan_manifest(&mut self) -> Result<usize, String> {
+        self.ensure_init()?;
+
+        // Clear existing entries
+        self.manifest.personas.clear();
+        self.manifest.profiles.clear();
+
+        // Scan personas directory
+        let personas_dir = self.config.personas_path();
+        if personas_dir.exists() {
+            for entry in fs::read_dir(&personas_dir)
+                .map_err(|e| format!("Failed to read personas dir: {}", e))?
+            {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.extension().map_or(false, |e| e == "json") {
+                        if let Ok(data) = fs::read_to_string(&path) {
+                            if let Ok(snapshot) =
+                                serde_json::from_str::<CompoundPersonaSnapshot>(&data)
+                            {
+                                let filename = path
+                                    .file_name()
+                                    .map(|n| n.to_string_lossy().to_string())
+                                    .unwrap_or_default();
+                                let name = path
+                                    .file_stem()
+                                    .map(|n| n.to_string_lossy().to_string())
+                                    .unwrap_or_default();
+
+                                let mut meta = HashMap::new();
+                                meta.insert(
+                                    "convergence".to_string(),
+                                    format!("{:.3}", snapshot.convergence_score),
+                                );
+                                meta.insert(
+                                    "iterations".to_string(),
+                                    snapshot.compound_iterations.to_string(),
+                                );
+                                meta.insert("profile_id".to_string(), snapshot.profile.id.clone());
+
+                                SaveManifest::add_entry(
+                                    &mut self.manifest.personas,
+                                    SaveEntry {
+                                        name,
+                                        filename,
+                                        saved_at: timestamp(),
+                                        size_bytes: data.len() as u64,
+                                        metadata: meta,
+                                    },
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Scan profiles directory
+        let profiles_dir = self.config.profiles_path();
+        if profiles_dir.exists() {
+            for entry in fs::read_dir(&profiles_dir)
+                .map_err(|e| format!("Failed to read profiles dir: {}", e))?
+            {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.extension().map_or(false, |e| e == "json") {
+                        if let Ok(data) = fs::read_to_string(&path) {
+                            if let Ok(profile) = serde_json::from_str::<AiProfile>(&data) {
+                                let filename = path
+                                    .file_name()
+                                    .map(|n| n.to_string_lossy().to_string())
+                                    .unwrap_or_default();
+
+                                let mut meta = HashMap::new();
+                                meta.insert("provider".to_string(), profile.provider.clone());
+                                meta.insert("version".to_string(), profile.version.clone());
+
+                                SaveManifest::add_entry(
+                                    &mut self.manifest.profiles,
+                                    SaveEntry {
+                                        name: profile.id.clone(),
+                                        filename,
+                                        saved_at: timestamp(),
+                                        size_bytes: data.len() as u64,
+                                        metadata: meta,
+                                    },
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Save the refreshed manifest
+        self.save_manifest()?;
+
+        let total = self.manifest.personas.len() + self.manifest.profiles.len();
+        Ok(total)
+    }
 }
 
 impl Default for PersistenceManager {
@@ -905,6 +1008,37 @@ mod tests {
         let result = pm.summary();
         assert!(result.is_ok());
         assert!(result.unwrap().contains("PERSISTENCE SUMMARY"));
+
+        cleanup(&config);
+    }
+
+    #[test]
+    fn test_rescan_manifest() {
+        let config = test_config();
+        let mut pm = PersistenceManager::new(config.clone());
+
+        // Create a test persona
+        let profile = AiProfileStore::default().get("gpt4o").unwrap().clone();
+        let snapshot = CompoundPersonaSnapshot {
+            profile: profile.clone(),
+            signature: BehaviorSignature::new("gpt4o"),
+            capabilities: CapabilityModule::for_profile(&profile),
+            compound_iterations: 5,
+            convergence_score: 0.5,
+            created_at: "test".to_string(),
+            last_updated: "test".to_string(),
+        };
+        pm.save_persona("rescan-test", &snapshot).unwrap();
+        assert_eq!(pm.manifest.personas.len(), 1);
+
+        // Clear manifest in memory (simulating fresh start)
+        pm.manifest.personas.clear();
+        assert_eq!(pm.manifest.personas.len(), 0);
+
+        // Rescan should find the persona file
+        let count = pm.rescan_manifest().unwrap();
+        assert!(count >= 1);
+        assert!(pm.manifest.personas.iter().any(|e| e.name == "rescan-test"));
 
         cleanup(&config);
     }

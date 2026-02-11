@@ -405,9 +405,12 @@ impl MimicSession {
         let (modality, _modal_confidence) = self.instinctive_router.classify(input);
 
         // Step 2: Try System 1 fast path
+        // Use convergence score to boost cache confidence for well-trained personas
         let cached = cache.lookup(&self.persona.profile.id);
+        let convergence_boost = self.persona.convergence_score * 0.5; // Max 0.5 boost at 100% convergence
         let (output, system_used) = if let Some(cached_sig) = cached {
-            if cached_sig.confidence > 0.7 {
+            let effective_confidence = cached_sig.confidence + convergence_boost;
+            if effective_confidence > 0.7 {
                 // System 1 fast path - use template-driven generation
                 self.system1_hits += 1;
                 let lib = template_store.get_or_create(&self.persona.profile);
@@ -420,10 +423,18 @@ impl MimicSession {
                 (output, ProcessingSystem::System2)
             }
         } else {
-            // Cache miss - System 2 deliberation
-            self.system2_hits += 1;
-            let output = self.generate_system2_response(input, &modality);
-            (output, ProcessingSystem::System2)
+            // Cache miss - but high convergence personas can still use templates
+            if self.persona.convergence_score > 0.8 {
+                self.system1_hits += 1;
+                let lib = template_store.get_or_create(&self.persona.profile);
+                let output = lib.generate(input, &self.persona.profile.response_style);
+                (output, ProcessingSystem::System1)
+            } else {
+                // True cache miss - System 2 deliberation
+                self.system2_hits += 1;
+                let output = self.generate_system2_response(input, &modality);
+                (output, ProcessingSystem::System2)
+            }
         };
 
         // Step 3: Self-monitor output (System 2 watches)
@@ -677,6 +688,8 @@ pub enum MimicCommand {
     ApiStudy(String, u64),
     /// Show API observer status for all configured providers.
     ApiStatus,
+    /// Refresh the manifest to sync with actual persona files on disk.
+    Refresh,
 }
 
 // =================================================================
@@ -1482,6 +1495,29 @@ impl MimicryEngine {
         lines.join("\n")
     }
 
+    /// Refresh the manifest by rescanning persona files on disk
+    pub fn refresh_manifest(&mut self) -> String {
+        let mut lines = vec!["Refreshing persona manifest...".to_string()];
+
+        // Rescan the personas directory
+        match self.persistence.rescan_manifest() {
+            Ok(count) => {
+                lines.push(format!("Found {} persona(s) on disk.", count));
+            }
+            Err(e) => {
+                lines.push(format!("Error scanning manifest: {}", e));
+            }
+        }
+
+        // Show updated disk summary
+        let disk_summary = self.persistence.summary().unwrap_or_default();
+        if !disk_summary.is_empty() {
+            lines.push(format!("\nCurrent state:\n  {}", disk_summary));
+        }
+
+        lines.join("\n")
+    }
+
     // =================================================================
     // API METHODS (feature-gated)
     // =================================================================
@@ -1773,6 +1809,7 @@ impl MimicryEngine {
                 }
             }
             "/api-status" | "/api" => MimicCommand::ApiStatus,
+            "/refresh" | "/sync" => MimicCommand::Refresh,
             _ => MimicCommand::Chat(trimmed.to_string()),
         }
     }
@@ -1901,6 +1938,9 @@ impl MimicryEngine {
                     "API feature not enabled. Rebuild with: cargo build --features api".to_string()
                 }
             }
+            MimicCommand::Refresh => {
+                self.refresh_manifest()
+            }
             MimicCommand::Chat(input) => {
                 // Need to take session out to avoid borrow issues with template_store
                 if let Some(mut session) = self.session.take() {
@@ -1949,6 +1989,7 @@ PERSISTENCE:
   /delete <name>              Delete a saved persona
   /checkpoint                 Save full engine checkpoint
   /persist                    Show persistence summary
+  /refresh                    Resync manifest with disk files
 
 INFO:
   /status                     Show current engine status
@@ -2418,6 +2459,16 @@ mod tests {
         match engine.parse_command("/api") {
             MimicCommand::ApiStatus => {}
             _ => panic!("Expected ApiStatus command from /api shortcut"),
+        }
+
+        match engine.parse_command("/refresh") {
+            MimicCommand::Refresh => {}
+            _ => panic!("Expected Refresh command"),
+        }
+
+        match engine.parse_command("/sync") {
+            MimicCommand::Refresh => {}
+            _ => panic!("Expected Refresh command from /sync alias"),
         }
     }
 

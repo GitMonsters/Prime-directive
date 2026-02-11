@@ -799,6 +799,9 @@ impl AiProfileStore {
             "Here's".to_string(),
             "Let me".to_string(),
             "I'd be happy to".to_string(),
+            "Absolutely!".to_string(),
+            "Great question".to_string(),
+            "Sure thing".to_string(),
         ];
         profile.uncertainty_behavior = UncertaintyBehavior::HedgeWithCaveats;
         profile.knowledge_cutoff = Some("2023-10".to_string());
@@ -844,6 +847,9 @@ impl AiProfileStore {
             "Let me think about this".to_string(),
             "That's a great question".to_string(),
             "I should note".to_string(),
+            "I want to be direct".to_string(),
+            "I appreciate".to_string(),
+            "I'm happy to".to_string(),
         ];
         profile.avoids_phrases = vec!["As an AI".to_string(), "I cannot".to_string()];
         profile.uncertainty_behavior = UncertaintyBehavior::AdmitIgnorance;
@@ -886,6 +892,12 @@ impl AiProfileStore {
         profile.max_context_window = 200_000;
         profile.supports_function_calling = false;
         profile.supports_streaming = false;
+        profile.signature_phrases = vec![
+            "Let me reason through".to_string(),
+            "Thinking step by step".to_string(),
+            "Breaking this down".to_string(),
+            "Analyzing this carefully".to_string(),
+        ];
         profile.uncertainty_behavior = UncertaintyBehavior::HedgeWithCaveats;
         profile.knowledge_cutoff = Some("2023-10".to_string());
         profile
@@ -917,6 +929,12 @@ impl AiProfileStore {
         profile.max_context_window = 1_000_000;
         profile.supports_function_calling = true;
         profile.supports_streaming = true;
+        profile.signature_phrases = vec![
+            "Here's what I found".to_string(),
+            "Let me explain".to_string(),
+            "Great question!".to_string(),
+            "Based on my knowledge".to_string(),
+        ];
         profile.uncertainty_behavior = UncertaintyBehavior::HedgeWithCaveats;
         profile.knowledge_cutoff = Some("2024-08".to_string());
         profile
@@ -950,6 +968,12 @@ impl AiProfileStore {
             caution_level: 0.3,
             custom_constraints: Vec::new(),
         };
+        profile.signature_phrases = vec![
+            "I can help with that".to_string(),
+            "Here's my take".to_string(),
+            "Let me assist".to_string(),
+            "To answer your question".to_string(),
+        ];
         profile.uncertainty_behavior = UncertaintyBehavior::ConfidentGuess;
         profile.knowledge_cutoff = Some("2024-03".to_string());
         profile
