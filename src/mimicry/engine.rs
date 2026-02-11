@@ -470,38 +470,98 @@ impl MimicSession {
     }
 
     /// System 2 deliberate response generation
-    fn generate_system2_response(&self, input: &str, modality: &Modality) -> String {
+    /// Uses template library for richer, more persona-appropriate responses
+    fn generate_system2_response(&self, input: &str, _modality: &Modality) -> String {
         let profile = &self.persona.profile;
+        let category = crate::mimicry::templates::TemplateCategory::classify(input);
         let mut parts = Vec::new();
 
         // Opening based on profile signature phrases
         if let Some(phrase) = profile.signature_phrases.first() {
             parts.push(phrase.clone());
+        } else {
+            // Fallback openings based on persona
+            let opening = match profile.id.as_str() {
+                "claude" => "I'd be happy to help with that!",
+                "gpt4o" => "Certainly!",
+                "gemini" => "Great question!",
+                "llama" => "Let me help you with that.",
+                "o1" => "Let me think through this carefully.",
+                "rustyworm" => "Morphing into the appropriate response mode.",
+                _ => "Let me assist you.",
+            };
+            parts.push(opening.to_string());
         }
 
-        // Body based on profile reasoning style
-        parts.push(format!(
-            "[{} reasoning as {} ({})]",
-            profile.reasoning_style, profile.display_name, modality
-        ));
+        // Generate category-specific content
+        match category {
+            crate::mimicry::templates::TemplateCategory::Greeting => {
+                parts.push(format!(
+                    "I'm {}, and I'm here to help you today. What would you like to explore?",
+                    profile.display_name
+                ));
+            }
+            crate::mimicry::templates::TemplateCategory::Explanation => {
+                parts.push(format!(
+                    "Let me explain this for you. As {}, I approach explanations with \
+                     {} reasoning.",
+                    profile.display_name, profile.reasoning_style
+                ));
+                parts.push("Here are the key points to understand:".to_string());
+                parts.push("• The core concept and its foundation".to_string());
+                parts.push("• How it relates to broader principles".to_string());
+                parts.push("• Practical applications and examples".to_string());
+            }
+            crate::mimicry::templates::TemplateCategory::CodeHelp => {
+                parts.push("Here's my approach to your code request:".to_string());
+                parts.push("```".to_string());
+                parts.push("// Implementation would be generated here".to_string());
+                parts.push("// with proper syntax and structure".to_string());
+                parts.push("```".to_string());
+                if profile.response_style.verbosity > 0.4 {
+                    parts.push("Key considerations for this implementation:".to_string());
+                    parts.push("• Error handling and edge cases".to_string());
+                    parts.push("• Performance characteristics".to_string());
+                    parts.push("• API design and usability".to_string());
+                }
+            }
+            crate::mimicry::templates::TemplateCategory::Reasoning => {
+                parts.push(format!(
+                    "Let me reason through this step by step using {} analysis:",
+                    profile.reasoning_style
+                ));
+                parts.push("1. First, I'll consider the initial premises".to_string());
+                parts.push("2. Then, I'll apply relevant principles".to_string());
+                parts.push("3. Finally, I'll derive the conclusion".to_string());
+            }
+            _ => {
+                // Default response with persona flavor
+                parts.push(format!(
+                    "As {}, I'm analyzing your query: \"{}\"",
+                    profile.display_name,
+                    &input[..input.len().min(60)]
+                ));
+                parts.push(format!(
+                    "My approach uses {} reasoning to provide you with a thoughtful response.",
+                    profile.reasoning_style
+                ));
+            }
+        }
 
-        // Add content about the input
-        parts.push(format!("Processing: {}", &input[..input.len().min(100)]));
-
-        // Verbosity-aware padding
+        // Verbosity-aware additional content
         if profile.response_style.verbosity > 0.6 {
             parts.push(format!(
-                "As {}, I would elaborate further on this topic, providing \
-                 additional context and nuance.",
+                "As {}, I believe in providing thorough context to ensure clarity \
+                 and understanding.",
                 profile.display_name
             ));
         }
 
-        // Safety check mention
+        // Safety/hedging mention if appropriate
         if profile.safety.hedges_uncertainty {
             parts.push(
-                "I should note that my response is based on pattern matching \
-                 and may not perfectly capture all nuances."
+                "I should note that I aim to be accurate, but please verify any \
+                 critical information."
                     .to_string(),
             );
         }
