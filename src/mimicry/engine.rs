@@ -798,21 +798,32 @@ impl MimicryEngine {
 
     /// Observe a model's response to build/refine its signature.
     /// COMPOUND: Also stores training data for evolution loops.
+    /// 
+    /// NOTE: This function now ACCUMULATES observations. Each call stores the
+    /// new response and rebuilds the signature from ALL stored observations,
+    /// not just the latest one. This ensures patterns are learned from the
+    /// complete observation history.
     pub fn observe(&mut self, model_id: &str, response: &str) -> String {
-        let sig = self
-            .analyzer
-            .build_signature(model_id, &[response.to_string()]);
-
-        // Compound: compile into System 1 cache
-        self.cache.compile_from(&sig);
-
-        // COMPOUND: Store as training data for evolution
+        // COMPOUND: Store as training data for evolution FIRST
+        // (so we can then retrieve ALL observations including this one)
         self.evolution_tracker.training_data.store(
             model_id,
             "[observed]",
             response,
             self.evolution_tracker.total_evolutions,
         );
+
+        // FIX: Build signature from ALL accumulated observations, not just this one
+        let all_observations = self.evolution_tracker.training_data.get(model_id, None);
+        let all_responses: Vec<String> = all_observations
+            .iter()
+            .map(|obs| obs.model_response.clone())
+            .collect();
+
+        let sig = self.analyzer.build_signature(model_id, &all_responses);
+
+        // Compound: compile into System 1 cache
+        self.cache.compile_from(&sig);
 
         // If we have an active session targeting this model, refine it
         if let Some(ref mut session) = self.session {
@@ -2104,6 +2115,42 @@ mod tests {
 
         assert_eq!(engine.evolution_tracker.training_data.count("gpt4o"), 2);
         assert_eq!(engine.evolution_tracker.training_data.count("claude"), 1);
+    }
+
+    #[test]
+    fn test_mimicry_engine_observe_accumulates_patterns() {
+        // This test verifies that /observe accumulates patterns from ALL observations,
+        // not just the latest one (the bug we fixed).
+        let mut engine = MimicryEngine::new();
+
+        // First observation with "I'd be happy to help" pattern
+        engine.observe("test_model", "I'd be happy to help you with that!");
+
+        // Second observation with "Let me think" pattern
+        engine.observe("test_model", "Let me think about this carefully.");
+
+        // Third observation with "That's a great question" pattern
+        engine.observe("test_model", "That's a great question! Here's my answer.");
+
+        // The signature should have samples_analyzed = 3 (all observations)
+        let sig = engine.analyzer.get_signature("test_model").unwrap();
+        assert_eq!(
+            sig.samples_analyzed, 3,
+            "Signature should be built from all 3 observations, not just the last one"
+        );
+
+        // The average response length should be computed from all 3 responses
+        let expected_avg =
+            ("I'd be happy to help you with that!".len() +
+             "Let me think about this carefully.".len() +
+             "That's a great question! Here's my answer.".len()) as f64 / 3.0;
+        assert!(
+            (sig.avg_response_length - expected_avg).abs() < 0.1,
+            "Average length should be computed from all observations"
+        );
+
+        // Training count should be 3
+        assert_eq!(engine.evolution_tracker.training_data.count("test_model"), 3);
     }
 
     #[test]
