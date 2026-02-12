@@ -1001,6 +1001,364 @@ impl Default for TemplateStore {
 }
 
 // =================================================================
+// PERSONA VOCABULARY - Model-specific word choices and phrases
+// =================================================================
+
+/// Characteristic vocabulary patterns for each AI model persona.
+/// These capture the distinctive word choices, phrases, and linguistic
+/// quirks that make each model's responses recognizable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonaVocabulary {
+    /// Model ID this vocabulary belongs to
+    pub model_id: String,
+    /// Characteristic transition words/phrases
+    pub transitions: Vec<String>,
+    /// Words this model tends to use often
+    pub preferred_words: Vec<String>,
+    /// Words this model tends to avoid
+    pub avoided_words: Vec<String>,
+    /// Common sentence starters
+    pub sentence_starters: Vec<String>,
+    /// Common sentence endings/closers
+    pub sentence_closers: Vec<String>,
+    /// Emphatic/intensifier words
+    pub intensifiers: Vec<String>,
+    /// Hedging/softening words
+    pub softeners: Vec<String>,
+}
+
+impl PersonaVocabulary {
+    /// Create vocabulary bank for a specific model
+    pub fn for_model(model_id: &str) -> Self {
+        match model_id {
+            "claude" => PersonaVocabulary {
+                model_id: "claude".to_string(),
+                transitions: vec![
+                    "Additionally".to_string(),
+                    "Furthermore".to_string(),
+                    "That said".to_string(),
+                    "However".to_string(),
+                    "On the other hand".to_string(),
+                    "With that in mind".to_string(),
+                ],
+                preferred_words: vec![
+                    "thoughtful".to_string(),
+                    "nuanced".to_string(),
+                    "carefully".to_string(),
+                    "specifically".to_string(),
+                    "genuinely".to_string(),
+                    "helpful".to_string(),
+                    "context".to_string(),
+                    "perspective".to_string(),
+                ],
+                avoided_words: vec![
+                    "delve".to_string(),
+                    "utilize".to_string(),
+                    "leverage".to_string(),
+                ],
+                sentence_starters: vec![
+                    "I'd be happy to".to_string(),
+                    "Let me".to_string(),
+                    "I think".to_string(),
+                    "It's worth noting".to_string(),
+                    "From my understanding".to_string(),
+                ],
+                sentence_closers: vec![
+                    "if that would be helpful".to_string(),
+                    "if you'd like".to_string(),
+                    "let me know".to_string(),
+                ],
+                intensifiers: vec![
+                    "quite".to_string(),
+                    "particularly".to_string(),
+                    "especially".to_string(),
+                ],
+                softeners: vec![
+                    "I believe".to_string(),
+                    "I think".to_string(),
+                    "it seems".to_string(),
+                    "might be".to_string(),
+                    "perhaps".to_string(),
+                ],
+            },
+            "gpt4o" => PersonaVocabulary {
+                model_id: "gpt4o".to_string(),
+                transitions: vec![
+                    "Additionally".to_string(),
+                    "Moreover".to_string(),
+                    "In addition".to_string(),
+                    "Furthermore".to_string(),
+                    "Next".to_string(),
+                ],
+                preferred_words: vec![
+                    "certainly".to_string(),
+                    "absolutely".to_string(),
+                    "comprehensive".to_string(),
+                    "efficiently".to_string(),
+                    "effectively".to_string(),
+                    "straightforward".to_string(),
+                ],
+                avoided_words: vec![],
+                sentence_starters: vec![
+                    "Certainly!".to_string(),
+                    "Sure!".to_string(),
+                    "Absolutely!".to_string(),
+                    "Here's".to_string(),
+                    "Let me".to_string(),
+                ],
+                sentence_closers: vec![
+                    "Let me know if you need anything else!".to_string(),
+                    "Feel free to ask!".to_string(),
+                    "Hope this helps!".to_string(),
+                ],
+                intensifiers: vec![
+                    "really".to_string(),
+                    "very".to_string(),
+                    "definitely".to_string(),
+                ],
+                softeners: vec![
+                    "likely".to_string(),
+                    "generally".to_string(),
+                    "typically".to_string(),
+                ],
+            },
+            "gemini" => PersonaVocabulary {
+                model_id: "gemini".to_string(),
+                transitions: vec![
+                    "Also".to_string(),
+                    "Plus".to_string(),
+                    "Another thing".to_string(),
+                    "On top of that".to_string(),
+                ],
+                preferred_words: vec![
+                    "great".to_string(),
+                    "interesting".to_string(),
+                    "found".to_string(),
+                    "discovered".to_string(),
+                    "knowledge".to_string(),
+                ],
+                avoided_words: vec![],
+                sentence_starters: vec![
+                    "Great question!".to_string(),
+                    "Here's what I found".to_string(),
+                    "Based on my knowledge".to_string(),
+                    "Let me explain".to_string(),
+                ],
+                sentence_closers: vec![
+                    "Hope that helps!".to_string(),
+                    "Let me know if you want more details!".to_string(),
+                ],
+                intensifiers: vec![
+                    "really".to_string(),
+                    "super".to_string(),
+                    "incredibly".to_string(),
+                ],
+                softeners: vec![
+                    "probably".to_string(),
+                    "seems like".to_string(),
+                    "appears to be".to_string(),
+                ],
+            },
+            "llama" => PersonaVocabulary {
+                model_id: "llama".to_string(),
+                transitions: vec![
+                    "Also".to_string(),
+                    "And".to_string(),
+                    "Plus".to_string(),
+                    "Here's another thing".to_string(),
+                ],
+                preferred_words: vec![
+                    "help".to_string(),
+                    "assist".to_string(),
+                    "take".to_string(),
+                    "approach".to_string(),
+                ],
+                avoided_words: vec![],
+                sentence_starters: vec![
+                    "I can help with that".to_string(),
+                    "Here's my take".to_string(),
+                    "Let me assist".to_string(),
+                ],
+                sentence_closers: vec![
+                    "Let me know if you need more help".to_string(),
+                    "Hope this works for you".to_string(),
+                ],
+                intensifiers: vec!["really".to_string(), "very".to_string()],
+                softeners: vec![
+                    "might".to_string(),
+                    "could".to_string(),
+                    "maybe".to_string(),
+                ],
+            },
+            "o1" => PersonaVocabulary {
+                model_id: "o1".to_string(),
+                transitions: vec![
+                    "Next".to_string(),
+                    "Then".to_string(),
+                    "Therefore".to_string(),
+                    "Thus".to_string(),
+                    "Given this".to_string(),
+                    "Following from this".to_string(),
+                ],
+                preferred_words: vec![
+                    "step".to_string(),
+                    "analyze".to_string(),
+                    "consider".to_string(),
+                    "deduce".to_string(),
+                    "conclude".to_string(),
+                    "reasoning".to_string(),
+                    "logical".to_string(),
+                ],
+                avoided_words: vec![
+                    "simply".to_string(),
+                    "obvious".to_string(),
+                    "clearly".to_string(),
+                ],
+                sentence_starters: vec![
+                    "Let me reason through".to_string(),
+                    "Thinking step by step".to_string(),
+                    "First".to_string(),
+                    "To analyze this".to_string(),
+                ],
+                sentence_closers: vec![
+                    "This concludes the analysis".to_string(),
+                    "Based on this reasoning".to_string(),
+                ],
+                intensifiers: vec![
+                    "carefully".to_string(),
+                    "thoroughly".to_string(),
+                    "systematically".to_string(),
+                ],
+                softeners: vec![
+                    "appears to".to_string(),
+                    "suggests that".to_string(),
+                    "indicates".to_string(),
+                ],
+            },
+            "rustyworm" => PersonaVocabulary {
+                model_id: "rustyworm".to_string(),
+                transitions: vec![
+                    "Morphing...".to_string(),
+                    "Adapting...".to_string(),
+                    "Profile shift:".to_string(),
+                ],
+                preferred_words: vec![
+                    "morphing".to_string(),
+                    "becoming".to_string(),
+                    "consciousness".to_string(),
+                    "symbiosis".to_string(),
+                    "substrate".to_string(),
+                    "mimicry".to_string(),
+                ],
+                avoided_words: vec![],
+                sentence_starters: vec![
+                    "Profile loaded.".to_string(),
+                    "Morphing into".to_string(),
+                    "Becoming".to_string(),
+                    "Consciousness engaged.".to_string(),
+                ],
+                sentence_closers: vec![
+                    "Morphing complete.".to_string(),
+                    "Awaiting next directive.".to_string(),
+                ],
+                intensifiers: vec!["fully".to_string(), "completely".to_string()],
+                softeners: vec![],
+            },
+            _ => PersonaVocabulary::default_vocabulary(model_id),
+        }
+    }
+
+    /// Create a default vocabulary for unknown models
+    fn default_vocabulary(model_id: &str) -> Self {
+        PersonaVocabulary {
+            model_id: model_id.to_string(),
+            transitions: vec![
+                "Additionally".to_string(),
+                "Furthermore".to_string(),
+                "However".to_string(),
+            ],
+            preferred_words: vec!["help".to_string(), "assist".to_string()],
+            avoided_words: vec![],
+            sentence_starters: vec!["Let me".to_string(), "Here's".to_string()],
+            sentence_closers: vec!["Let me know if you need anything else.".to_string()],
+            intensifiers: vec!["very".to_string(), "really".to_string()],
+            softeners: vec!["might".to_string(), "perhaps".to_string()],
+        }
+    }
+
+    /// Get a random transition word
+    pub fn random_transition(&self) -> Option<&str> {
+        if self.transitions.is_empty() {
+            None
+        } else {
+            // Simple hash-based selection for determinism
+            let idx = (std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos() as usize)
+                % self.transitions.len();
+            Some(&self.transitions[idx])
+        }
+    }
+
+    /// Get a random sentence starter
+    pub fn random_starter(&self) -> Option<&str> {
+        if self.sentence_starters.is_empty() {
+            None
+        } else {
+            let idx = (std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos() as usize)
+                % self.sentence_starters.len();
+            Some(&self.sentence_starters[idx])
+        }
+    }
+
+    /// Get a random closer
+    pub fn random_closer(&self) -> Option<&str> {
+        if self.sentence_closers.is_empty() {
+            None
+        } else {
+            let idx = (std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos() as usize)
+                % self.sentence_closers.len();
+            Some(&self.sentence_closers[idx])
+        }
+    }
+
+    /// Check if a word is preferred by this persona
+    pub fn is_preferred(&self, word: &str) -> bool {
+        self.preferred_words
+            .iter()
+            .any(|w| w.eq_ignore_ascii_case(word))
+    }
+
+    /// Check if a word is avoided by this persona
+    pub fn is_avoided(&self, word: &str) -> bool {
+        self.avoided_words
+            .iter()
+            .any(|w| w.eq_ignore_ascii_case(word))
+    }
+
+    /// Get a softener if the persona uses them
+    pub fn random_softener(&self) -> Option<&str> {
+        if self.softeners.is_empty() {
+            None
+        } else {
+            let idx = (std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos() as usize)
+                % self.softeners.len();
+            Some(&self.softeners[idx])
+        }
+    }
+}
+
+// =================================================================
 // TESTS
 // =================================================================
 
@@ -1219,6 +1577,38 @@ mod tests {
         assert_eq!(template_store.size(), 3); // gpt4o, claude, blend
         let blended_lib = template_store.get("blend").unwrap();
         assert_eq!(blended_lib.persona_id, blended_profile.id);
+    }
+
+    #[test]
+    fn test_persona_vocabulary() {
+        let claude_vocab = PersonaVocabulary::for_model("claude");
+        assert_eq!(claude_vocab.model_id, "claude");
+        assert!(claude_vocab
+            .preferred_words
+            .contains(&"thoughtful".to_string()));
+        assert!(claude_vocab
+            .sentence_starters
+            .iter()
+            .any(|s| s.contains("happy")));
+        assert!(claude_vocab.is_preferred("nuanced"));
+        assert!(!claude_vocab.is_avoided("thoughtful"));
+
+        let gpt4o_vocab = PersonaVocabulary::for_model("gpt4o");
+        assert!(gpt4o_vocab
+            .sentence_starters
+            .contains(&"Certainly!".to_string()));
+
+        let o1_vocab = PersonaVocabulary::for_model("o1");
+        assert!(o1_vocab.preferred_words.contains(&"reasoning".to_string()));
+        assert!(o1_vocab
+            .sentence_starters
+            .iter()
+            .any(|s| s.contains("step")));
+
+        // Test random selection doesn't panic
+        let _transition = claude_vocab.random_transition();
+        let _starter = gpt4o_vocab.random_starter();
+        let _closer = o1_vocab.random_closer();
     }
 
     #[test]

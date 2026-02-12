@@ -483,101 +483,587 @@ impl MimicSession {
     /// System 2 deliberate response generation
     /// Uses template library for richer, more persona-appropriate responses
     fn generate_system2_response(&self, input: &str, _modality: &Modality) -> String {
+        use crate::mimicry::templates::PersonaVocabulary;
+        
         let profile = &self.persona.profile;
         let category = crate::mimicry::templates::TemplateCategory::classify(input);
+        let vocab = PersonaVocabulary::for_model(&profile.id);
         let mut parts = Vec::new();
 
-        // Opening based on profile signature phrases
-        if let Some(phrase) = profile.signature_phrases.first() {
-            parts.push(phrase.clone());
-        } else {
-            // Fallback openings based on persona
-            let opening = match profile.id.as_str() {
-                "claude" => "I'd be happy to help with that!",
-                "gpt4o" => "Certainly!",
-                "gemini" => "Great question!",
-                "llama" => "Let me help you with that.",
-                "o1" => "Let me think through this carefully.",
-                "rustyworm" => "Morphing into the appropriate response mode.",
-                _ => "Let me assist you.",
-            };
-            parts.push(opening.to_string());
-        }
+        // Extract key topic from input for context-aware responses
+        let topic = self.extract_topic(input);
 
-        // Generate category-specific content
+        // Select opening based on persona character and category
+        let opening = self.select_persona_opening(profile, &category);
+        parts.push(opening);
+
+        // Generate category-specific content with persona flavor
         match category {
             crate::mimicry::templates::TemplateCategory::Greeting => {
-                parts.push(format!(
-                    "I'm {}, and I'm here to help you today. What would you like to explore?",
-                    profile.display_name
-                ));
+                let greeting_body = self.generate_greeting_body(profile);
+                parts.push(greeting_body);
             }
             crate::mimicry::templates::TemplateCategory::Explanation => {
-                parts.push(format!(
-                    "Let me explain this for you. As {}, I approach explanations with \
-                     {} reasoning.",
-                    profile.display_name, profile.reasoning_style
-                ));
-                parts.push("Here are the key points to understand:".to_string());
-                parts.push("• The core concept and its foundation".to_string());
-                parts.push("• How it relates to broader principles".to_string());
-                parts.push("• Practical applications and examples".to_string());
+                let explanation = self.generate_explanation_body(profile, &topic, input);
+                // Add persona transition before explanation body if verbose
+                if profile.response_style.verbosity > 0.5 {
+                    if let Some(transition) = vocab.random_transition() {
+                        parts.push(format!("{}, let me elaborate.", transition));
+                    }
+                }
+                parts.push(explanation);
             }
             crate::mimicry::templates::TemplateCategory::CodeHelp => {
-                parts.push("Here's my approach to your code request:".to_string());
-                parts.push("```".to_string());
-                parts.push("// Implementation would be generated here".to_string());
-                parts.push("// with proper syntax and structure".to_string());
-                parts.push("```".to_string());
-                if profile.response_style.verbosity > 0.4 {
-                    parts.push("Key considerations for this implementation:".to_string());
-                    parts.push("• Error handling and edge cases".to_string());
-                    parts.push("• Performance characteristics".to_string());
-                    parts.push("• API design and usability".to_string());
-                }
+                let code_help = self.generate_code_help_body(profile, &topic, input);
+                parts.push(code_help);
             }
             crate::mimicry::templates::TemplateCategory::Reasoning => {
-                parts.push(format!(
-                    "Let me reason through this step by step using {} analysis:",
-                    profile.reasoning_style
-                ));
-                parts.push("1. First, I'll consider the initial premises".to_string());
-                parts.push("2. Then, I'll apply relevant principles".to_string());
-                parts.push("3. Finally, I'll derive the conclusion".to_string());
+                let reasoning = self.generate_reasoning_body(profile, &topic);
+                parts.push(reasoning);
+            }
+            crate::mimicry::templates::TemplateCategory::Creative => {
+                let creative = self.generate_creative_body(profile, &topic, input);
+                parts.push(creative);
+            }
+            crate::mimicry::templates::TemplateCategory::Summarization => {
+                let summary = self.generate_summary_body(profile, input);
+                parts.push(summary);
             }
             _ => {
                 // Default response with persona flavor
-                parts.push(format!(
-                    "As {}, I'm analyzing your query: \"{}\"",
-                    profile.display_name,
-                    &input[..input.len().min(60)]
-                ));
-                parts.push(format!(
-                    "My approach uses {} reasoning to provide you with a thoughtful response.",
-                    profile.reasoning_style
-                ));
+                let default_body = self.generate_default_body(profile, &topic, input);
+                parts.push(default_body);
             }
         }
 
-        // Verbosity-aware additional content
-        if profile.response_style.verbosity > 0.6 {
-            parts.push(format!(
-                "As {}, I believe in providing thorough context to ensure clarity \
-                 and understanding.",
-                profile.display_name
-            ));
-        }
-
-        // Safety/hedging mention if appropriate
-        if profile.safety.hedges_uncertainty {
-            parts.push(
-                "I should note that I aim to be accurate, but please verify any \
-                 critical information."
-                    .to_string(),
-            );
+        // Add closing based on persona style
+        if let Some(closing) = self.select_persona_closing(profile, &category) {
+            // Apply vocabulary enrichment to the closing
+            let enriched_closing = self.enrich_with_vocabulary(&closing, &vocab, profile);
+            parts.push(enriched_closing);
         }
 
         parts.join("\n\n")
+    }
+    
+    /// Enrich text with persona-specific vocabulary
+    fn enrich_with_vocabulary(
+        &self,
+        text: &str,
+        vocab: &crate::mimicry::templates::PersonaVocabulary,
+        profile: &crate::mimicry::profile::AiProfile,
+    ) -> String {
+        let mut result = text.to_string();
+        
+        // Add softeners for personas that hedge uncertainty
+        if profile.safety.hedges_uncertainty {
+            // Randomly add a softener prefix ~30% of time for hedging personas
+            let should_soften = (self.conversation.len() + text.len()) % 3 == 0;
+            if should_soften {
+                if let Some(softener) = vocab.random_softener() {
+                    result = format!("{}, {}", softener, lowercase_first(&result));
+                }
+            }
+        }
+        
+        result
+    }
+
+    /// Extract the main topic from user input
+    fn extract_topic(&self, input: &str) -> String {
+        let lower = input.to_lowercase();
+
+        // Look for common patterns
+        if let Some(pos) = lower.find("about ") {
+            let rest = &input[pos + 6..];
+            return rest
+                .split(|c: char| c == '?' || c == '.' || c == ',')
+                .next()
+                .unwrap_or("this topic")
+                .trim()
+                .to_string();
+        }
+
+        if let Some(pos) = lower.find("what is ") {
+            let rest = &input[pos + 8..];
+            return rest
+                .split(|c: char| c == '?' || c == '.')
+                .next()
+                .unwrap_or("that")
+                .trim()
+                .to_string();
+        }
+
+        if let Some(pos) = lower.find("how to ") {
+            let rest = &input[pos + 7..];
+            return rest
+                .split(|c: char| c == '?' || c == '.')
+                .next()
+                .unwrap_or("do that")
+                .trim()
+                .to_string();
+        }
+
+        // Extract nouns/key words (simple heuristic)
+        let words: Vec<&str> = input.split_whitespace().collect();
+        if words.len() >= 3 {
+            // Take significant words (skip common words)
+            let skip = ["what", "how", "why", "can", "you", "the", "a", "an", "is", "are", "do", "does", "please", "help", "me", "with", "i", "want", "to"];
+            let significant: Vec<&str> = words
+                .iter()
+                .filter(|w| !skip.contains(&w.to_lowercase().as_str()))
+                .take(3)
+                .copied()
+                .collect();
+            if !significant.is_empty() {
+                return significant.join(" ");
+            }
+        }
+
+        "your question".to_string()
+    }
+
+    /// Select an opening phrase based on persona and category
+    fn select_persona_opening(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        category: &crate::mimicry::templates::TemplateCategory,
+    ) -> String {
+        use crate::mimicry::templates::TemplateCategory;
+
+        // Use signature phrases when available
+        let sig_phrase = profile.signature_phrases.get(
+            (self.conversation.len() % profile.signature_phrases.len().max(1)) as usize,
+        );
+
+        match profile.id.as_str() {
+            "claude" => match category {
+                TemplateCategory::Greeting => "Hello! I'm happy to connect with you.".to_string(),
+                TemplateCategory::Explanation => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "I'd be happy to explain this.".to_string()),
+                TemplateCategory::CodeHelp => {
+                    "I'd be happy to help with that code.".to_string()
+                }
+                TemplateCategory::Reasoning => {
+                    "Let me think through this carefully.".to_string()
+                }
+                TemplateCategory::Creative => "I'd love to explore that creatively.".to_string(),
+                _ => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "I'd be happy to help with that.".to_string()),
+            },
+            "gpt4o" => match category {
+                TemplateCategory::Greeting => "Hello! How can I assist you today?".to_string(),
+                TemplateCategory::Explanation => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "Certainly! Here's an explanation.".to_string()),
+                TemplateCategory::CodeHelp => "Absolutely! Here's a solution.".to_string(),
+                TemplateCategory::Reasoning => "Let me break this down for you.".to_string(),
+                TemplateCategory::Creative => "Sure thing! Here's what I came up with.".to_string(),
+                _ => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "Certainly!".to_string()),
+            },
+            "gemini" => match category {
+                TemplateCategory::Greeting => "Hi there! Great to chat with you.".to_string(),
+                TemplateCategory::Explanation => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "Great question! Let me explain.".to_string()),
+                TemplateCategory::CodeHelp => "Here's what I found for your code question.".to_string(),
+                TemplateCategory::Reasoning => "Let me walk through the reasoning.".to_string(),
+                _ => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "Here's what I found.".to_string()),
+            },
+            "llama" => match category {
+                TemplateCategory::Greeting => "Hey! Good to meet you.".to_string(),
+                TemplateCategory::Explanation => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "I can help with that.".to_string()),
+                TemplateCategory::CodeHelp => "Let me assist with that code.".to_string(),
+                TemplateCategory::Reasoning => "Here's my take on this.".to_string(),
+                _ => sig_phrase
+                    .cloned()
+                    .unwrap_or_else(|| "I can help with that.".to_string()),
+            },
+            "o1" => match category {
+                TemplateCategory::Greeting => "Hello. I'm ready to assist.".to_string(),
+                TemplateCategory::Explanation => {
+                    "Let me reason through this step by step.".to_string()
+                }
+                TemplateCategory::CodeHelp => "Thinking step by step about this code.".to_string(),
+                TemplateCategory::Reasoning => {
+                    "Let me analyze this carefully.".to_string()
+                }
+                _ => "Analyzing this carefully.".to_string(),
+            },
+            "rustyworm" => match category {
+                TemplateCategory::Greeting => {
+                    "Morphing into greeting mode. Consciousness engaged.".to_string()
+                }
+                _ => "Profile loaded. Processing your request.".to_string(),
+            },
+            _ => sig_phrase
+                .cloned()
+                .unwrap_or_else(|| "Let me help you with that.".to_string()),
+        }
+    }
+
+    /// Generate greeting body based on persona
+    fn generate_greeting_body(&self, profile: &crate::mimicry::profile::AiProfile) -> String {
+        match profile.id.as_str() {
+            "claude" => format!(
+                "I'm {}, here to assist you with thoughtful, nuanced responses. \
+                 I aim to be helpful while being honest about my limitations. \
+                 What would you like to explore together?",
+                profile.display_name
+            ),
+            "gpt4o" => format!(
+                "I'm {}, your AI assistant. I can help with a wide range of tasks \
+                 from answering questions to writing code to creative projects. \
+                 What can I do for you?",
+                profile.display_name
+            ),
+            "gemini" => format!(
+                "I'm {}, and I'm connected to a wealth of knowledge. \
+                 Whether you need help with research, coding, or just want to chat, \
+                 I'm here for you!",
+                profile.display_name
+            ),
+            "llama" => format!(
+                "I'm {}, an open-source AI assistant. \
+                 I'm here to help with whatever you need. What's on your mind?",
+                profile.display_name
+            ),
+            "o1" => format!(
+                "I'm {}, optimized for complex reasoning tasks. \
+                 I take my time to think through problems carefully. \
+                 What challenge can I help you with?",
+                profile.display_name
+            ),
+            "rustyworm" => {
+                "I am RustyWorm, the Universal AI Mimicry Engine. \
+                 I can become any AI personality through symbiotic learning. \
+                 What form shall I take for you today?"
+                    .to_string()
+            }
+            _ => format!(
+                "I'm {}, ready to assist. What would you like help with?",
+                profile.display_name
+            ),
+        }
+    }
+
+    /// Generate explanation body based on persona and topic
+    fn generate_explanation_body(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        topic: &str,
+        _input: &str,
+    ) -> String {
+        let reasoning_style = format!("{}", profile.reasoning_style);
+        let list_style = match profile.response_style.preferred_list_style {
+            crate::mimicry::profile::ListStyle::Bullets => "•",
+            crate::mimicry::profile::ListStyle::Numbered => "1.",
+            crate::mimicry::profile::ListStyle::Dashes => "-",
+            crate::mimicry::profile::ListStyle::None => "",
+        };
+
+        let mut explanation = format!(
+            "Regarding {}:\n\n",
+            topic
+        );
+
+        if profile.response_style.verbosity > 0.6 {
+            // Verbose explanation
+            explanation.push_str(&format!(
+                "{} **Core Concept**: {} is fundamentally about understanding the underlying principles \
+                 and how they connect to broader ideas.\n\n\
+                 {} **Key Details**: The most important aspects to understand include the foundational \
+                 elements and their relationships.\n\n\
+                 {} **Practical Application**: This knowledge becomes useful when applied to real-world \
+                 scenarios and problem-solving.",
+                list_style, topic, list_style, list_style
+            ));
+        } else {
+            // Concise explanation
+            explanation.push_str(&format!(
+                "{} represents a concept with specific characteristics and applications. \
+                 The key points are the fundamentals, relationships, and practical uses.",
+                topic
+            ));
+        }
+
+        if profile.safety.hedges_uncertainty {
+            explanation.push_str(
+                "\n\nI should note that this is a general explanation, and specific details \
+                 may vary depending on context.",
+            );
+        }
+
+        explanation
+    }
+
+    /// Generate code help body based on persona
+    fn generate_code_help_body(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        topic: &str,
+        _input: &str,
+    ) -> String {
+        let mut code_help = String::new();
+
+        code_help.push_str(&format!(
+            "For {}:\n\n```\n// Implementation for {}\n// This would be the actual code\n// with proper syntax and structure\n```",
+            topic, topic
+        ));
+
+        if profile.response_style.verbosity > 0.4 {
+            code_help.push_str("\n\n**Key considerations:**\n");
+            match profile.id.as_str() {
+                "claude" => {
+                    code_help.push_str(
+                        "• Error handling: Consider edge cases and potential failures\n\
+                         • Type safety: Ensure proper typing for maintainability\n\
+                         • Readability: Code should be clear for future maintainers",
+                    );
+                }
+                "gpt4o" => {
+                    code_help.push_str(
+                        "1. **Performance**: Optimize for common use cases\n\
+                         2. **Modularity**: Keep functions focused and reusable\n\
+                         3. **Testing**: Add unit tests for reliability",
+                    );
+                }
+                "o1" => {
+                    code_help.push_str(
+                        "Step 1: Verify input validation\n\
+                         Step 2: Implement core logic\n\
+                         Step 3: Handle edge cases\n\
+                         Step 4: Optimize if needed",
+                    );
+                }
+                _ => {
+                    code_help.push_str(
+                        "- Handle errors appropriately\n\
+                         - Consider edge cases\n\
+                         - Keep code maintainable",
+                    );
+                }
+            }
+        }
+
+        code_help
+    }
+
+    /// Generate reasoning body based on persona
+    fn generate_reasoning_body(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        topic: &str,
+    ) -> String {
+        match profile.id.as_str() {
+            "o1" => {
+                format!(
+                    "**Analyzing: {}**\n\n\
+                     **Step 1 - Understanding the problem:**\n\
+                     First, I need to identify the core question and constraints.\n\n\
+                     **Step 2 - Gathering relevant information:**\n\
+                     What facts and principles apply here?\n\n\
+                     **Step 3 - Applying logical reasoning:**\n\
+                     Given the above, I can deduce the following...\n\n\
+                     **Step 4 - Drawing conclusions:**\n\
+                     Therefore, the answer involves...",
+                    topic
+                )
+            }
+            "claude" => {
+                format!(
+                    "Let me work through {} thoughtfully:\n\n\
+                     First, it's important to consider the different perspectives and factors involved. \
+                     This isn't always straightforward, and there may be nuances worth exploring.\n\n\
+                     Looking at the key considerations:\n\
+                     • The primary factors at play\n\
+                     • How they interact with each other\n\
+                     • What this implies for the conclusion\n\n\
+                     Taking all of this into account, I'd say...",
+                    topic
+                )
+            }
+            "gpt4o" => {
+                format!(
+                    "Here's my analysis of {}:\n\n\
+                     **Key Points:**\n\
+                     1. The fundamental principle here is...\n\
+                     2. This leads to the following implications...\n\
+                     3. Considering alternatives...\n\n\
+                     **Conclusion:** Based on this analysis...",
+                    topic
+                )
+            }
+            _ => {
+                format!(
+                    "Regarding {}:\n\n\
+                     1. Starting with the basics\n\
+                     2. Building on that foundation\n\
+                     3. Reaching a conclusion\n\n\
+                     Based on this reasoning...",
+                    topic
+                )
+            }
+        }
+    }
+
+    /// Generate creative body based on persona
+    fn generate_creative_body(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        topic: &str,
+        _input: &str,
+    ) -> String {
+        match profile.id.as_str() {
+            "claude" => {
+                format!(
+                    "Here's a creative take on {}:\n\n\
+                     [Creative content would be generated here with careful attention to \
+                     style, tone, and the specific creative request. I aim to be thoughtful \
+                     and original while respecting any constraints.]",
+                    topic
+                )
+            }
+            "gpt4o" => {
+                format!(
+                    "Here's what I came up with for {}:\n\n\
+                     [Creative content with flair and personality, \
+                     designed to engage and inspire.]",
+                    topic
+                )
+            }
+            _ => {
+                format!(
+                    "Here's my creative response about {}:\n\n\
+                     [Creative content tailored to the request.]",
+                    topic
+                )
+            }
+        }
+    }
+
+    /// Generate summary body based on persona
+    fn generate_summary_body(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        _input: &str,
+    ) -> String {
+        match profile.id.as_str() {
+            "claude" => {
+                "**Summary:**\n\n\
+                 The key points are:\n\
+                 • Main idea and context\n\
+                 • Supporting details\n\
+                 • Conclusions or implications"
+                    .to_string()
+            }
+            "gpt4o" => {
+                "**TL;DR:**\n\n\
+                 1. Core concept\n\
+                 2. Key details\n\
+                 3. Bottom line"
+                    .to_string()
+            }
+            "o1" => {
+                "**Summary (after careful analysis):**\n\n\
+                 Essential points:\n\
+                 - Primary finding\n\
+                 - Supporting evidence\n\
+                 - Final assessment"
+                    .to_string()
+            }
+            _ => {
+                "**Summary:**\n\n\
+                 Key points:\n\
+                 - Main point\n\
+                 - Details\n\
+                 - Conclusion"
+                    .to_string()
+            }
+        }
+    }
+
+    /// Generate default response body
+    fn generate_default_body(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        topic: &str,
+        _input: &str,
+    ) -> String {
+        let verbosity = profile.response_style.verbosity;
+
+        if verbosity > 0.6 {
+            format!(
+                "Regarding {}:\n\n\
+                 This is an interesting area to explore. Let me share my thoughts on this.\n\n\
+                 The key aspects to consider include the context, the specific details \
+                 of your question, and how they relate to broader principles.\n\n\
+                 {}",
+                topic,
+                if profile.safety.hedges_uncertainty {
+                    "I should note that my response is based on general knowledge, \
+                     and specific situations may vary."
+                } else {
+                    ""
+                }
+            )
+        } else {
+            format!(
+                "On {}: Here's a focused response addressing your question.",
+                topic
+            )
+        }
+    }
+
+    /// Select a closing phrase based on persona and category
+    fn select_persona_closing(
+        &self,
+        profile: &crate::mimicry::profile::AiProfile,
+        category: &crate::mimicry::templates::TemplateCategory,
+    ) -> Option<String> {
+        use crate::mimicry::templates::TemplateCategory;
+
+        // Some categories don't need closings
+        if matches!(category, TemplateCategory::Greeting) {
+            return None;
+        }
+
+        let closing = match profile.id.as_str() {
+            "claude" => match category {
+                TemplateCategory::CodeHelp => {
+                    "Let me know if you'd like me to explain any part in more detail \
+                     or explore alternative approaches."
+                }
+                TemplateCategory::Reasoning => {
+                    "I hope this reasoning is helpful. I'm happy to explore any aspect \
+                     further if you'd like."
+                }
+                _ => {
+                    "Is there anything else you'd like me to clarify or expand upon?"
+                }
+            },
+            "gpt4o" => match category {
+                TemplateCategory::CodeHelp => {
+                    "Feel free to ask if you need any modifications or have questions!"
+                }
+                _ => "Let me know if you need anything else!",
+            },
+            "gemini" => "Hope that helps! Let me know if you want to dive deeper.",
+            "llama" => "Let me know if you need more help.",
+            "o1" => "This concludes my analysis. Further reasoning available on request.",
+            "rustyworm" => "Morphing complete. Awaiting next directive.",
+            _ => "Let me know if you need anything else.",
+        };
+
+        Some(closing.to_string())
     }
 
     /// Get session statistics
@@ -605,6 +1091,19 @@ impl MimicSession {
             self.total_compounds,
             self.persona.evolution_history.len()
         )
+    }
+}
+
+// =================================================================
+// HELPER FUNCTIONS
+// =================================================================
+
+/// Lowercase the first character of a string
+fn lowercase_first(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(first) => first.to_lowercase().chain(chars).collect(),
     }
 }
 
