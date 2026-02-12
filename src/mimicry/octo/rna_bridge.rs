@@ -5,10 +5,15 @@
 
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use std::path::Path;
 use std::sync::Once;
 
 static INIT: Once = Once::new();
 static mut BRIDGE_INITIALIZED: bool = false;
+static mut WEIGHTS_LOADED: bool = false;
+
+/// Default path to trained RNA weights
+const DEFAULT_WEIGHTS_PATH: &str = "/home/worm/octotetrahedral-agi/rna_weights.pt";
 
 /// Configuration for OCTO bridge
 #[derive(Debug, Clone)]
@@ -145,12 +150,45 @@ impl OctoRNABridge {
                     .map_err(|e| format!("Failed to insert path: {}", e))?;
 
                 // Import and verify bridge module
-                py.import("rustyworm_bridge")
+                let bridge = py
+                    .import("rustyworm_bridge")
                     .map_err(|e| format!("Failed to import rustyworm_bridge: {}", e))?;
 
                 unsafe {
                     BRIDGE_INITIALIZED = true;
                 }
+
+                // Auto-load trained weights if available
+                if Path::new(DEFAULT_WEIGHTS_PATH).exists() {
+                    match bridge.call_method1("load_weights", (DEFAULT_WEIGHTS_PATH,)) {
+                        Ok(result) => {
+                            let success: bool = result.extract().unwrap_or(false);
+                            if success {
+                                unsafe {
+                                    WEIGHTS_LOADED = true;
+                                }
+                                eprintln!(
+                                    "[OCTO] Loaded trained weights from {}",
+                                    DEFAULT_WEIGHTS_PATH
+                                );
+                            } else {
+                                eprintln!(
+                                    "[OCTO] Warning: Failed to load weights from {}",
+                                    DEFAULT_WEIGHTS_PATH
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("[OCTO] Warning: Could not load weights: {}", e);
+                        }
+                    }
+                } else {
+                    eprintln!(
+                        "[OCTO] No pre-trained weights found at {}",
+                        DEFAULT_WEIGHTS_PATH
+                    );
+                }
+
                 Ok::<(), String>(())
             });
 
@@ -173,6 +211,56 @@ impl OctoRNABridge {
     /// Check if bridge is initialized
     pub fn is_initialized(&self) -> bool {
         self.initialized && unsafe { BRIDGE_INITIALIZED }
+    }
+
+    /// Check if trained weights are loaded
+    pub fn weights_loaded(&self) -> bool {
+        unsafe { WEIGHTS_LOADED }
+    }
+
+    /// Manually load weights from a file
+    pub fn load_weights(&self, path: &str) -> Result<bool, String> {
+        if !self.is_initialized() {
+            return Err("OCTO bridge not initialized".to_string());
+        }
+
+        Python::with_gil(|py| {
+            let bridge = py
+                .import("rustyworm_bridge")
+                .map_err(|e| format!("Import error: {}", e))?;
+
+            let result = bridge
+                .call_method1("load_weights", (path,))
+                .map_err(|e| format!("Load error: {}", e))?;
+
+            let success: bool = result.extract().unwrap_or(false);
+            if success {
+                unsafe {
+                    WEIGHTS_LOADED = true;
+                }
+            }
+            Ok(success)
+        })
+    }
+
+    /// Save current weights to a file
+    pub fn save_weights(&self, path: &str) -> Result<bool, String> {
+        if !self.is_initialized() {
+            return Err("OCTO bridge not initialized".to_string());
+        }
+
+        Python::with_gil(|py| {
+            let bridge = py
+                .import("rustyworm_bridge")
+                .map_err(|e| format!("Import error: {}", e))?;
+
+            let result = bridge
+                .call_method1("save_weights", (path,))
+                .map_err(|e| format!("Save error: {}", e))?;
+
+            let success: bool = result.extract().unwrap_or(false);
+            Ok(success)
+        })
     }
 
     /// Get current config
@@ -307,14 +395,22 @@ impl OctoRNABridge {
 
     /// Format config for display
     pub fn format_config(&self) -> String {
+        let weights_status = if self.weights_loaded() {
+            format!("Loaded ({})", DEFAULT_WEIGHTS_PATH)
+        } else {
+            "Not loaded (using random initialization)".to_string()
+        };
+
         format!(
             "OCTO Configuration:\n\
              ├─ System 1 Threshold: {:.2} (confidence must exceed)\n\
              ├─ Temperature Threshold: {:.1} (temp must be below)\n\
-             └─ Hidden Dimension: {}",
+             ├─ Hidden Dimension: {}\n\
+             └─ Trained Weights: {}",
             self.config.system1_threshold,
             self.config.temperature_threshold,
-            self.config.hidden_dim
+            self.config.hidden_dim,
+            weights_status
         )
     }
 }

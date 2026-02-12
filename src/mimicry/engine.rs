@@ -389,6 +389,15 @@ pub struct MimicSession {
     pub last_rna_result: Option<RNAEditingResult>,
 }
 
+/// OCTO routing result containing head gates and pathway info
+#[cfg(feature = "octo")]
+struct OctoRoutingResult {
+    use_system1: bool,
+    head_gates: Vec<f32>,
+    pathway_weights: Vec<f32>,
+    primary_pathway: usize,
+}
+
 impl MimicSession {
     /// Create a new session for the given compound persona.
     pub fn new(persona: CompoundPersona) -> Self {
@@ -444,25 +453,32 @@ impl MimicSession {
         let octo_routing = self.get_octo_routing(input);
         
         #[cfg(not(feature = "octo"))]
-        let octo_routing: Option<(bool, Vec<f32>)> = None;
+        let octo_routing: Option<()> = None;
 
         // Step 3: Determine routing based on OCTO or fallback to cache-based routing
         let cached = cache.lookup(&self.persona.profile.id);
         let convergence_boost = self.persona.convergence_score * 0.5; // Max 0.5 boost at 100% convergence
         
-        let (output, system_used, head_gates) = if let Some((use_system1, gates)) = octo_routing {
+        #[cfg(feature = "octo")]
+        let (output, system_used, head_gates, pathway_info) = if let Some(routing) = octo_routing {
             // OCTO-based routing decision
-            if use_system1 {
+            if routing.use_system1 {
                 self.system1_hits += 1;
                 let lib = template_store.get_or_create(&self.persona.profile);
                 let mut output = lib.generate(input, &self.persona.profile.response_style);
                 // Apply head gating to modulate response
-                output = self.apply_head_gating(&output, &gates);
-                (output, ProcessingSystem::System1, Some(gates))
+                output = self.apply_head_gating(&output, &routing.head_gates);
+                // Apply pathway adaptation
+                output = self.apply_pathway_adaptation(&output, routing.primary_pathway, &routing.pathway_weights);
+                (output, ProcessingSystem::System1, Some(routing.head_gates), Some((routing.primary_pathway, routing.pathway_weights)))
             } else {
                 self.system2_hits += 1;
-                let output = self.generate_system2_response(input, &modality);
-                (output, ProcessingSystem::System2, Some(gates))
+                let mut output = self.generate_system2_response(input, &modality);
+                // Apply head gating even for System 2 (lighter touch)
+                output = self.apply_head_gating(&output, &routing.head_gates);
+                // Apply pathway adaptation
+                output = self.apply_pathway_adaptation(&output, routing.primary_pathway, &routing.pathway_weights);
+                (output, ProcessingSystem::System2, Some(routing.head_gates), Some((routing.primary_pathway, routing.pathway_weights)))
             }
         } else if let Some(cached_sig) = cached {
             // Fallback: Cache-based routing
@@ -471,11 +487,11 @@ impl MimicSession {
                 self.system1_hits += 1;
                 let lib = template_store.get_or_create(&self.persona.profile);
                 let output = lib.generate(input, &self.persona.profile.response_style);
-                (output, ProcessingSystem::System1, None)
+                (output, ProcessingSystem::System1, None, None)
             } else {
                 self.system2_hits += 1;
                 let output = self.generate_system2_response(input, &modality);
-                (output, ProcessingSystem::System2, None)
+                (output, ProcessingSystem::System2, None, None)
             }
         } else {
             // Cache miss - but high convergence personas can still use templates
@@ -483,14 +499,39 @@ impl MimicSession {
                 self.system1_hits += 1;
                 let lib = template_store.get_or_create(&self.persona.profile);
                 let output = lib.generate(input, &self.persona.profile.response_style);
-                (output, ProcessingSystem::System1, None)
+                (output, ProcessingSystem::System1, None, None)
             } else {
                 // True cache miss - System 2 deliberation
                 self.system2_hits += 1;
                 let output = self.generate_system2_response(input, &modality);
-                (output, ProcessingSystem::System2, None)
+                (output, ProcessingSystem::System2, None, None)
             }
         };
+        
+        #[cfg(not(feature = "octo"))]
+        let (output, system_used, head_gates, pathway_info): (String, ProcessingSystem, Option<Vec<f32>>, Option<(usize, Vec<f32>)>) = 
+            if let Some(cached_sig) = cached {
+                let effective_confidence = cached_sig.confidence + convergence_boost;
+                if effective_confidence > 0.7 {
+                    self.system1_hits += 1;
+                    let lib = template_store.get_or_create(&self.persona.profile);
+                    let output = lib.generate(input, &self.persona.profile.response_style);
+                    (output, ProcessingSystem::System1, None, None)
+                } else {
+                    self.system2_hits += 1;
+                    let output = self.generate_system2_response(input, &modality);
+                    (output, ProcessingSystem::System2, None, None)
+                }
+            } else if self.persona.convergence_score > 0.8 {
+                self.system1_hits += 1;
+                let lib = template_store.get_or_create(&self.persona.profile);
+                let output = lib.generate(input, &self.persona.profile.response_style);
+                (output, ProcessingSystem::System1, None, None)
+            } else {
+                self.system2_hits += 1;
+                let output = self.generate_system2_response(input, &modality);
+                (output, ProcessingSystem::System2, None, None)
+            };
 
         // Step 4: Self-monitor output (System 2 watches)
         let delta = self.persona.self_correct(&output, analyzer);
@@ -533,30 +574,44 @@ impl MimicSession {
         });
 
         let _ = head_gates; // Suppress unused warning when octo feature is disabled
+        let _ = pathway_info; // Suppress unused warning
         (final_output, delta)
     }
     
     /// Get OCTO RNA routing decision for input
     #[cfg(feature = "octo")]
-    fn get_octo_routing(&mut self, input: &str) -> Option<(bool, Vec<f32>)> {
+    fn get_octo_routing(&mut self, input: &str) -> Option<OctoRoutingResult> {
         let embedder = self.text_embedder.as_ref()?;
         let bridge = self.octo_bridge.as_ref()?;
         
         let embedding = embedder.embed(input);
         
+        // Get RNA analysis result for pathway weights
+        let rna_result = bridge.analyze(&embedding).ok()?;
+        let pathway_weights = rna_result.pathway_weights.clone();
+        let primary_pathway = rna_result.primary_pathway();
+        
+        // Store for stats display
+        self.last_rna_result = Some(rna_result);
+        
         match bridge.get_routing(&embedding) {
             Ok(routing) => {
-                // Store the RNA result for stats display
-                if let Ok(rna) = bridge.analyze(&embedding) {
-                    self.last_rna_result = Some(rna);
-                }
-                
                 match routing {
                     RoutingDecision::System1 { head_gates, .. } => {
-                        Some((true, head_gates))
+                        Some(OctoRoutingResult {
+                            use_system1: true,
+                            head_gates,
+                            pathway_weights,
+                            primary_pathway,
+                        })
                     }
                     RoutingDecision::System2 { .. } => {
-                        Some((false, vec![1.0; 8])) // Default gates for System 2
+                        Some(OctoRoutingResult {
+                            use_system1: false,
+                            head_gates: vec![0.5; 8], // Neutral gates for System 2
+                            pathway_weights,
+                            primary_pathway,
+                        })
                     }
                 }
             }
@@ -584,26 +639,91 @@ impl MimicSession {
             return output.to_string();
         }
         
+        let formality = head_gates[0];
+        let verbosity = head_gates[1];
+        let technical = head_gates[2];
+        let warmth = head_gates[3];
+        let hedging = head_gates[4];
+        let creativity = head_gates[5];
+        let directness = head_gates[6];
+        let empathy = head_gates[7];
+        
         let mut result = output.to_string();
         
-        // Apply hedging modulation (gate 4)
-        if head_gates[4] > 0.7 && !result.contains("I think") && !result.contains("perhaps") {
-            // Add hedging for uncertain responses
-            if result.len() > 50 {
-                result = format!("I think {}", lowercase_first(&result));
+        // === HEDGING MODULATION (gate 4) ===
+        // High hedging + low directness = add uncertainty markers
+        if hedging > 0.65 && directness < 0.5 {
+            if !result.contains("I think") && !result.contains("perhaps") 
+               && !result.contains("might") && !result.contains("may") {
+                if result.len() > 50 {
+                    result = format!("I think {}", lowercase_first(&result));
+                }
+            }
+        }
+        // Low hedging + high directness = remove hedging if present
+        else if hedging < 0.35 && directness > 0.7 {
+            result = result
+                .replace("I think ", "")
+                .replace("perhaps ", "")
+                .replace("might be", "is")
+                .replace("may be", "is");
+        }
+        
+        // === WARMTH/EMPATHY MODULATION (gates 3, 7) ===
+        let warmth_score = (warmth + empathy) / 2.0;
+        if warmth_score > 0.7 {
+            // High warmth - add supportive elements
+            if !result.ends_with('!') && !result.ends_with('?') {
+                // Don't modify if already has punctuation emphasis
+                if result.len() > 100 && !result.contains("hope this helps") 
+                   && !result.contains("let me know") {
+                    // Optionally append warm closing (but keep subtle)
+                }
             }
         }
         
-        // Apply warmth modulation (gate 3)
-        if head_gates[3] > 0.8 && !result.ends_with('!') {
-            // Could add warm closing, but keep it subtle
-            // This is intentionally light-touch modulation
+        // === FORMALITY MODULATION (gate 0) ===
+        if formality > 0.75 {
+            // High formality - replace casual contractions
+            result = result
+                .replace("don't", "do not")
+                .replace("won't", "will not")
+                .replace("can't", "cannot")
+                .replace("it's", "it is")
+                .replace("that's", "that is");
+        } else if formality < 0.3 {
+            // Low formality - make more casual
+            result = result
+                .replace("do not", "don't")
+                .replace("will not", "won't")
+                .replace("cannot", "can't");
         }
         
-        // Apply directness modulation (gate 6)
-        if head_gates[6] < 0.3 {
-            // Low directness - could add softening
-            // But we keep response mostly intact
+        // === VERBOSITY MODULATION (gate 1) ===
+        if verbosity < 0.3 && result.len() > 500 {
+            // Low verbosity on long response - try to trim
+            // Find a good breaking point (end of paragraph or sentence)
+            if let Some(pos) = result[..400].rfind(". ") {
+                result = format!("{}.", &result[..pos]);
+            }
+        }
+        
+        // === TECHNICAL DEPTH MODULATION (gate 2) ===
+        if technical > 0.7 {
+            // High technical - could add "specifically" or "technically"
+            // But avoid over-modifying
+        } else if technical < 0.3 {
+            // Low technical - simplify jargon if present
+            result = result
+                .replace("utilize", "use")
+                .replace("implement", "create")
+                .replace("functionality", "feature");
+        }
+        
+        // === CREATIVITY MODULATION (gate 5) ===
+        if creativity > 0.8 {
+            // High creativity - could add metaphors or analogies
+            // Keep subtle to avoid over-modifying
         }
         
         result
@@ -679,6 +799,82 @@ impl MimicSession {
         }
 
         parts.join("\n\n")
+    }
+    
+    /// Apply pathway-based response adaptation
+    /// Pathways: 0=perception, 1=reasoning, 2=action
+    #[cfg(feature = "octo")]
+    fn apply_pathway_adaptation(&self, output: &str, pathway: usize, weights: &[f32]) -> String {
+        if weights.len() < 3 {
+            return output.to_string();
+        }
+        
+        let perception = weights[0];
+        let reasoning = weights[1];
+        let action = weights[2];
+        
+        let mut result = output.to_string();
+        
+        match pathway {
+            0 => {
+                // PERCEPTION dominant: Focus on observations, details, sensory
+                // Add observational framing if not present
+                if perception > 0.45 && !result.contains("observe") 
+                   && !result.contains("notice") && !result.contains("see") {
+                    // Perception-heavy responses should focus on what IS
+                    if result.len() > 100 {
+                        // Could prepend observation frame, but keep subtle
+                    }
+                }
+            }
+            1 => {
+                // REASONING dominant: Focus on logic, analysis, explanation
+                // This is the default academic style
+                if reasoning > 0.45 {
+                    // Reasoning responses can include structured elements
+                    // Already handled well by default template system
+                }
+            }
+            2 => {
+                // ACTION dominant: Focus on steps, instructions, doing
+                // Add action-oriented framing
+                if action > 0.45 && !result.contains("step") 
+                   && !result.contains("first") && !result.contains("to do") {
+                    // Could add "Here's how:" or similar action framing
+                    // Keep subtle for now
+                }
+                
+                // If strongly action-oriented, convert passive to active voice
+                if action > 0.6 {
+                    result = result
+                        .replace("can be done by", "do this by")
+                        .replace("should be", "should")
+                        .replace("could be used", "use");
+                }
+            }
+            _ => {}
+        }
+        
+        // Cross-pathway blending for nuanced responses
+        // If two pathways are close, blend their characteristics
+        let max_weight = weights.iter().cloned().fold(0.0f32, f32::max);
+        let second_max = weights.iter()
+            .filter(|&&w| w != max_weight)
+            .cloned()
+            .fold(0.0f32, f32::max);
+        
+        // If pathways are within 10% of each other, it's a blended response
+        if (max_weight - second_max).abs() < 0.1 {
+            // This is a balanced/nuanced query - keep response as-is
+            // The natural template output handles this well
+        }
+        
+        result
+    }
+    
+    #[cfg(not(feature = "octo"))]
+    fn apply_pathway_adaptation(&self, output: &str, _pathway: usize, _weights: &[f32]) -> String {
+        output.to_string()
     }
     
     /// Enrich text with persona-specific vocabulary
@@ -1814,6 +2010,22 @@ impl MimicryEngine {
         if let Some(ref session) = self.session {
             lines.push(String::new());
             lines.push(session.stats());
+
+            // OCTO RNA Bridge stats (feature-gated)
+            #[cfg(feature = "octo")]
+            {
+                lines.push(String::new());
+                if session.octo_active() {
+                    lines.push("OCTO RNA Bridge: ACTIVE".to_string());
+                    if let Some(rna_stats) = session.octo_stats() {
+                        lines.push(rna_stats);
+                    } else {
+                        lines.push("  (no analysis yet - send a message to trigger)".to_string());
+                    }
+                } else {
+                    lines.push("OCTO RNA Bridge: INACTIVE (Python bridge not available)".to_string());
+                }
+            }
 
             // Template stats for active persona
             let lib = self.template_store.get(&session.persona.profile.id);
