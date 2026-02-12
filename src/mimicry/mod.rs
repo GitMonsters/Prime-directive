@@ -68,3 +68,5 @@ pub mod gui_bridge;
 pub mod platforms;
 #[cfg(feature = "layers")]
 pub mod layers;
+#[cfg(feature = "octo")]
+pub mod octo;

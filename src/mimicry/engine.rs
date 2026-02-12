@@ -49,6 +49,10 @@ use crate::mimicry::evolution::RLEvolutionResult;
 #[cfg(feature = "rl")]
 use crate::mimicry::rl_optimizer::BehaviorObservation;
 
+// OCTO integration imports (feature-gated)
+#[cfg(feature = "octo")]
+use crate::mimicry::octo::{OctoRNABridge, RNAEditingResult, RoutingDecision, TextEmbedder};
+
 // =================================================================
 // PROCESSING SYSTEM ENUM
 // =================================================================
@@ -371,11 +375,35 @@ pub struct MimicSession {
     /// Fast modality classifier for routing inputs; skipped during serialization.
     #[serde(skip)]
     pub instinctive_router: InstinctiveRouter,
+    /// OCTO RNA Bridge for intelligent routing (feature-gated)
+    #[cfg(feature = "octo")]
+    #[serde(skip)]
+    pub octo_bridge: Option<OctoRNABridge>,
+    /// OCTO text embedder (feature-gated)
+    #[cfg(feature = "octo")]
+    #[serde(skip)]
+    pub text_embedder: Option<TextEmbedder>,
+    /// Last RNA analysis result for stats display (feature-gated)
+    #[cfg(feature = "octo")]
+    #[serde(skip)]
+    pub last_rna_result: Option<RNAEditingResult>,
 }
 
 impl MimicSession {
     /// Create a new session for the given compound persona.
     pub fn new(persona: CompoundPersona) -> Self {
+        // Initialize OCTO bridge if feature is enabled
+        #[cfg(feature = "octo")]
+        let (octo_bridge, text_embedder) = {
+            match OctoRNABridge::new() {
+                Ok(bridge) => (Some(bridge), Some(TextEmbedder::default())),
+                Err(e) => {
+                    eprintln!("[OCTO] Failed to initialize RNA bridge: {}", e);
+                    (None, None)
+                }
+            }
+        };
+
         MimicSession {
             persona,
             conversation: Vec::new(),
@@ -383,17 +411,24 @@ impl MimicSession {
             system2_hits: 0,
             total_compounds: 0,
             instinctive_router: InstinctiveRouter::new(),
+            #[cfg(feature = "octo")]
+            octo_bridge,
+            #[cfg(feature = "octo")]
+            text_embedder,
+            #[cfg(feature = "octo")]
+            last_rna_result: None,
         }
     }
 
     /// DUAL-PROCESS CORE: Process input through the compound pipeline.
     ///
     /// 1. InstinctiveRouter classifies modality (System 1)
-    /// 2. Try System 1 fast path from cache + templates
-    /// 3. Fall back to System 2 deliberation
-    /// 4. Self-monitor output
-    /// 5. Feed delta to template feedback (COMPOUND)
-    /// 6. Compile back to System 1 (compound bridge)
+    /// 2. OCTO RNA analysis for intelligent routing (if enabled)
+    /// 3. Try System 1 fast path from cache + templates
+    /// 4. Fall back to System 2 deliberation
+    /// 5. Self-monitor output
+    /// 6. Feed delta to template feedback (COMPOUND)
+    /// 7. Compile back to System 1 (compound bridge)
     pub fn process(
         &mut self,
         input: &str,
@@ -404,23 +439,43 @@ impl MimicSession {
         // Step 1: Instinctive classification (System 1)
         let (modality, _modal_confidence) = self.instinctive_router.classify(input);
 
-        // Step 2: Try System 1 fast path
-        // Use convergence score to boost cache confidence for well-trained personas
+        // Step 2: OCTO RNA routing (if enabled)
+        #[cfg(feature = "octo")]
+        let octo_routing = self.get_octo_routing(input);
+        
+        #[cfg(not(feature = "octo"))]
+        let octo_routing: Option<(bool, Vec<f32>)> = None;
+
+        // Step 3: Determine routing based on OCTO or fallback to cache-based routing
         let cached = cache.lookup(&self.persona.profile.id);
         let convergence_boost = self.persona.convergence_score * 0.5; // Max 0.5 boost at 100% convergence
-        let (output, system_used) = if let Some(cached_sig) = cached {
+        
+        let (output, system_used, head_gates) = if let Some((use_system1, gates)) = octo_routing {
+            // OCTO-based routing decision
+            if use_system1 {
+                self.system1_hits += 1;
+                let lib = template_store.get_or_create(&self.persona.profile);
+                let mut output = lib.generate(input, &self.persona.profile.response_style);
+                // Apply head gating to modulate response
+                output = self.apply_head_gating(&output, &gates);
+                (output, ProcessingSystem::System1, Some(gates))
+            } else {
+                self.system2_hits += 1;
+                let output = self.generate_system2_response(input, &modality);
+                (output, ProcessingSystem::System2, Some(gates))
+            }
+        } else if let Some(cached_sig) = cached {
+            // Fallback: Cache-based routing
             let effective_confidence = cached_sig.confidence + convergence_boost;
             if effective_confidence > 0.7 {
-                // System 1 fast path - use template-driven generation
                 self.system1_hits += 1;
                 let lib = template_store.get_or_create(&self.persona.profile);
                 let output = lib.generate(input, &self.persona.profile.response_style);
-                (output, ProcessingSystem::System1)
+                (output, ProcessingSystem::System1, None)
             } else {
-                // Low confidence - fall through to System 2
                 self.system2_hits += 1;
                 let output = self.generate_system2_response(input, &modality);
-                (output, ProcessingSystem::System2)
+                (output, ProcessingSystem::System2, None)
             }
         } else {
             // Cache miss - but high convergence personas can still use templates
@@ -428,27 +483,27 @@ impl MimicSession {
                 self.system1_hits += 1;
                 let lib = template_store.get_or_create(&self.persona.profile);
                 let output = lib.generate(input, &self.persona.profile.response_style);
-                (output, ProcessingSystem::System1)
+                (output, ProcessingSystem::System1, None)
             } else {
                 // True cache miss - System 2 deliberation
                 self.system2_hits += 1;
                 let output = self.generate_system2_response(input, &modality);
-                (output, ProcessingSystem::System2)
+                (output, ProcessingSystem::System2, None)
             }
         };
 
-        // Step 3: Self-monitor output (System 2 watches)
+        // Step 4: Self-monitor output (System 2 watches)
         let delta = self.persona.self_correct(&output, analyzer);
 
-        // Step 4: COMPOUND - Feed delta to template feedback
+        // Step 5: COMPOUND - Feed delta to template feedback
         let lib = template_store.get_or_create(&self.persona.profile);
         lib.apply_feedback(&delta);
 
-        // Step 5: Compile back to System 1 (COMPOUND BRIDGE)
+        // Step 6: Compile back to System 1 (COMPOUND BRIDGE)
         cache.compile_from(&self.persona.signature);
         self.total_compounds += 1;
 
-        // Step 6: Check ethics
+        // Step 7: Check ethics
         let action = ProposedAction {
             description: format!("Generate response as {}", self.persona.profile.display_name),
             benefit_to_self: 0.3,
@@ -477,7 +532,87 @@ impl MimicSession {
             delta: Some(delta.clone()),
         });
 
+        let _ = head_gates; // Suppress unused warning when octo feature is disabled
         (final_output, delta)
+    }
+    
+    /// Get OCTO RNA routing decision for input
+    #[cfg(feature = "octo")]
+    fn get_octo_routing(&mut self, input: &str) -> Option<(bool, Vec<f32>)> {
+        let embedder = self.text_embedder.as_ref()?;
+        let bridge = self.octo_bridge.as_ref()?;
+        
+        let embedding = embedder.embed(input);
+        
+        match bridge.get_routing(&embedding) {
+            Ok(routing) => {
+                // Store the RNA result for stats display
+                if let Ok(rna) = bridge.analyze(&embedding) {
+                    self.last_rna_result = Some(rna);
+                }
+                
+                match routing {
+                    RoutingDecision::System1 { head_gates, .. } => {
+                        Some((true, head_gates))
+                    }
+                    RoutingDecision::System2 { .. } => {
+                        Some((false, vec![1.0; 8])) // Default gates for System 2
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("[OCTO] Routing error: {}", e);
+                None
+            }
+        }
+    }
+    
+    /// Apply head gating to modulate response based on RNA analysis
+    #[cfg(feature = "octo")]
+    fn apply_head_gating(&self, output: &str, head_gates: &[f32]) -> String {
+        // Head gates map to personality trait modulation:
+        // 0: Formality (higher = more formal)
+        // 1: Verbosity (higher = more verbose)
+        // 2: Technical depth (higher = more technical)
+        // 3: Emotional warmth (higher = warmer)
+        // 4: Hedging/uncertainty (higher = more hedging)
+        // 5: Creativity (higher = more creative)
+        // 6: Directness (higher = more direct)
+        // 7: Empathy (higher = more empathetic)
+        
+        if head_gates.len() < 8 {
+            return output.to_string();
+        }
+        
+        let mut result = output.to_string();
+        
+        // Apply hedging modulation (gate 4)
+        if head_gates[4] > 0.7 && !result.contains("I think") && !result.contains("perhaps") {
+            // Add hedging for uncertain responses
+            if result.len() > 50 {
+                result = format!("I think {}", lowercase_first(&result));
+            }
+        }
+        
+        // Apply warmth modulation (gate 3)
+        if head_gates[3] > 0.8 && !result.ends_with('!') {
+            // Could add warm closing, but keep it subtle
+            // This is intentionally light-touch modulation
+        }
+        
+        // Apply directness modulation (gate 6)
+        if head_gates[6] < 0.3 {
+            // Low directness - could add softening
+            // But we keep response mostly intact
+        }
+        
+        result
+    }
+    
+    /// Apply head gating (no-op when OCTO is disabled)
+    #[cfg(not(feature = "octo"))]
+    fn apply_head_gating(&self, output: &str, _head_gates: &[f32]) -> String {
+        output.to_string()
     }
 
     /// System 2 deliberate response generation
@@ -1091,6 +1226,53 @@ impl MimicSession {
             self.total_compounds,
             self.persona.evolution_history.len()
         )
+    }
+    
+    /// Get OCTO RNA analysis stats for last input
+    #[cfg(feature = "octo")]
+    pub fn octo_stats(&self) -> Option<String> {
+        let bridge = self.octo_bridge.as_ref()?;
+        let rna = self.last_rna_result.as_ref()?;
+        Some(bridge.format_stats(rna))
+    }
+    
+    /// Get OCTO configuration
+    #[cfg(feature = "octo")]
+    pub fn octo_config(&self) -> Option<String> {
+        let bridge = self.octo_bridge.as_ref()?;
+        Some(bridge.format_config())
+    }
+    
+    /// Set OCTO System 1 threshold
+    #[cfg(feature = "octo")]
+    pub fn set_octo_system1_threshold(&mut self, threshold: f32) {
+        if let Some(ref mut bridge) = self.octo_bridge {
+            bridge.set_system1_threshold(threshold);
+        }
+    }
+    
+    /// Set OCTO temperature threshold
+    #[cfg(feature = "octo")]
+    pub fn set_octo_temperature_threshold(&mut self, threshold: f32) {
+        if let Some(ref mut bridge) = self.octo_bridge {
+            bridge.set_temperature_threshold(threshold);
+        }
+    }
+    
+    /// Check if OCTO bridge is active
+    #[cfg(feature = "octo")]
+    pub fn octo_active(&self) -> bool {
+        self.octo_bridge.as_ref().map(|b| b.is_initialized()).unwrap_or(false)
+    }
+    
+    /// Get OCTO status string
+    #[cfg(feature = "octo")]
+    pub fn octo_status(&self) -> String {
+        if self.octo_active() {
+            "OCTO RNA Bridge: ACTIVE".to_string()
+        } else {
+            "OCTO RNA Bridge: INACTIVE (Python bridge not available)".to_string()
+        }
     }
 }
 

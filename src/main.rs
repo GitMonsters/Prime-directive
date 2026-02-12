@@ -168,6 +168,37 @@ fn colorize_output(output: &str) -> String {
         } else if trimmed.starts_with("Similarity Matrix:") {
             // Comparison matrix header
             result.push_str(&format!("{}{}{}\n", color::YELLOW, line, color::RESET));
+        } else if trimmed.starts_with("OCTO RNA Analysis:")
+            || trimmed.starts_with("OCTO Configuration:")
+        {
+            // OCTO section headers
+            result.push_str(&format!(
+                "{}{}{}{}\n",
+                color::BOLD,
+                color::BRIGHT_MAGENTA,
+                line,
+                color::RESET
+            ));
+        } else if trimmed.starts_with("├─") || trimmed.starts_with("└─") {
+            // OCTO tree-style output lines
+            if trimmed.contains("Temperature:") || trimmed.contains("Confidence:") {
+                result.push_str(&format!("{}{}{}\n", color::CYAN, line, color::RESET));
+            } else if trimmed.contains("Route:") {
+                if trimmed.contains("System 1") {
+                    result.push_str(&format!(
+                        "{}{}{}\n",
+                        color::BRIGHT_GREEN,
+                        line,
+                        color::RESET
+                    ));
+                } else {
+                    result.push_str(&format!("{}{}{}\n", color::YELLOW, line, color::RESET));
+                }
+            } else if trimmed.contains("Head Gates:") || trimmed.contains("Pathway:") {
+                result.push_str(&format!("{}{}{}\n", color::MAGENTA, line, color::RESET));
+            } else {
+                result.push_str(&format!("{}{}{}\n", color::DIM, line, color::RESET));
+            }
         } else if trimmed.starts_with("--- Mimicry Pipeline ---") {
             // Pipeline section header
             result.push_str(&format!(
@@ -322,6 +353,19 @@ fn main() {
         engine.evolution_tracker.current_phase,
         color::RESET,
     );
+
+    // OCTO initialization report (feature-gated)
+    #[cfg(feature = "octo")]
+    {
+        println!(
+            "{}[Init]{} OCTO RNA Bridge: {}available{} (PyO3 integration)",
+            color::MAGENTA,
+            color::RESET,
+            color::BOLD,
+            color::RESET,
+        );
+    }
+
     println!();
     println!(
         "    Type {}/help{} for commands, or {}/mimic <model>{} to start.",
@@ -377,6 +421,141 @@ fn main() {
                 color::RESET,
             );
             break;
+        }
+
+        // OCTO commands (feature-gated in engine)
+        #[cfg(feature = "octo")]
+        {
+            if trimmed == "/octo" || trimmed == "/octo-stats" {
+                if let Some(ref session) = engine.session {
+                    if let Some(stats) = session.octo_stats() {
+                        let colored = colorize_output(&stats);
+                        println!("{}", colored);
+                    } else {
+                        println!(
+                            "{}OCTO RNA Bridge not active or no analysis yet.{}",
+                            color::YELLOW,
+                            color::RESET
+                        );
+                        println!(
+                            "{}Send a message first to trigger RNA analysis.{}",
+                            color::DIM,
+                            color::RESET
+                        );
+                    }
+                } else {
+                    println!(
+                        "{}No active session. Use /mimic first.{}",
+                        color::RED,
+                        color::RESET
+                    );
+                }
+                continue;
+            }
+
+            if trimmed == "/octo-config" {
+                if let Some(ref session) = engine.session {
+                    if let Some(config) = session.octo_config() {
+                        let colored = colorize_output(&config);
+                        println!("{}", colored);
+                    } else {
+                        println!(
+                            "{}OCTO RNA Bridge not initialized.{}",
+                            color::YELLOW,
+                            color::RESET
+                        );
+                    }
+                } else {
+                    println!(
+                        "{}No active session. Use /mimic first.{}",
+                        color::RED,
+                        color::RESET
+                    );
+                }
+                continue;
+            }
+
+            if trimmed.starts_with("/octo-config ") {
+                let args = trimmed.strip_prefix("/octo-config ").unwrap_or("");
+                let parts: Vec<&str> = args.split_whitespace().collect();
+
+                if parts.len() >= 2 {
+                    let param = parts[0].to_lowercase();
+                    if let Ok(value) = parts[1].parse::<f32>() {
+                        if let Some(ref mut session) = engine.session {
+                            match param.as_str() {
+                                "threshold" | "confidence" | "s1" => {
+                                    session.set_octo_system1_threshold(value);
+                                    println!(
+                                        "{}OCTO System 1 threshold set to {:.2}{}",
+                                        color::GREEN,
+                                        value,
+                                        color::RESET
+                                    );
+                                }
+                                "temperature" | "temp" => {
+                                    session.set_octo_temperature_threshold(value);
+                                    println!(
+                                        "{}OCTO temperature threshold set to {:.1}{}",
+                                        color::GREEN,
+                                        value,
+                                        color::RESET
+                                    );
+                                }
+                                _ => {
+                                    println!("{}Unknown parameter: '{}'. Use 'threshold' or 'temperature'.{}", color::RED, param, color::RESET);
+                                }
+                            }
+                        } else {
+                            println!(
+                                "{}No active session. Use /mimic first.{}",
+                                color::RED,
+                                color::RESET
+                            );
+                        }
+                    } else {
+                        println!(
+                            "{}Invalid value: '{}'. Must be a number.{}",
+                            color::RED,
+                            parts[1],
+                            color::RESET
+                        );
+                    }
+                } else {
+                    println!(
+                        "{}Usage: /octo-config <threshold|temperature> <value>{}",
+                        color::YELLOW,
+                        color::RESET
+                    );
+                }
+                continue;
+            }
+
+            if trimmed == "/octo-status" {
+                if let Some(ref session) = engine.session {
+                    println!("{}", session.octo_status());
+                } else {
+                    println!(
+                        "{}No active session. OCTO status unknown.{}",
+                        color::YELLOW,
+                        color::RESET
+                    );
+                }
+                continue;
+            }
+        }
+
+        // Non-OCTO builds: provide helpful message for /octo commands
+        #[cfg(not(feature = "octo"))]
+        {
+            if trimmed.starts_with("/octo") {
+                println!(
+                    "{}OCTO feature not enabled. Rebuild with: cargo build --features octo{}",
+                    color::YELLOW,
+                    color::RESET
+                );
+                continue;
+            }
         }
 
         // Parse and execute
