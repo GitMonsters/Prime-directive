@@ -22,7 +22,43 @@ Thumbs.db
 # Nested repositories and Python cache
 __pycache__/
 *.pyc
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv
+ENV/
+*.egg-info/
+dist/
+build/
 
 # RustyWorm runtime data
 .rustyworm/
 test_physics_properties_output.txt
+
+# Node modules and frontend
+node_modules/
+.next/
+out/
+
+# Hardhat / Ethereum
+cache/
+artifacts/
+deployments/
+.openzeppelin/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Deployment artifacts
+deployment.json
+compute_network.json
+

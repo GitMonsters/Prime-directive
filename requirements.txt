@@ -1,0 +1,13 @@
+# Web3 Integration Dependencies
+web3==6.11.0
+ipfshttpclient==0.8.0
+py-solc-x==2.0.0
+eth-brownie==1.19.0
+
+# Cryptography and Zero-Knowledge Proofs
+cryptography==41.0.7
+pycryptodome==3.19.0
+
+# Additional utilities
+requests==2.31.0
+python-dotenv==1.0.0

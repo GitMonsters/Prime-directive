@@ -89,3 +89,7 @@ path = "prime_directive.rs"
 name = "demo_layers"
 path = "demo_layers.rs"
 required-features = ["layers"]
+
+[[bin]]
+name = "compute_node"
+path = "web3/compute_node.rs"

@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  # IPFS node for decentralized storage
+  ipfs-node:
+    image: ipfs/kubo:latest
+    container_name: prime-ipfs
+    ports:
+      - "4001:4001"      # P2P
+      - "5001:5001"      # API
+      - "8080:8080"      # Gateway
+    volumes:
+      - ipfs-data:/data/ipfs
+      - ipfs-staging:/export
+    environment:
+      - IPFS_PROFILE=server
+    networks:
+      - prime-network
+    restart: unless-stopped
+
+  # PostgreSQL for indexing blockchain data
+  postgres:
+    image: postgres:15-alpine
+    container_name: prime-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: prime
+      POSTGRES_PASSWORD: prime_password
+      POSTGRES_DB: prime_web3
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - prime-network
+    restart: unless-stopped
+
+  # The Graph protocol indexer (optional, for advanced querying)
+  graph-node:
+    image: graphprotocol/graph-node:latest
+    container_name: prime-graph
+    ports:
+      - "8000:8000"      # GraphQL HTTP
+      - "8001:8001"      # GraphQL WebSocket
+      - "8020:8020"      # JSON-RPC
+      - "8030:8030"      # Metrics
+    depends_on:
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: prime
+      postgres_pass: prime_password
+      postgres_db: prime_web3
+      ipfs: 'ipfs-node:5001'
+      ethereum: '${POLYGON_RPC_URL:-https://polygon-rpc.com}'
+    networks:
+      - prime-network
+    restart: unless-stopped
+
+  # Local compute node
+  compute-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust
+    container_name: prime-compute-node
+    environment:
+      NODE_ID: local_node_1
+      GPU_COUNT: 4
+      MEMORY_GB: 64
+    volumes:
+      - ./web3:/app/web3
+      - compute-cache:/app/cache
+    networks:
+      - prime-network
+    restart: unless-stopped
+    # Uncomment for GPU access
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # Next.js dApp frontend
+  frontend:
+    build:
+      context: ./web3/frontend
+      dockerfile: Dockerfile
+    container_name: prime-dapp
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_CHAIN_ID=80001
+      - NEXT_PUBLIC_PRIME_TOKEN_ADDRESS=${PRIME_TOKEN_ADDRESS:-0x0}
+      - NEXT_PUBLIC_GOVERNANCE_ADDRESS=${GOVERNANCE_ADDRESS:-0x0}
+    depends_on:
+      - ipfs-node
+    networks:
+      - prime-network
+    restart: unless-stopped
+
+  # Python API server for Web3 interactions
+  api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prime-api
+    ports:
+      - "8888:8888"
+    environment:
+      - IPFS_HOST=ipfs-node
+      - IPFS_PORT=5001
+      - POLYGON_RPC_URL=${POLYGON_RPC_URL}
+    depends_on:
+      - ipfs-node
+      - postgres
+    volumes:
+      - ./web3:/app/web3
+      - ./.env:/app/.env
+    networks:
+      - prime-network
+    restart: unless-stopped
+    command: python api_server.py
+
+networks:
+  prime-network:
+    driver: bridge
+
+volumes:
+  ipfs-data:
+    driver: local
+  ipfs-staging:
+    driver: local
+  postgres-data:
+    driver: local
+  compute-cache:
+    driver: local
