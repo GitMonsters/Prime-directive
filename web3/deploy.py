@@ -13,6 +13,7 @@ import os
 import sys
 import json
 import subprocess
+from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 
@@ -110,7 +111,7 @@ class Web3Deployer:
         deployment_info = {
             'network': self.network,
             'contracts': self.deployed_contracts,
-            'timestamp': 'now'
+            'timestamp': datetime.now().isoformat()
         }
         
         with open('deployment.json', 'w') as f:

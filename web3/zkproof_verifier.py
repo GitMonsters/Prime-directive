@@ -227,7 +227,13 @@ class ZKProofVerifier:
         return results
     
     def _create_commitment(self, data: Dict[str, Any]) -> str:
-        """Create a cryptographic commitment to data"""
+        """
+        Create a cryptographic commitment to data
+        
+        Note: This is a simplified implementation for demonstration.
+        Production systems should use proper commitment schemes that
+        store randomness for opening the commitment later.
+        """
         # Add randomness for hiding
         randomness = secrets.token_hex(32)
         
@@ -235,6 +241,9 @@ class ZKProofVerifier:
             'data_hash': self._hash_data(data),
             'randomness': randomness
         }
+        
+        # In production, store randomness for commitment opening
+        # self.commitments[commitment_hash] = randomness
         
         return self._hash_data(commitment_data)
     

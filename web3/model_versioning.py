@@ -6,7 +6,6 @@ NFTs for each major version, and Merkle proofs for integrity.
 """
 
 from typing import Dict, Any, List, Optional
-import hashlib
 import json
 from datetime import datetime
 from web3 import Web3

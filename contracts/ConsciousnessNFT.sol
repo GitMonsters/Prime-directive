@@ -45,7 +45,11 @@ contract ConsciousnessNFT is ERC721, ERC721URIStorage, Ownable {
         string memory stateType,
         uint256 benchmarkScore
     ) external returns (uint256) {
-        require(ipfsHashToTokenId[ipfsHash] == 0, "State already minted");
+        // Check if this IPFS hash was already minted (0 means not minted)
+        require(
+            ipfsHashToTokenId[ipfsHash] == 0 || bytes(states[ipfsHashToTokenId[ipfsHash]].ipfsHash).length == 0,
+            "State already minted"
+        );
         
         uint256 tokenId = _tokenIdCounter++;
         

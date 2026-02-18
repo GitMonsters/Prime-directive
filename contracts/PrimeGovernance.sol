@@ -108,8 +108,12 @@ contract PrimeGovernance is AccessControl {
         
         emit VoteCast(proposalId, msg.sender, support, votingWeight);
         
-        // Reward governance participation
-        primeToken.rewardGovernance(msg.sender);
+        // Reward governance participation (with safe external call)
+        try primeToken.rewardGovernance(msg.sender) {
+            // Reward successful
+        } catch {
+            // Reward failed but vote still counts
+        }
     }
     
     /**
