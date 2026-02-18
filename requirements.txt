@@ -4,9 +4,9 @@ ipfshttpclient==0.8.0
 py-solc-x==2.0.0
 eth-brownie==1.19.0
 
-# Cryptography and Zero-Knowledge Proofs
-cryptography==41.0.7
-pycryptodome==3.19.0
+# Cryptography and Zero-Knowledge Proofs (UPDATED FOR SECURITY)
+cryptography==46.0.5  # Updated from 41.0.7 - fixes CVE vulnerabilities
+pycryptodome==3.19.1  # Updated from 3.19.0 - fixes side-channel leakage
 
 # Additional utilities
 requests==2.31.0
